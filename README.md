@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dish app infrastructure
 
-## Getting Started
+This Next.js app uses Bun, Drizzle with Neon Postgres, Upstash Redis over TLS, and Cloudflare R2 through its S3 API. Infrastructure clients are server-only modules.
 
-First, run the development server:
+The `dev`, `build`, and `start` scripts run the Next.js CLI with Bun's runtime. Without `--bun`, Bun follows Next.js's Node.js shebang, so the app and the standalone `db:test` check would use different network runtimes.
+
+## Environment
+
+Copy `.env.example` to `.env` and replace the placeholders. Next.js loads `.env` automatically. Do not commit credentials.
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Neon Postgres connection string for Drizzle and Drizzle Kit. |
+| `REDIS_URL` | Upstash TLS Redis connection string beginning with `rediss://`. |
+| `R2_ACCOUNT_ID` | Cloudflare account ID. |
+| `S3_API` | R2 S3 endpoint, optionally followed by `/<bucket>`. |
+| `R2_BUCKET_NAME` | Bucket name if `S3_API` has no bucket path; overrides the path when set. |
+| `R2_ACCESS_KEY_ID` | R2 S3 API access key ID. |
+| `R2_SECRET_ACCESS_KEY` | R2 S3 API secret access key. |
+| `LOG_LEVEL` | Optional server log level: `fatal`, `error`, `warn`, `info`, `debug`, or `trace` (default: `info`). |
+
+`S3_API` must use `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com`. Create a bucket-scoped R2 S3 API token with the permissions your application needs, then add its access key ID and secret access key. The endpoint and account ID alone cannot authenticate S3 requests.
+
+## Server-side clients
+
+Import `db` from `@/drizzle/src`, `redis` from `@/lib/redis`, and `r2` with `r2Bucket` from `@/lib/r2` in server code. Redis connects on the first command. The R2 client uses path-style bucket requests and the configured S3 API credentials.
+
+## Database migrations
+
+Define tables in `drizzle/src/db/schema.ts`. Then run:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun run db:generate
+bun run db:migrate
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The schema is currently empty because no application data model has been specified. Do not run migrations until tables have been defined and reviewed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Logging and startup checks
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The server emits structured JSON logs. At startup it checks Neon with `select 1`, Upstash Redis with `PING`, and R2 with `HeadBucket`. Each service gets a `ready` or `unavailable` log with its check duration. Checks run independently and time out after five seconds; an unavailable service does not prevent the server from starting. Server request errors are logged through Next.js instrumentation. Uncaught process exceptions are logged without suppressing the runtime's normal exit behavior.
 
-## Learn More
+Startup error logs include the error and nested causes, with codes, statuses, and redacted messages where available. Request error logs omit messages and payloads. Credentials are redacted from logged error messages.
 
-To learn more about Next.js, take a look at the following resources:
+## Checks
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+bunx tsc --noEmit
+bun run lint
+bun run db:check
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run `bun run db:test` to issue a read-only query against the configured Neon database. This requires network access and a valid `DATABASE_URL`.
