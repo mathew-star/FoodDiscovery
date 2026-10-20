@@ -5,7 +5,7 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 | Phase | Status | Closing PR |
 | --- | --- | --- |
 | P0 Foundations | Done | branch `claude/food-discovery-audit-7wepur` |
-| P1 Catalogue | Not started | — |
+| P1 Catalogue | In progress | — |
 | P2 Search and Discover | Not started | — |
 | P3 Accounts and ratings | Not started | — |
 | P4 Posts, comments, communities | Not started | — |
@@ -40,12 +40,21 @@ Notes for later phases:
 
 ## P1 Catalogue
 
-- [ ] Schema + extensions + migrations
-- [ ] Seed tooling; 3 localities seeded
-- [ ] Admin entity CRUD + dish merge (E3-5)
-- [ ] Branch, branch-dish, city-dish, cuisine, area pages
-- [ ] OG images, JSON-LD, sitemap, canonical URLs
-- [ ] Exit criteria met
+- [x] Landing page at `/` (D17)
+- [x] Schema + extensions (`postgis`, `pg_trgm`, `unaccent`) + migrations: geo, places, facts, dishes, `ranking_config`
+- [x] `DATABASE_DRIVER` switch for local/CI Postgres (D18); CI runs migrate + seed on a PostGIS service
+- [x] Sample seed: 5 localities (3 launch), 12 fictional brands, 17 branches, 100 dishes, 24 canonical dishes (D19)
+- [x] Scoring (§6.1 dish score, §6.2 food score), What to order here (§6.3), opening hours with overnight/split shifts — unit tested
+- [x] Branch page (E2-1, E2-2, E2-3, E2-4, E2-6, E2-7), branch dish page (E3-1), city dish ranking with area/price/open-now filters (E3-2), area page (E4-6), cuisine page
+- [x] Discover home: popular dishes by category and explore areas (partial E4-4)
+- [x] JSON-LD (Restaurant, BreadcrumbList, ItemList), OG images per branch, branch dish and city dish (E12-1, E12-2), DB-backed sitemap
+- [ ] Minimal `/admin` entity CRUD + canonical dish/alias merge (E3-5)
+- [ ] Static map + MapLibre on expand (E2-8; needs tile provider decision D11)
+- [ ] Exit: OG verified in WhatsApp debugger on a deployed URL
+
+Verified: typecheck, lint, format, 170 unit + integration tests, build (160+ prerendered catalogue pages), 56 Playwright tests incl. axe light/dark on catalogue pages.
+
+Deferred by design: photo strip and photos grid (P4 media), posts tabs (E2-5, P4), Save/Rate actions (P2/P3), "Still true?" (P5), distance from user (P2 location).
 
 ## P2 Search and Discover
 

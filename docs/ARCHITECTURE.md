@@ -23,12 +23,19 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D13 | `/privacy`, `/terms`, `/grievance` ship in P6 with reviewed legal copy and the grievance officer's details; P0 ships `/about` and `/guidelines` | Spec §3.2 static pages, E14-6 | Legal text and officer identity must come from the business, not be drafted by engineering |
 | D14 | `proxy.ts` returns a real 404 for any first path segment that is not a known city or top-level route | Spec silent | `[city]` is a top-level dynamic segment; without the guard a first hit on an unknown slug streams a 200 soft-404 and is cached |
 | D15 | Active state in the bottom nav is read after hydration | — | `usePathname()` under a fallback `[city]` param blocks the static shell; the nav renders without `aria-current` in the shell and updates on hydrate |
+| D17 | `/` is a marketing landing page (static) that leads into `/hyderabad`; it no longer redirects | Spec §3.2 `/` redirect | Product request; first-time visitors need the pitch, deep links still land on entity pages |
+| D18 | `DATABASE_DRIVER=pg` switches Drizzle to node-postgres for local and CI databases; default `neon` uses Neon HTTP for reads and the Neon Pool for transactions | D8 | Same schema and queries everywhere; Neon drivers cannot talk to a plain Postgres |
+| D19 | Sample catalogue (`db/seed/`) uses fictional brands, real locality names, no phone numbers, and writes dish/branch aggregates directly from simulated ratings using the real §6.1/6.2 formulas. From P3 the seed creates sample ratings and the recompute job owns aggregates | Spec §13 seeding | Realistic pages before ratings exist, without inventing facts about real businesses |
+| D20 | Features may contain `lib/` for pure, client-safe domain logic (opening hours, scoring, JSON-LD builders) | §2 layout | Keeps rules testable and shareable between queries, jobs and components |
+| D21 | Open/closed status renders as a request-time hole (`connection()` inside `<Suspense>`) on otherwise static pages | Spec "Answer first" | Cached HTML must never show a stale open state |
+| D22 | Catalogue routes prerender from `generateStaticParams` at build, so `next build` needs a migrated, seeded database (CI uses a PostGIS service; Vercel uses Neon) | — | Static shells for every public entity page; unknown slugs get the not-found UI with a 200 and `noindex` on first hit (framework behaviour under Cache Components) |
 | D16 | Only `en` messages exist; `te`/`hi` catalogs are added when translations are ready, through the same `t()` helper | Spec "Telugu/Hindi-ready" | i18n keys from day one without shipping empty catalogs |
 
 ## 2. Repository layout
 
 ```
 app/                         routes only
+  (marketing)/page.tsx                          / landing (D17)
   (public)/[city]/page.tsx                      /hyderabad
   (public)/[city]/search/page.tsx
   (public)/[city]/area/[locality]/page.tsx
@@ -55,10 +62,11 @@ features/<domain>/
   schemas/      zod
   hooks/        client hooks
   jobs/         Inngest functions
-shared/ui/      design-system primitives
-shared/lib/     cn, result, time; later geo, slug, money, format
+  lib/          pure domain logic, safe on client and server (D20)
+shared/ui/      design-system primitives (+ og-card, json-ld, breadcrumbs)
+shared/lib/     cn, result, time, geo, slug, money, uuid
 shared/config/  site URL, theme cookie
-db/             schema/<domain>.ts  client.ts  migrations/  seed/
+db/             schema/<domain>.ts  client.ts (getDb, withTransaction)  migrations/  seed/ (sample catalogue)
 infra/          env, logger, redis, ratelimit, r2, inngest/{client,functions}.ts, email, startup
 i18n/           index.ts (typed t), messages/en.json
 proxy.ts        404 for unknown first segments (D14); later optimistic redirect for (member)/(admin) without a session cookie
@@ -166,7 +174,8 @@ Names only; values live in local `.env` and Vercel project settings, never in ch
 
 | Variable | Used by |
 | --- | --- |
-| `DATABASE_URL` | Drizzle (HTTP + Pool), drizzle-kit |
+| `DATABASE_URL` | Drizzle (HTTP + Pool), drizzle-kit, seed |
+| `DATABASE_DRIVER` | `neon` (default) or `pg` for local/CI Postgres (D18) |
 | `REDIS_URL` | ioredis (`rediss://`) |
 | `R2_ACCOUNT_ID`, `S3_API`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` (optional) | R2 client |
 | `API_TOKEN` | Cloudflare API token; not read by app code |
@@ -185,7 +194,7 @@ Names only; values live in local `.env` and Vercel project settings, never in ch
 ## 11. Testing and CI
 
 - Unit: Vitest, beside code (`*.test.ts`) — scores, hot/Wilson, consensus, trust, limits, slugs, schemas.
-- Integration: Vitest against a `postgis/postgis` container (CI service) with migrations applied; repos and services only.
+- Integration: `tests/integration/*.test.ts`, Vitest against a migrated and seeded Postgres (`DATABASE_DRIVER=pg`); skipped when no database is configured.
 - Jobs: `@inngest/test`.
 - E2E: Playwright on `next build && next start` with seeded DB; `@axe-core/playwright` on every page visited.
-- CI (`.github/workflows/ci.yml`, Phase 0): `bun install --frozen-lockfile` → `next typegen` → `tsc --noEmit` → lint → unit → integration → build → e2e.
+- CI (`.github/workflows/ci.yml`): `postgis/postgis:16-3.4` service → `bun install --frozen-lockfile` → typecheck → lint → format check → `db:migrate` → `db:check` → `db:seed` → unit + integration → build → e2e.

@@ -46,16 +46,18 @@ bun run db:generate         # SQL migration from db schema diff; review before c
 bun run db:migrate          # never against production from a laptop
 bun run db:check
 bun run db:test             # read-only connectivity check
+bun run db:seed             # sample catalogue into an empty database
+bun run db:reseed           # truncate catalogue tables and reseed (never on production)
 ```
 
-In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. Later phases add `db:seed` and `inngest:dev`; update this list when they land.
+`next build`, e2e and integration tests need a migrated, seeded database. Locally use Postgres 16 + PostGIS with `DATABASE_DRIVER=pg`. In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. `inngest:dev` lands in P3.
 
 ## Architecture rules
 
 Full detail: `docs/ARCHITECTURE.md`.
 
 - `app/` is routing only: read params, call a feature query, render a feature component, export metadata. No SQL, no business rules.
-- Features live in `features/<domain>/{components,server,queries,schemas,hooks,jobs}`.
+- Features live in `features/<domain>/{components,server,queries,schemas,hooks,jobs,lib}`; `lib/` is pure, client-safe domain logic.
   - `server/actions.ts` (`'use server'`) is the only mutation entry point from UI.
   - `server/service.ts` holds rules; `server/repo.ts` holds Drizzle. Both `import 'server-only'` and are private to the feature.
   - `queries/` are cached reads: `'use cache'` + `cacheLife(profile)` + `cacheTag('<entity>:<id>')`.

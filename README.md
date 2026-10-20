@@ -33,3 +33,15 @@ bun run build && bun run test:e2e
 ## Infrastructure
 
 Server-only clients live in `infra/` (env, logger, Redis, R2, startup checks) and `db/` (Drizzle on Neon: HTTP for reads, `withTransaction` on a Pool for writes). Set `STARTUP_CHECKS=1` to log Neon, Redis and R2 readiness at server start. Define tables in `db/schema/`, then `bun run db:generate` and review the SQL before `bun run db:migrate`.
+
+## Local database
+
+```bash
+# Postgres 16 with PostGIS, then in .env:
+# DATABASE_URL=postgres://postgres:postgres@localhost:5432/fdn_dev
+# DATABASE_DRIVER=pg
+bun run db:migrate
+bun run db:seed        # fictional sample catalogue; db:reseed to start over
+```
+
+`next build` prerenders every catalogue page, so it needs a migrated and seeded database.
