@@ -1,0 +1,104 @@
+{
+  "app": {
+    "name": "FDN",
+    "fullName": "Food Discovery Network",
+    "tagline": "Find the best dishes in {city}, trusted by people who ate them.",
+    "description": "Discover the best dishes and restaurants in Hyderabad. Honest dish ratings, local questions and food communities."
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "primaryNav": "Primary",
+    "home": "FDN home"
+  },
+  "nav": {
+    "discover": "Discover",
+    "search": "Search",
+    "post": "Post",
+    "communities": "Communities",
+    "battles": "Battles",
+    "you": "You"
+  },
+  "city": {
+    "label": "City",
+    "current": "Current city: {city}",
+    "hyderabad": "Hyderabad",
+    "onlyCity": "More cities are coming. FDN starts in Hyderabad."
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "search": {
+    "label": "Search dishes, restaurants or areas",
+    "placeholder": "Try “haleem” or “Irani chai”",
+    "submit": "Search"
+  },
+  "chips": {
+    "label": "Quick filters",
+    "openNow": "Open now",
+    "under300": "Under ₹300",
+    "lateNight": "Late night",
+    "veg": "Veg",
+    "biryani": "Biryani",
+    "breakfast": "Breakfast",
+    "dateNight": "Date night",
+    "family": "Family"
+  },
+  "discover": {
+    "title": "What should you eat today?",
+    "subtitle": "Ranked by people who ate it, not by who paid."
+  },
+  "footer": {
+    "about": "About",
+    "guidelines": "Community guidelines",
+    "noPayToRank": "Nothing paid can change a ranking. Ever.",
+    "copyright": "© {year} FDN"
+  },
+  "about": {
+    "title": "About FDN",
+    "metaDescription": "FDN helps you decide what to eat in Hyderabad: dish-first rankings, living restaurant facts and honest community opinions.",
+    "intro": "FDN is a food discovery network for Hyderabad. It answers one question fast: what should I eat, and where?",
+    "dishFirstTitle": "Dish first",
+    "dishFirstBody": "Restaurants are ranked by their dishes. Every restaurant page leads with what to order there, and every dish page ranks every place in the city that serves it.",
+    "factsTitle": "Facts you can check",
+    "factsBody": "Opening hours, prices and phone numbers show when they were last confirmed. Anyone signed in can tap “Still true?” to keep them current.",
+    "honestTitle": "Honest by design",
+    "honestBody": "Ratings are weighted by trust, sponsored or hosted meals are labelled and never counted, and nothing paid can change a ranking, a dish score or a battle.",
+    "guestTitle": "Useful without an account",
+    "guestBody": "You can browse, search, get directions and share without signing up. An account is only needed to rate, post, comment or vote."
+  },
+  "guidelines": {
+    "title": "Community guidelines",
+    "metaDescription": "How FDN ratings work, what to disclose, what we remove and how to appeal.",
+    "intro": "FDN only works if people can trust what they read. These rules apply to every rating, post, comment, photo and fact.",
+    "beHonestTitle": "Rate what you ate",
+    "beHonestBody": "Rate dishes you actually tried. Loved, Good, Okay and Skip describe the dish, not the restaurant’s staff or your mood that day.",
+    "discloseTitle": "Disclose every connection",
+    "discloseBody": "If the meal was free, paid for, or you work at or own the place, choose the matching disclosure. Disclosed posts stay visible with a tag, and their ratings are never counted in scores.",
+    "scoresTitle": "How scores work",
+    "scoresBody": "Each rating is weighted by the member’s trust level and how recent it is. Scores are pulled toward the city average until enough ratings exist, and a score is shown only after at least three weighted ratings.",
+    "removeTitle": "What we remove",
+    "removeItems": "Spam and undisclosed promotion · Harassment, hate or threats · Sexual or violent content · Personal data such as private phone numbers or home addresses · Photos unrelated to food or restaurants · Fake or coordinated ratings",
+    "enforcementTitle": "Enforcement",
+    "enforcementBody": "Moderators can remove content, lock threads, warn, suspend or ban. Three strikes in 90 days lead to an automatic 7-day suspension. Every action is recorded and the author is told why.",
+    "appealTitle": "Appeals",
+    "appealBody": "You can appeal each moderation action once. Appeals are reviewed by the FDN team, not by the moderator who acted."
+  },
+  "notFound": {
+    "title": "We couldn’t find that page",
+    "body": "The link may be old or mistyped.",
+    "cta": "Back to Discover"
+  },
+  "offline": {
+    "title": "You’re offline",
+    "body": "Check your connection and try again. Pages you opened recently may still load.",
+    "retry": "Try again"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "Please try again. If it keeps happening, come back in a few minutes.",
+    "retry": "Try again"
+  }
+}
