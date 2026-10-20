@@ -1,29 +1,35 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
+import { Stamp } from './stamp';
 
 type EmptyStateProps = {
   title: string;
   body?: string;
+  stamp?: string;
   icon?: ReactNode;
   action?: ReactNode;
   className?: string;
 };
 
-export function EmptyState({ title, body, icon, action, className }: EmptyStateProps) {
+export function EmptyState({ title, body, stamp, icon, action, className }: EmptyStateProps) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center gap-3 rounded-md border border-dashed border-border-strong px-6 py-10 text-center',
+        'flex flex-col items-start gap-4 border-2 border-dashed border-rule-strong bg-raised/60 px-6 py-8',
         className,
       )}
     >
-      {icon ? (
-        <span className="text-muted [&_svg]:size-8" aria-hidden="true">
+      {stamp ? (
+        <Stamp size="lg" tilt={-6} animate className="text-danger">
+          {stamp}
+        </Stamp>
+      ) : icon ? (
+        <span className="text-ink-soft [&_svg]:size-8" aria-hidden="true">
           {icon}
         </span>
       ) : null}
-      <h2 className="font-sans text-lg font-semibold">{title}</h2>
-      {body ? <p className="max-w-prose text-muted">{body}</p> : null}
+      <h2 className="text-3xl font-bold">{title}</h2>
+      {body ? <p className="max-w-prose text-ink-soft">{body}</p> : null}
       {action}
     </div>
   );

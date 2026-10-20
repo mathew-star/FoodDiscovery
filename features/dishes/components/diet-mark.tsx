@@ -29,7 +29,7 @@ export function DietMark({ diet, showLabel = false, size = 'sm', className }: Di
         <rect x="1" y="1" width="14" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.6" />
         <Glyph diet={diet} />
       </svg>
-      {showLabel ? <span className="text-text">{label}</span> : <span className="sr-only">{label}</span>}
+      {showLabel ? <span className="text-ink">{label}</span> : <span className="sr-only">{label}</span>}
     </span>
   );
 }

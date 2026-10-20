@@ -54,21 +54,26 @@ export default async function CuisinePage({ params }: PageProps<'/[city]/cuisine
           { href: `/${city.slug}/cuisine/${cuisine.slug}`, label: cuisine.name },
         ]}
       />
-      <header className="flex max-w-3xl flex-col gap-2">
-        <h1 className="text-3xl font-semibold md:text-4xl">
+      <header className="flex max-w-4xl flex-col gap-4">
+        <p className="w-fit border-2 border-ink bg-raised px-2 py-0.5 font-mono text-2xs font-bold tracking-widest uppercase">
+          {t('cuisine.kicker')}
+        </p>
+        <h1 className="rise-in text-[clamp(3rem,9vw,6.5rem)] leading-[0.88] font-extrabold [font-stretch:72%]">
           {t('cuisine.title', { cuisine: cuisine.name, city: city.name })}
         </h1>
-        <p className="text-lg text-muted">{t('cuisine.intro', { cuisine: cuisine.name, city: city.name })}</p>
+        <p className="max-w-2xl text-lg text-ink-soft">
+          {t('cuisine.intro', { cuisine: cuisine.name, city: city.name })}
+        </p>
       </header>
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid gap-12 lg:grid-cols-2">
         <section aria-labelledby="cuisine-dishes" className="flex flex-col gap-4">
-          <h2 id="cuisine-dishes" className="text-2xl font-semibold">
+          <h2 id="cuisine-dishes" className="text-5xl font-extrabold">
             {t('cuisine.topDishes', { cuisine: cuisine.name })}
           </h2>
           {dishes.length === 0 ? (
             <EmptyState title={t('area.empty')} />
           ) : (
-            <ol className="flex flex-col gap-3">
+            <ol className="flex flex-col gap-4">
               {dishes.map((dish, index) => (
                 <li key={dish.id}>
                   <PlacedDishRow
@@ -82,13 +87,13 @@ export default async function CuisinePage({ params }: PageProps<'/[city]/cuisine
           )}
         </section>
         <section aria-labelledby="cuisine-places" className="flex flex-col gap-4">
-          <h2 id="cuisine-places" className="text-2xl font-semibold">
+          <h2 id="cuisine-places" className="text-5xl font-extrabold">
             {t('cuisine.topPlaces', { cuisine: cuisine.name })}
           </h2>
           {branches.length === 0 ? (
             <EmptyState title={t('area.empty')} />
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {branches.map((branch) => (
                 <li key={branch.id}>
                   <BranchCard branch={branch} timezone={city.timezone} />

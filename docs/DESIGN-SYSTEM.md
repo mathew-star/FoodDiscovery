@@ -1,123 +1,141 @@
-# Design system — "Ghee & Saffron"
+# Design system — Token & Stamp
 
-Warm, appetising, trustworthy. Cream neutrals, a saffron primary and a cardamom-teal accent for trust signals (verified facts, founding badges). No red-pink primary; this is not a delivery app. Information first, decoration second.
+FDN looks like the counter of a busy Hyderabad eatery: kitchen order tickets (KOT) on newsprint, carbon-ink type, a haldi highlighter, the "now serving" token board, the house rules painted on an Irani café wall, and rubber stamps. Every screen uses the same objects, so a screenshot is recognisable without the logo.
 
-## 1. Tokens
+## 1. Brief
 
-Defined as CSS variables in `app/globals.css` on `:root` (light) and `[data-theme="dark"]` (plus `prefers-color-scheme` when no explicit theme), exposed to Tailwind through `@theme inline`. Components use token classes only (`bg-surface`, `text-muted`, `border-default`); no raw hex.
+| | |
+| --- | --- |
+| Product & user | A guest on a mid-range Android, often outdoors or late at night, deciding what to eat in under 30 seconds. A member rating a dish in under 20 seconds. |
+| Emotional target | **Hungry-urgent** (big, fast, decisive), **street-honest** (local, plain-spoken, a bit cheeky), **stamped-trustworthy** (facts carry a timestamp, opinions carry ink). |
+| Concept | *The counter.* Dishes are tickets, facts are receipts, ratings are stamps, live information is the token board, rules are painted on the wall. |
+| Signature element | **The stamp.** Double-ruled, slightly rotated, ink-distressed. It thumps in once on first paint. Used for ratings (Loved/Good/Okay/Skip), the food verdict, "Checked" on the facts receipt, "Top pick" and "Known for", 404 ("Not on the menu"), offline ("Closed"), error ("Spilled"), the logo, OG cards. |
+| Anti-references | No delivery-app red/orange with rounded image cards. No purple-gradient SaaS hero with three feature cards. No five-star widgets or soft drop-shadow card grids. |
+
+## 2. Tokens
+
+All colours live in `app/globals.css` as CSS variables on `:root` (day counter) and `[data-theme='dark']` (night counter, also used for system dark), exposed to Tailwind through `@theme inline`. Components use token classes only (`bg-paper`, `text-ink`, `bg-haldi`, `border-ink`); hex appears only in `globals.css` and the OG image renderer, which cannot read CSS variables. `shared/ui/tokens.test.ts` fails the build if any text pair drops below 4.5:1 or `rule-strong` below 3:1, and if the system-dark and explicit-dark blocks drift apart.
 
 ### Colour
 
-Ratios are WCAG 2.2 contrast against `bg` (and `surface`). Text tokens ≥ 4.5:1, non-text UI ≥ 3:1.
-
-| Token | Light | Dark | Ratio L / D |
+| Token | Day | Night | Role |
 | --- | --- | --- | --- |
-| `--bg` | `#FBF7F1` | `#16110C` | — |
-| `--surface` | `#FFFFFF` | `#211912` | — |
-| `--surface-2` | `#F4ECE1` | `#2C231A` | — |
-| `--text` | `#2A1D12` | `#F6EEE3` | 15.3 / 16.3 |
-| `--text-muted` | `#6A5644` | `#BCAA95` | 6.5 / 8.3 |
-| `--border` | `#E4D8C8` | `#3D3226` | decorative only |
-| `--border-strong` (inputs, focus-adjacent) | `#8F7E6B` | `#80705E` | ≥ 3.3 on bg, surface, surface-2 |
-| `--primary` | `#B4410F` | `#F2914F` | 5.3 / 8.0 |
-| `--on-primary` | `#FFFFFF` | `#16110C` | 5.7 / 8.0 on primary |
-| `--accent` | `#1F6F6B` | `#5FC4BC` | 5.6 / 9.0 |
-| `--danger` | `#B42318` | `#F97066` | 6.2 / 6.7 |
-| `--focus-ring` | `#B4410F` | `#F2914F` | 2 px ring, 2 px offset |
-| `--diet-veg` | `#1D7A3E` | `#5CC27F` | 5.0 / 8.5 |
-| `--diet-nonveg` | `#8A3A10` | `#E58E5E` | 7.3 / 7.5 |
-| `--diet-egg` | `#8A5A00` | `#E2B54A` | 5.6 / 9.8 |
-| `--rate-loved` | `#B4262D` | `#F2777C` | 6.0 / 6.9 |
-| `--rate-good` | `#2F6A3A` | `#7BC98A` | 6.1 / 9.4 |
-| `--rate-okay` | `#7A5A12` | `#D9B45A` | 6.0 / 9.5 |
-| `--rate-skip` | `#55565C` | `#A9ABB2` | 6.9 / 8.2 |
+| `--paper` | `#F4EEE1` | `#111220` | page (newsprint / night ink) |
+| `--paper-raised` | `#FFFCF5` | `#1B1C2E` | tickets, receipts |
+| `--paper-sunk` | `#E8DFCB` | `#0A0B15` | bands, tiles |
+| `--ink` | `#1A1C2E` | `#F3ECDD` | text, borders, primary buttons |
+| `--ink-soft` | `#55516A` | `#B9B1A1` | secondary text |
+| `--rule` / `--rule-strong` | `#D9CFB9` / `#7F745E` | `#2E2F44` / `#6F6B84` | decorative rules / dashed rules (≥ 3:1) |
+| `--haldi` | `#F2B300` | `#FFC21A` | the one accent: highlighter, selected chips, Directions, rank 01 |
+| `--live` | `#0E6B60` | `#4FD1C0` | open now, checked facts |
+| `--danger` | `#A3241A` | `#FF8A7A` | stale facts, errors |
+| `--rate-loved/good/okay/skip` | `#B0102C` `#2C6A2E` `#83560A` `#4F4F5D` | `#FF8A97` `#86D38F` `#E9BC5E` `#B8B8C6` | stamp inks |
+| `--diet-veg/egg/nonveg` | `#18692D` `#7E5A00` `#7A3410` | `#62CF7E` `#E8C155` `#EC9A70` | FSSAI marks |
 
-Tinted backgrounds (`--rate-*-soft`, `--diet-*-soft`, `--primary-soft`) are the base hue at 10 % (light) / 18 % (dark) over `surface`, and always carry text in the full-strength token. A Vitest test parses `globals.css` and fails if any text pair drops below 4.5:1 or non-text pair below 3:1.
-
-### Never colour alone
-
-| Meaning | Glyph | Label | Extra cue |
-| --- | --- | --- | --- |
-| Loved | filled heart | "Loved" | — |
-| Good | thumbs-up | "Good" | — |
-| Okay | horizontal bar in circle | "Okay" | — |
-| Skip | crossed circle | "Skip" | — |
-| Veg | square outline + filled circle | "Veg" (visible or `sr-only`) | FSSAI shape |
-| Non-veg | square outline + filled triangle | "Non-veg" | FSSAI shape |
-| Egg | square outline + filled oval | "Egg" | — |
-| Jain-friendly | none | text badge "Jain" | — |
-| Open / Closed | dot + text "Open · closes 23:00" | always text | — |
-| Stale fact | clock glyph | "Confirmed 92 days ago" | muted warning style |
-
-Rating distribution bars show the label and percentage beside each bar; selected rating buttons add a check glyph and `aria-pressed`.
+Haldi is never used for text on paper; text on haldi is always `--on-haldi` (ink, 9:1). Closed is shown in `ink-soft` with a moon icon, not red: closed is not an error.
 
 ### Type
 
-| Role | Face | Fallback chain |
+| Role | Face | Why |
 | --- | --- | --- |
-| Display (h1–h3, battle titles, list titles) | Fraunces (variable, opsz, `SOFT` 50) | Noto Serif, Georgia, serif |
-| Text (UI, body, numbers) | Noto Sans (variable) | Noto Sans Telugu, Noto Sans Devanagari, system-ui, sans-serif |
+| Display | **Anek Latin** (variable `wdth`, set at 70–80 %, weights 700–800), falls back to **Anek Telugu** / **Anek Devanagari** | An Indian-foundry family that looks like hand-painted shop signs when condensed, and keeps the same voice in Telugu and Hindi |
+| Text | **Hind** (400/500/600), Telugu via **Hind Guntur** | Readable at 16 px on cheap screens, Devanagari built in |
+| Mono | **Martian Mono** | Thermal-receipt voice for facts, prices, timestamps, the token board |
 
-Loaded with `next/font/google`, `display: swap`; Telugu and Devanagari faces load only for matching unicode ranges. Telugu/Hindi headings use the text face at weight 700 (Fraunces has no Indic glyphs). Prices, percentages and counts use `font-variant-numeric: tabular-nums`.
+Scale (1.25 ratio): `2xs` 11 · `xs` 13 · `sm` 15 · `base` 16 · `lg` 20 · `xl` 25 · `2xl` 31 · `3xl` 39 · `4xl` 49 · `5xl` 61 · `6xl` 76 · `7xl` 95 px. Page titles use `clamp()` up to ~104 px with `leading-[0.88]`. Body 16 px, line-height 1.5. Mono is always uppercase with wide tracking; it never carries paragraphs.
 
-Scale (rem at 16 px): `xs` 0.75 · `sm` 0.875 · `base` 1 · `lg` 1.125 · `xl` 1.25 · `2xl` 1.5 · `3xl` 1.875 · `4xl` 2.25. Body line-height 1.5, headings 1.2. Minimum body size on mobile 16 px; minimum meta text 12 px.
+### Shape, depth, texture
 
-### Spacing, radius, elevation
+- Radius: `2px` (tickets, buttons, inputs), `5px` (stamps), `full` only for the Post button and the live dot.
+- Borders: 2 px ink on every interactive surface. Dashed rule-strong lines separate items inside a ticket.
+- Depth: hard offset "lift" shadows (`2px`, `3px`, `6px` in ink; black at night). Pressing moves the element into its shadow (`press` utility).
+- Edges: `perforate-b` (tear-off bottom), `notch-x` (KOT side notches), `leader` (dotted receipt leaders), `highlight` (haldi swipe), `grain` (3–8 % paper noise on the body).
 
-- Spacing (4 px base): `0, 1=4, 2=8, 3=12, 4=16, 5=20, 6=24, 8=32, 10=40, 12=48, 16=64`. Page gutter 16 px mobile, 24 px ≥ 768 px; content max 1200 px.
-- Radius: `xs 4` (badges) · `sm 8` (inputs, chips) · `md 12` (cards) · `lg 16` (sheets) · `xl 24` (hero media) · `full` (avatars, pills).
-- Elevation: `0` flat · `1` cards `0 1px 2px rgb(42 29 18 / .08)` · `2` popovers `0 4px 12px rgb(42 29 18 / .12)` · `3` sheets/dialogs `0 12px 32px rgb(42 29 18 / .18)`. Dark mode drops shadows and steps surface lightness (`surface` → `surface-2`) instead.
-- Touch targets ≥ 44 × 44 px; chips 36 px tall with 44 px hit area.
+### Spacing and layout
+
+4 px base. Gutter 16 px mobile, 24 px from 768 px. Content max 1240 px. Desktop entity pages are two columns (`minmax(0,1fr) 23rem`) with the receipt sticky on the right; on mobile the receipt follows What to order here.
 
 ### Motion
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `--dur-fast` | 120 ms | press, toggle, optimistic vote tick |
-| `--dur-base` | 200 ms | popover, toast, tab indicator |
-| `--dur-slow` | 320 ms | sheet, dialog |
-| `--ease-standard` | `cubic-bezier(.2,0,0,1)` | default |
-| `--ease-emphasized` | `cubic-bezier(.3,0,0,1)` | sheet enter |
+| `--dur-micro` | 140 ms | press, hover, toggles |
+| `--dur-ui` | 260 ms | fans, tabs, indicators |
+| `--dur-hero` | 820 ms | landing entrances |
+| `--motion-snap` | `cubic-bezier(.2,.9,.1,1)` | enters |
+| `--motion-out` | `cubic-bezier(.4,0,1,1)` | exits (always faster than enters) |
 
-Rules: nothing over 400 ms; no parallax, autoplay or looping animation; animate `transform`/`opacity` only; `prefers-reduced-motion: reduce` swaps movement for a 120 ms opacity fade; skeletons pulse at most once per 1.5 s and stop under reduced motion.
+| Where | How | Library |
+| --- | --- | --- |
+| Stamp thump on first paint | CSS keyframes `thump`, staggered by `--i` | CSS |
+| Page title entrance | `rise-in`, transform only (never opacity, so LCP is not delayed) | CSS |
+| Section reveals on landing | `reveal`: scroll-driven `animation-timeline: view()`; content is visible where unsupported | CSS |
+| Bottom-nav active bar | shared `layoutId` spring | Motion |
+| City ranking filters | `LayoutGroup` + `AnimatePresence`: rows re-rank with springs, rank numbers roll | Motion |
+| Stamp-it-yourself demo | spring stamp from 2.4× with rotation, `whileTap` on buttons | Motion |
+| Magnetic CTAs (mouse only) | `useSpring` on pointer offset | Motion |
+| Hand-drawn scribble around "order" | SVG `createDrawable` path draw | anime.js |
+| Loved % counter on dish pages | numeric roll to value | anime.js |
+| Token board | 38 s CSS marquee, pauses on hover/focus | CSS |
+
+Rules: animate `transform`/`opacity` only; Motion runs through `LazyMotion` (`domAnimation`, strict) under `MotionConfig reducedMotion="user"`; anime.js islands check `prefers-reduced-motion` and leave the final state; a global reduced-motion rule collapses CSS animation to 1 ms. Motion never hides decision information before hydration.
 
 ### Iconography
 
-Lucide, stroke 1.75, sizes 16/20/24, `currentColor`, `aria-hidden` unless standalone (then `aria-label`). Custom SVG components in `shared/ui/icons/` for diet marks and rating glyphs. No emoji as UI.
+Lucide only, stroke 1.8–2.5, `aria-hidden` unless standalone (then `aria-label`). Diet marks are custom FSSAI-style SVGs. No emoji in UI.
 
-## 2. Components
+## 3. Components
 
 ### Primitives (`shared/ui`)
 
-Button (primary, secondary, ghost, danger; sm/md/lg; loading), IconButton, Link, Input, Textarea (counter), Select, Combobox, Checkbox, SegmentedControl, Switch, Chip (toggle, removable), Badge, Avatar, Card, Sheet (bottom on mobile, side on desktop), Dialog, Popover, Tooltip, Tabs, Toast, Skeleton, EmptyState, VisuallyHidden, InfiniteList, Divider. Built on Base UI for focus management and ARIA; styled with `cva`.
+| Component | Notes |
+| --- | --- |
+| `Stamp` | the signature; `size` xs–xl, `tilt`, `animate`, `index` for stagger |
+| `Ticket`, `TicketRule` | `plain`, `notched`, `perforated`, `receipt` edges |
+| `TokenBoard` | ink strip, haldi "Now serving" label, marquee with a non-duplicated accessible list |
+| `Button` / `IconButton` | `primary` (ink), `haldi`, `secondary` (paper), `ghost`; display face, uppercase |
+| `ChipButton` / `ChipLink` | square tags with lift; selected = haldi |
+| `Badge` | mono outlined tag |
+| `EmptyState` | dashed slip with an optional stamp |
+| `CountUp` | anime.js number roll |
+| `MotionRoot` | LazyMotion + reduced-motion config |
+| `Input`, `Textarea`, `Dialog` (sheet), `Tooltip`, `Tabs`, `Checkbox`, `Switch`, `SegmentedControl`, `Skeleton`, `Avatar`, `Breadcrumbs`, `JsonLd`, `og-card` | restyled to tokens |
 
-### Domain components (in their feature)
+### Domain
 
 | Component | Feature | Notes |
 | --- | --- | --- |
-| `RatingPicker`, `RatingBadge`, `RatingDistribution`, `ScoreBadge` | ratings | ScoreBadge shows "New · N ratings" below threshold; info tooltip explains score |
-| `DietMark` | dishes | shapes above; `size` sm/md |
-| `DishCard`, `BranchDishRow`, `LeaderboardRow` | dishes | rank arrows vs last week |
-| `BranchCard`, `BranchHeader`, `ActionRow`, `OpenStatus`, `DistanceLabel`, `PriceBand`, `MapStatic` | places | ActionRow: Directions, Call, Save, Share, Rate |
-| `FactsCard`, `FactRow`, `StillTrueSheet` | facts | |
-| `PostCard`, `PostComposer`, `DisclosureTag`, `OnSiteMark`, `EmbedLite` | posts | |
-| `CommentThread`, `CommentComposer`, `VoteBar` | comments, votes | optimistic, `aria-pressed` |
-| `CommunityCard`, `CommunityHeader`, `JoinButton` | communities | |
-| `BattleCard`, `BattleVote`, `BattleResult` | battles | share hidden until voted |
-| `SaveButton`, `ListCard`, `ListMap` | saves | guest save toast |
-| `SearchTypeahead`, `ContextChips`, `FilterSheet`, `NoResults` | search | |
-| `TopBar`, `BottomNav`, `CitySwitcher`, `LocationBanner` | discover (shell) | |
-| `AuthSheet`, `OnboardingForm` | auth, profile | reason line ("Sign in to rate this dish") |
-| `PhotoUploader`, `PlacePicker` | media, places | per-photo progress |
-| `TrustBadge`, `FoundingBadge` | profile | |
-| `ReportSheet` | moderation | |
+| `RatingBadge` | ratings | sentiment stamp: icon + word + ink colour + per-sentiment tilt |
+| `ScoreBadge` | ratings | big condensed "92% loved" + mono count; below threshold a dashed "New · N ratings" tag |
+| `RatingDistribution` | ratings | four labelled ink bars that grow on paint |
+| `FoodScore` | ratings | mono label + verdict stamp (Great/Good/Mixed/Poor) + info tooltip |
+| `DishTile` | dishes | typographic tile (dish initials) in haldi/ink/sunk/loved; stands in until photos exist |
+| `DishRow` | dishes | `feature` = ranked KOT ticket; `compact` = menu line with dotted leader |
+| `PlacedDishRow` | dishes | token-numbered ranking row; rank 01 is haldi |
+| `CityDishBoard` | dishes | client filters (area, price, open now) with animated re-ranking and URL sync |
+| `BranchHeader`, `ActionRow`, `OpenStatus`, `PriceBand`, `BranchCard`, `FactsCard` | places | sign-board title, status strip, haldi Directions, live dot, receipt facts, notched cards |
+| `Shelf`, `AreaBoard`, `DiscoverIntro` | discover | category rails of tear-off tickets, route board of areas |
+| `KotStack`, `ShuffleReceipt`, `HowStrip`, `StampDemo`, `HouseRules`, `MenuBoard`, `NoticeBoard`, `FinalTicket` | landing | the counter, itemised |
+| `Logo`, `TopBar`, `BottomNav`, `CitySwitcher`, `SiteFooter` | shell | stamp logo, haldi city tag, haldi Post button, receipt footer ("Thank you · Visit again") |
 
-## 3. Accessibility rules
+## 4. Never colour alone
 
-- WCAG 2.2 AA. Visible focus ring on every interactive element. Skip link to main.
-- One `h1` per page; landmarks `header`, `nav`, `main`, `footer`.
-- Sheets/dialogs trap focus, close on Esc, return focus to trigger.
-- Live regions for toasts, optimistic vote counts and upload progress.
-- Images: `alt` from dish + branch names when the author leaves it blank; decorative images `alt=""`.
-- Form errors linked with `aria-describedby`; never colour-only error state.
-- Language: `lang` on `<html>`; Telugu/Hindi strings wrapped with matching `lang` when mixed.
+| Meaning | Cue besides colour |
+| --- | --- |
+| Loved / Good / Okay / Skip | heart / thumbs-up / minus / ban icon + the word, always |
+| Veg / Egg / Non-veg | FSSAI square with circle / oval / triangle + label (visible or `sr-only`) |
+| Open / Closed | "Open · closes 23:30" with a live dot vs "Closed · opens 11:30" with a moon icon |
+| Stale fact | alert icon + "May be out of date" |
+| Selected chip / filter | `aria-pressed` + haldi fill + ink border |
+| Rank 01 | the number itself; haldi is extra |
+
+## 5. Accessibility
+
+WCAG 2.2 AA: 4.5:1 text and 3:1 non-text, enforced by test. Focus is a 3 px haldi outline with a 5 px ink halo, visible on paper and night. Touch targets are at least 44 px (chips get an invisible hit-area extension). Every interactive ticket uses one stretched link; secondary actions in a ticket sit above it with `z-10`. Marquees have a static accessible list. Live regions announce filter result counts and stamp-demo choices. axe runs in light and dark on every public page in e2e.
+
+## 6. Rationale
+
+- **Why the counter metaphor:** the product's promise is "know what to order". Tickets, receipts and stamps are the physical objects of ordering, so the metaphor explains the product as well as styling it. It also separates facts from opinions visually: receipts in mono with timestamps for facts, stamps in ink for opinions.
+- **Why haldi and ink:** every delivery app owns red or orange. Turmeric is local and appetising, and on ink it is loud enough to mean "do this now" (Directions, rank 01, selected filters).
+- **Why Anek condensed:** big dish names and rank numbers fit 375 px screens without truncation, and the family carries the same voice into Telugu and Devanagari.
+- **Why mostly CSS motion:** the "fast on a cheap phone" budget. Motion and anime.js load only in the islands that need physics or path drawing.

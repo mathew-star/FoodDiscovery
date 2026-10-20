@@ -31,10 +31,9 @@ function contrast(a: string, b: string): number {
 }
 
 const textTokens = [
-  'text',
-  'text-muted',
-  'primary',
-  'accent',
+  'ink',
+  'ink-soft',
+  'live',
   'danger',
   'diet-veg',
   'diet-nonveg',
@@ -44,7 +43,7 @@ const textTokens = [
   'rate-okay',
   'rate-skip',
 ];
-const backgrounds = ['bg', 'surface', 'surface-2'];
+const backgrounds = ['paper', 'paper-raised', 'paper-sunk'];
 
 const themes = {
   light: block(':root'),
@@ -65,12 +64,13 @@ describe.each(Object.entries(themes))('%s theme', (_, tokens) => {
     },
   );
 
-  it('on-primary text meets 4.5:1 on primary', () => {
-    expect(contrast(get('on-primary'), get('primary'))).toBeGreaterThanOrEqual(4.5);
+  it('ink text on haldi and paper text on ink buttons meet 4.5:1', () => {
+    expect(contrast(get('on-haldi'), get('haldi'))).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(get('on-ink'), get('ink'))).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each(backgrounds)('border-strong meets 3:1 on %s', (bg) => {
-    expect(contrast(get('border-strong'), get(bg))).toBeGreaterThanOrEqual(3);
+  it.each(backgrounds)('rule-strong meets 3:1 on %s', (bg) => {
+    expect(contrast(get('rule-strong'), get(bg))).toBeGreaterThanOrEqual(3);
   });
 });
 

@@ -7,29 +7,29 @@ import { buttonVariants } from '@/shared/ui/button';
 
 const anchors = [
   { href: '#how', labelKey: 'landing.nav.how' },
-  { href: '#features', labelKey: 'landing.nav.features' },
-  { href: '#trust', labelKey: 'landing.nav.trust' },
+  { href: '#menu', labelKey: 'landing.nav.menu' },
+  { href: '#rules', labelKey: 'landing.nav.rules' },
 ] as const;
 
 export function LandingHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-bg/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-4 md:px-6">
+    <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/95 backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-4 px-4 md:px-6">
         <Logo href="/" />
         <nav aria-label={t('a11y.primaryNav')} className="ml-6 hidden gap-1 md:flex">
           {anchors.map((anchor) => (
             <a
               key={anchor.href}
               href={anchor.href}
-              className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+              className="inline-flex h-10 items-center px-3 font-mono text-xs font-medium tracking-wide uppercase decoration-2 underline-offset-[6px] hover:underline"
             >
               {t(anchor.labelKey)}
             </a>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
-          <Link href={`/${defaultCity}`} className={buttonVariants({ size: 'sm' })}>
+          <Link href={`/${defaultCity}`} className={buttonVariants({ variant: 'primary', size: 'sm' })}>
             {t('landing.ctaPrimary')}
           </Link>
         </div>

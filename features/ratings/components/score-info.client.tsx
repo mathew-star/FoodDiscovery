@@ -9,7 +9,7 @@ export function ScoreInfo({ label, content }: { label: string; content: string }
       <button
         type="button"
         aria-label={label}
-        className="relative inline-flex size-6 items-center justify-center rounded-full text-muted before:absolute before:-inset-2.5 hover:text-text"
+        className="relative inline-flex size-6 items-center justify-center rounded-full text-ink-soft before:absolute before:-inset-2.5 hover:text-ink"
       >
         <Info aria-hidden="true" className="size-4" />
       </button>

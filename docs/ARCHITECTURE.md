@@ -29,6 +29,9 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D20 | Features may contain `lib/` for pure, client-safe domain logic (opening hours, scoring, JSON-LD builders) | §2 layout | Keeps rules testable and shareable between queries, jobs and components |
 | D21 | Open/closed status renders as a request-time hole (`connection()` inside `<Suspense>`) on otherwise static pages | Spec "Answer first" | Cached HTML must never show a stale open state |
 | D22 | Catalogue routes prerender from `generateStaticParams` at build, so `next build` needs a migrated, seeded database (CI uses a PostGIS service; Vercel uses Neon) | — | Static shells for every public entity page; unknown slugs get the not-found UI with a 200 and `noindex` on first hit (framework behaviour under Cache Components) |
+| D23 | Visual identity "Token & Stamp" replaces the first token set: Anek/Hind/Martian Mono, ink + haldi palette, stamps, tickets, receipts (`docs/DESIGN-SYSTEM.md`) | Earlier "Ghee & Saffron" tokens | Product request for a distinctive, non-template UI |
+| D24 | Motion: CSS keyframes and scroll-driven animation by default; `motion` (LazyMotion, `domAnimation`) only in client islands that need layout or spring physics; `animejs` only for SVG path drawing and number rolls | Spec silent | Keeps public pages under the 2 s budget; content stays visible without JS |
+| D25 | City dish filters run client-side over the cached ranking (area, price cap, open now) and sync the URL with `history.replaceState`; the server still parses `searchParams` for the initial state | E3-2 | Instant, animated filtering without extra requests; shareable URLs |
 | D16 | Only `en` messages exist; `te`/`hi` catalogs are added when translations are ready, through the same `t()` helper | Spec "Telugu/Hindi-ready" | i18n keys from day one without shipping empty catalogs |
 
 ## 2. Repository layout

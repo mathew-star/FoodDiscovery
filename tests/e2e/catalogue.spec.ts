@@ -37,17 +37,15 @@ test.describe('branch page', () => {
     );
     await expect(directions).toHaveAttribute('target', '_blank');
     await expect(page.getByRole('heading', { name: 'What to order here' })).toBeVisible();
-    await expect(
-      page.getByRole('heading', { name: 'What to order here' }).locator('xpath=..').getByRole('listitem'),
-    ).toHaveCount(5);
+    await expect(page.getByRole('region', { name: 'What to order here' }).getByRole('listitem')).toHaveCount(
+      5,
+    );
   });
 
-  test('shows facts with confirmation age', async ({ page, isMobile }) => {
+  test('shows facts with confirmation age', async ({ page }) => {
     await page.goto('/r/deccan-degh-house-old-city');
-    const facts = page
-      .locator(isMobile ? 'main .lg\\:hidden' : 'aside')
-      .getByRole('heading', { name: 'Facts' })
-      .locator('xpath=../..');
+    const facts = page.getByRole('region', { name: 'Facts receipt' }).filter({ visible: true });
+    await expect(facts).toHaveCount(1);
     await expect(facts.getByText('Hours', { exact: true })).toBeVisible();
     await expect(facts.getByText(/Confirmed (today|\d+ days ago)/).first()).toBeVisible();
   });
@@ -96,11 +94,18 @@ test.describe('city dish ranking', () => {
       page.getByRole('heading', { level: 1, name: 'Best Mutton Haleem in Hyderabad' }),
     ).toBeVisible();
     await expect(page.getByText('4 places')).toBeVisible();
-    await page.getByRole('combobox', { name: 'Area' }).selectOption('old-city');
-    await page.getByRole('button', { name: 'Apply' }).click();
+    await page.getByRole('group', { name: 'Filters' }).getByRole('button', { name: 'Old City' }).click();
     await expect(page).toHaveURL(/area=old-city/);
     await expect(page.getByText('2 places')).toBeVisible();
     await expect(page.getByRole('article').filter({ hasText: 'Banjara Hills' })).toHaveCount(0);
+  });
+
+  test('restores filters from the URL and clears them', async ({ page }) => {
+    await page.goto('/hyderabad/dish/mutton-haleem?area=banjara-hills');
+    await expect(page.getByText('2 places')).toBeVisible();
+    await page.getByRole('button', { name: 'Clear' }).click();
+    await expect(page.getByText('4 places')).toBeVisible();
+    await expect(page).toHaveURL(/\/hyderabad\/dish\/mutton-haleem$/);
   });
 
   test('ignores invalid filter values', async ({ page }) => {
@@ -120,10 +125,13 @@ test('area and cuisine pages list dishes and restaurants', async ({ page }) => {
 
 test('discover home links to dishes and areas', async ({ page }) => {
   await page.goto('/hyderabad');
-  await page.getByRole('link', { name: 'Mutton Haleem' }).click();
+  await page.getByRole('link', { name: 'All Mutton Haleem ranked' }).click();
   await expect(page).toHaveURL(/\/hyderabad\/dish\/mutton-haleem$/);
   await page.goto('/hyderabad');
-  await page.getByRole('link', { name: 'Old City' }).click();
+  await page
+    .getByRole('region', { name: 'Explore areas' })
+    .getByRole('link', { name: /Old City/ })
+    .click();
   await expect(page).toHaveURL(/\/hyderabad\/area\/old-city$/);
 });
 

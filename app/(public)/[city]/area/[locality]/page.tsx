@@ -53,21 +53,26 @@ export default async function AreaPage({ params }: PageProps<'/[city]/area/[loca
           { href: `/${locality.city.slug}/area/${locality.slug}`, label: locality.name },
         ]}
       />
-      <header className="flex max-w-3xl flex-col gap-2">
-        <h1 className="text-3xl font-semibold md:text-4xl">{t('area.title', { area: locality.name })}</h1>
-        <p className="text-lg text-muted">
+      <header className="flex max-w-4xl flex-col gap-4">
+        <p className="w-fit border-2 border-ink bg-raised px-2 py-0.5 font-mono text-2xs font-bold tracking-widest uppercase">
+          {t('area.kicker')}
+        </p>
+        <h1 className="rise-in text-[clamp(3rem,9vw,6.5rem)] leading-[0.88] font-extrabold [font-stretch:72%]">
+          {t('area.title', { area: locality.name })}
+        </h1>
+        <p className="max-w-2xl text-lg text-ink-soft">
           {t('area.intro', { area: locality.name, city: locality.city.name })}
         </p>
       </header>
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid gap-12 lg:grid-cols-2">
         <section aria-labelledby="area-dishes" className="flex flex-col gap-4">
-          <h2 id="area-dishes" className="text-2xl font-semibold">
+          <h2 id="area-dishes" className="text-5xl font-extrabold">
             {t('area.topDishes', { area: locality.name })}
           </h2>
           {dishes.length === 0 ? (
             <EmptyState title={t('area.empty')} />
           ) : (
-            <ol className="flex flex-col gap-3">
+            <ol className="flex flex-col gap-4">
               {dishes.map((dish, index) => (
                 <li key={dish.id}>
                   <PlacedDishRow
@@ -81,13 +86,13 @@ export default async function AreaPage({ params }: PageProps<'/[city]/area/[loca
           )}
         </section>
         <section aria-labelledby="area-places" className="flex flex-col gap-4">
-          <h2 id="area-places" className="text-2xl font-semibold">
+          <h2 id="area-places" className="text-5xl font-extrabold">
             {t('area.topPlaces', { area: locality.name })}
           </h2>
           {branches.length === 0 ? (
             <EmptyState title={t('area.empty')} />
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {branches.map((branch) => (
                 <li key={branch.id}>
                   <BranchCard branch={branch} timezone={locality.city.timezone} showLocality={false} />

@@ -40,7 +40,7 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
   const path = `/r/${branch.slug}`;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 pt-2">
       <JsonLd
         data={{
           '@graph': [
@@ -64,24 +64,30 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
           { href: path, label: branch.name },
         ]}
       />
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="flex min-w-0 flex-col gap-10">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_23rem]">
+        <div className="flex min-w-0 flex-col gap-14">
           <BranchHeader branch={branch} />
 
-          <section aria-labelledby="what-to-order" className="flex flex-col gap-4">
-            <h2 id="what-to-order" className="text-2xl font-semibold">
-              {t('place.whatToOrder')}
-            </h2>
+          <section aria-labelledby="what-to-order" className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1">
+              <p className="font-mono text-xs tracking-widest text-ink-soft uppercase">
+                {t('place.whatToOrderKicker')}
+              </p>
+              <h2 id="what-to-order" className="text-5xl font-extrabold md:text-6xl">
+                {t('place.whatToOrder')}
+              </h2>
+            </div>
             {menu.whatToOrder.length === 0 ? (
               <EmptyState title={t('place.whatToOrder')} body={t('place.whatToOrderEmpty')} />
             ) : (
-              <ol className="grid gap-3 sm:grid-cols-2">
-                {menu.whatToOrder.map(({ dish, knownFor }) => (
-                  <li key={dish.id}>
+              <ol className="grid gap-4 pt-2 sm:grid-cols-2">
+                {menu.whatToOrder.map(({ dish, knownFor }, index) => (
+                  <li key={dish.id} className={index === 0 ? 'sm:col-span-2' : undefined}>
                     <DishRow
                       dish={dish}
                       branchSlug={branch.slug}
                       knownFor={knownFor}
+                      rank={index + 1}
                       minWeightForDisplay={scoring.minWeightForDisplay}
                       variant="feature"
                     />
@@ -95,38 +101,55 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
             <FactsCard facts={branch.facts} />
           </div>
 
-          <section aria-labelledby="full-menu" className="flex flex-col gap-4">
-            <h2 id="full-menu" className="text-2xl font-semibold">
-              {t('place.fullMenu')}
-            </h2>
-            {menu.sections.map((section) => (
-              <section key={section.name} aria-label={section.name} className="flex flex-col">
-                <h3 className="border-b border-border pb-2 font-sans text-sm font-semibold tracking-wide text-muted uppercase">
-                  {section.name}
-                </h3>
-                <ul className="divide-y divide-border">
-                  {section.dishes.map((dish) => (
-                    <li key={dish.id}>
-                      <DishRow
-                        dish={dish}
-                        branchSlug={branch.slug}
-                        minWeightForDisplay={scoring.minWeightForDisplay}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+          <section
+            aria-labelledby="full-menu"
+            className="border-2 border-ink bg-raised p-5 shadow-lift md:p-8"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-4 border-double border-ink pb-3">
+              <h2 id="full-menu" className="text-5xl font-extrabold">
+                {t('place.fullMenu')}
+              </h2>
+              <p className="font-mono text-2xs tracking-widest text-ink-soft uppercase">
+                {t('place.menuKicker')}
+              </p>
+            </div>
+            <div className="mt-4 grid gap-x-10 md:grid-cols-2">
+              {menu.sections.map((section) => (
+                <section
+                  key={section.name}
+                  aria-label={section.name}
+                  className="mt-4 flex break-inside-avoid flex-col"
+                >
+                  <h3 className="font-mono text-xs font-bold tracking-[0.2em] uppercase">{section.name}</h3>
+                  <ul className="divide-y-2 divide-dashed divide-rule">
+                    {section.dishes.map((dish) => (
+                      <li key={dish.id}>
+                        <DishRow
+                          dish={dish}
+                          branchSlug={branch.slug}
+                          minWeightForDisplay={scoring.minWeightForDisplay}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
           </section>
 
-          <section aria-labelledby="nearby" className="flex flex-col gap-4">
-            <h2 id="nearby" className="text-2xl font-semibold">
-              {t('place.nearby')}
-            </h2>
+          <section aria-labelledby="nearby" className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1">
+              <p className="font-mono text-xs tracking-widest text-ink-soft uppercase">
+                {t('place.nearbyKicker')}
+              </p>
+              <h2 id="nearby" className="text-5xl font-extrabold md:text-6xl">
+                {t('place.nearby')}
+              </h2>
+            </div>
             {nearby.length === 0 ? (
-              <p className="text-muted">{t('place.nearbyEmpty')}</p>
+              <p className="text-ink-soft">{t('place.nearbyEmpty')}</p>
             ) : (
-              <ul className="grid gap-3 sm:grid-cols-2">
+              <ul className="grid gap-4 sm:grid-cols-2">
                 {nearby.map((alternative) => (
                   <li key={alternative.id}>
                     <BranchCard branch={alternative} timezone={branch.timezone} />

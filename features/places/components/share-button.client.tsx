@@ -25,7 +25,7 @@ export function ShareButton({ title, path, label, copiedLabel }: ShareButtonProp
   }
 
   return (
-    <Button variant="secondary" onClick={share} aria-live="polite">
+    <Button variant="secondary" size="lg" onClick={share} aria-live="polite">
       {copied ? <Check aria-hidden="true" /> : <Share2 aria-hidden="true" />}
       {copied ? copiedLabel : label}
     </Button>

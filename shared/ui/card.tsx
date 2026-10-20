@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
-import { cn } from '@/shared/lib/cn';
+import { Ticket } from './ticket';
 
-export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cn('rounded-md border border-border bg-surface shadow-1', className)} {...props} />;
+export function Card(props: ComponentProps<'div'>) {
+  return <Ticket edge="plain" {...props} />;
 }

@@ -3,19 +3,19 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/cn';
 
 export const buttonVariants = cva(
-  'inline-flex shrink-0 items-center justify-center gap-2 rounded-sm font-medium whitespace-nowrap transition-[background-color,border-color,color,transform] duration-(--dur-fast) ease-standard select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:size-5 [&_svg]:shrink-0',
+  'inline-flex shrink-0 items-center justify-center gap-2 rounded-tick font-display font-bold tracking-wide whitespace-nowrap uppercase [font-stretch:85%] select-none disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:size-5 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-on-primary hover:bg-primary/90',
-        secondary: 'border border-border-strong bg-surface text-text hover:bg-surface-2',
-        ghost: 'text-text hover:bg-surface-2',
-        danger: 'bg-danger text-on-primary hover:bg-danger/90',
+        primary: 'press border-2 border-ink bg-ink text-on-ink shadow-lift-sm hover:bg-ink/90',
+        haldi: 'press border-2 border-ink bg-haldi text-on-haldi shadow-lift-sm hover:brightness-105',
+        secondary: 'press border-2 border-ink bg-raised text-ink shadow-lift-sm hover:bg-sunk',
+        ghost: 'text-ink underline-offset-4 hover:underline',
       },
       size: {
-        sm: 'h-9 px-3 text-sm',
-        md: 'h-11 px-4 text-base',
-        lg: 'h-12 px-5 text-lg',
+        sm: 'h-10 px-3 text-base',
+        md: 'h-12 px-5 text-lg',
+        lg: 'h-14 px-7 text-xl',
         icon: 'size-11 p-0',
       },
     },
@@ -37,7 +37,7 @@ export function IconButton({ label, variant = 'ghost', className, ...props }: Ic
       aria-label={label}
       variant={variant}
       size="icon"
-      className={cn('rounded-full', className)}
+      className={cn(variant === 'ghost' && 'rounded-full hover:bg-sunk hover:no-underline', className)}
       {...props}
     />
   );

@@ -183,15 +183,28 @@ export async function listTopDishesForCuisine(
     .limit(limit);
 }
 
-export async function listCanonicalDishesByCategory() {
+export async function listBestBranchDishPerCanonical(cityId: string, minWeight: number) {
   return getDb()
-    .select({
-      slug: canonicalDishes.slug,
-      name: canonicalDishes.name,
+    .selectDistinctOn([branchDishes.canonicalDishId], {
+      ...placedDishFields,
+      canonicalSlug: canonicalDishes.slug,
+      canonicalName: canonicalDishes.name,
       categorySlug: dishCategories.slug,
       categoryName: dishCategories.name,
+      categorySort: dishCategories.sortOrder,
     })
-    .from(canonicalDishes)
+    .from(branchDishes)
+    .innerJoin(branches, eq(branches.id, branchDishes.branchId))
+    .innerJoin(localities, eq(localities.id, branches.localityId))
+    .innerJoin(canonicalDishes, eq(canonicalDishes.id, branchDishes.canonicalDishId))
     .innerJoin(dishCategories, eq(dishCategories.id, canonicalDishes.categoryId))
-    .orderBy(asc(dishCategories.sortOrder), asc(canonicalDishes.name));
+    .where(
+      and(
+        eq(branches.cityId, cityId),
+        eq(branches.status, 'active'),
+        eq(branchDishes.isActive, true),
+        gte(branchDishes.weightSum, minWeight),
+      ),
+    )
+    .orderBy(branchDishes.canonicalDishId, sql`${branchDishes.score} desc nulls last`);
 }

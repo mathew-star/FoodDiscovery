@@ -22,7 +22,7 @@ function initials(name: string): string {
 export function Avatar({ name, src, size = 'md', className }: AvatarProps) {
   const pixels = sizes[size];
   const frame = cn(
-    'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-2 font-semibold text-text',
+    'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-sunk font-semibold text-ink',
     className,
   );
 

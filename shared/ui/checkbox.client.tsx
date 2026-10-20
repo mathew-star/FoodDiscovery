@@ -11,7 +11,7 @@ export function Checkbox({ label, className, ...props }: CheckboxProps) {
   return (
     <label className={cn('inline-flex min-h-11 cursor-pointer items-center gap-3', className)}>
       <BaseCheckbox.Root
-        className="flex size-5 shrink-0 items-center justify-center rounded-xs border border-border-strong bg-surface text-on-primary transition-colors duration-(--dur-fast) data-checked:border-primary data-checked:bg-primary"
+        className="flex size-5 shrink-0 items-center justify-center rounded-tick border border-rule-strong bg-raised text-on-ink transition-colors duration-(--dur-micro) data-checked:border-ink data-checked:bg-ink"
         {...props}
       >
         <BaseCheckbox.Indicator>

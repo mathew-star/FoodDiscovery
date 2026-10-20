@@ -3,82 +3,124 @@ import { ImageResponse } from 'next/og';
 export const ogSize = { width: 1200, height: 630 };
 export const ogContentType = 'image/png';
 
+/* Image generation cannot read CSS variables; these mirror the day-counter tokens in app/globals.css. */
 const palette = {
-  bg: '#fbf7f1',
-  text: '#2a1d12',
-  muted: '#6a5644',
-  primary: '#b4410f',
-  onPrimary: '#ffffff',
-  soft: '#f4ece1',
+  paper: '#f4eee1',
+  raised: '#fffcf5',
+  ink: '#1a1c2e',
+  inkSoft: '#55516a',
+  haldi: '#f2b300',
+  loved: '#b0102c',
 };
+
+function StampBox({
+  color,
+  rotate,
+  fontSize,
+  children,
+}: {
+  color: string;
+  rotate: number;
+  fontSize: number;
+  children: string;
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        border: `4px solid ${color}`,
+        borderRadius: 8,
+        padding: 4,
+        transform: `rotate(${rotate}deg)`,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          border: `2px solid ${color}`,
+          borderRadius: 4,
+          padding: '4px 16px',
+          color,
+          fontSize,
+          fontWeight: 800,
+          letterSpacing: 3,
+          textTransform: 'uppercase',
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 type OgCardProps = { eyebrow: string; title: string; subtitle?: string; badge?: string; brand: string };
 
 export function renderOgCard({ eyebrow, title, subtitle, badge, brand }: OgCardProps): ImageResponse {
   return new ImageResponse(
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        background: palette.bg,
-        padding: 72,
-        color: palette.text,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 18,
-            background: palette.primary,
-            color: palette.onPrimary,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 30,
-            fontWeight: 700,
-          }}
-        >
-          {brand.slice(0, 1)}
-        </div>
-        <div style={{ fontSize: 34, fontWeight: 700 }}>{brand}</div>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div
-          style={{
-            fontSize: 30,
-            color: palette.primary,
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: 2,
-          }}
-        >
-          {eyebrow}
-        </div>
-        <div style={{ fontSize: 76, fontWeight: 700, lineHeight: 1.05 }}>{title}</div>
-        {subtitle ? <div style={{ fontSize: 36, color: palette.muted }}>{subtitle}</div> : null}
-      </div>
-      {badge ? (
-        <div style={{ display: 'flex' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', background: palette.paper, padding: 48 }}>
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          background: palette.raised,
+          border: `4px solid ${palette.ink}`,
+          boxShadow: `12px 12px 0 ${palette.ink}`,
+          padding: 56,
+          color: palette.ink,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <StampBox color={palette.ink} rotate={-6} fontSize={40}>
+            {brand}
+          </StampBox>
           <div
             style={{
-              background: palette.soft,
-              borderRadius: 999,
-              padding: '14px 28px',
-              fontSize: 32,
+              display: 'flex',
+              fontSize: 24,
+              letterSpacing: 6,
+              textTransform: 'uppercase',
+              color: palette.inkSoft,
+            }}
+          >
+            {eyebrow}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ fontSize: 84, fontWeight: 800, lineHeight: 0.95, letterSpacing: -2 }}>{title}</div>
+          {subtitle ? <div style={{ fontSize: 34, color: palette.inkSoft }}>{subtitle}</div> : null}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderTop: `4px dashed ${palette.inkSoft}`,
+            paddingTop: 24,
+          }}
+        >
+          {badge ? (
+            <StampBox color={palette.loved} rotate={-3} fontSize={36}>
+              {badge}
+            </StampBox>
+          ) : (
+            <div style={{ display: 'flex' }} />
+          )}
+          <div
+            style={{
+              display: 'flex',
+              background: palette.haldi,
+              border: `4px solid ${palette.ink}`,
+              padding: '8px 18px',
+              fontSize: 26,
               fontWeight: 700,
             }}
           >
-            {badge}
+            Hyderabad
           </div>
         </div>
-      ) : (
-        <div style={{ display: 'flex' }} />
-      )}
+      </div>
     </div>,
     ogSize,
   );

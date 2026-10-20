@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react';
+import { Clock, MoonStar } from 'lucide-react';
 import { connection } from 'next/server';
 import { Suspense } from 'react';
 import { t, type MessageKey } from '@/i18n';
@@ -15,23 +15,36 @@ const shortDays: MessageKey[] = [
   'place.daysShort.d6',
 ];
 
-type OpenStatusProps = { hours: HoursRow[]; timezone: string; className?: string };
+type OpenStatusProps = { hours: HoursRow[]; timezone: string; className?: string; compact?: boolean };
 
-async function LiveOpenStatus({ hours, timezone, className }: OpenStatusProps) {
+async function LiveOpenStatus({ hours, timezone, className, compact = false }: OpenStatusProps) {
   await connection();
   const now = new Date();
   const status = getOpenStatus(hours, now, timezone);
 
   if (status.state === 'unknown') {
-    return <span className={cn('text-sm text-muted', className)}>{t('place.hoursUnknown')}</span>;
+    return (
+      <span className={cn('font-mono text-xs text-ink-soft uppercase', className)}>
+        {t('place.hoursUnknown')}
+      </span>
+    );
   }
 
   if (status.state === 'open') {
     return (
-      <span className={cn('inline-flex items-center gap-1 text-sm font-semibold text-accent', className)}>
-        <Clock aria-hidden="true" className="size-4" />
+      <span
+        className={cn(
+          'inline-flex items-center gap-1.5 font-mono font-semibold tracking-wide text-live uppercase',
+          compact ? 'text-xs' : 'text-sm',
+          className,
+        )}
+      >
+        <span aria-hidden="true" className="relative flex size-2">
+          <span className="absolute inset-0 animate-ping rounded-full bg-live opacity-60 motion-reduce:hidden" />
+          <span className="relative size-2 rounded-full bg-live" />
+        </span>
         {t('place.open')}
-        <span className="font-normal text-text">· {t('place.closesAt', { time: status.closesAt })}</span>
+        <span className="font-normal text-ink">· {t('place.closesAt', { time: status.closesAt })}</span>
       </span>
     );
   }
@@ -49,10 +62,16 @@ async function LiveOpenStatus({ hours, timezone, className }: OpenStatusProps) {
           });
 
   return (
-    <span className={cn('inline-flex items-center gap-1 text-sm font-semibold text-danger', className)}>
-      <Clock aria-hidden="true" className="size-4" />
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 font-mono font-semibold tracking-wide text-ink-soft uppercase',
+        compact ? 'text-xs' : 'text-sm',
+        className,
+      )}
+    >
+      <MoonStar aria-hidden="true" className="size-3.5" />
       {t('place.closed')}
-      <span className="font-normal text-text">· {opens}</span>
+      <span className="font-normal text-ink">· {opens}</span>
     </span>
   );
 }
@@ -60,7 +79,17 @@ async function LiveOpenStatus({ hours, timezone, className }: OpenStatusProps) {
 export function OpenStatus(props: OpenStatusProps) {
   return (
     <Suspense
-      fallback={<span className={cn('text-sm text-muted', props.className)}>{t('place.checking')}</span>}
+      fallback={
+        <span
+          className={cn(
+            'inline-flex items-center gap-1.5 font-mono text-xs text-ink-soft uppercase',
+            props.className,
+          )}
+        >
+          <Clock aria-hidden="true" className="size-3.5" />
+          {t('place.checking')}
+        </span>
+      }
     >
       <LiveOpenStatus {...props} />
     </Suspense>

@@ -1,37 +1,46 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Noto_Sans, Noto_Sans_Devanagari, Noto_Sans_Telugu } from 'next/font/google';
+import { Anek_Devanagari, Anek_Latin, Anek_Telugu, Hind, Hind_Guntur, Martian_Mono } from 'next/font/google';
 import { ServiceWorkerRegistration } from '@/features/shell/components/service-worker.client';
 import { ThemeScript } from '@/features/shell/components/theme-script';
+import { MotionRoot } from '@/shared/ui/motion.client';
 import { defaultLocale, t } from '@/i18n';
 import { siteUrl } from '@/shared/config/site';
 import { cn } from '@/shared/lib/cn';
 import './globals.css';
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  axes: ['opsz', 'SOFT'],
-  display: 'swap',
-  variable: '--font-fraunces',
-});
-
-const notoSans = Noto_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-noto-sans',
-});
-
-const notoSansTelugu = Noto_Sans_Telugu({
+const anek = Anek_Latin({ subsets: ['latin'], axes: ['wdth'], display: 'swap', variable: '--font-anek' });
+const anekTelugu = Anek_Telugu({
   subsets: ['telugu'],
+  axes: ['wdth'],
   display: 'swap',
   preload: false,
-  variable: '--font-noto-sans-telugu',
+  variable: '--font-anek-telugu',
 });
-
-const notoSansDevanagari = Noto_Sans_Devanagari({
+const anekDevanagari = Anek_Devanagari({
   subsets: ['devanagari'],
+  axes: ['wdth'],
   display: 'swap',
   preload: false,
-  variable: '--font-noto-sans-devanagari',
+  variable: '--font-anek-devanagari',
+});
+const hind = Hind({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-hind',
+});
+const hindGuntur = Hind_Guntur({
+  subsets: ['telugu'],
+  weight: ['400', '600'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-hind-guntur',
+});
+const martian = Martian_Mono({
+  subsets: ['latin'],
+  axes: ['wdth'],
+  display: 'swap',
+  variable: '--font-martian',
 });
 
 export const metadata: Metadata = {
@@ -48,8 +57,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fbf7f1' },
-    { media: '(prefers-color-scheme: dark)', color: '#16110c' },
+    { media: '(prefers-color-scheme: light)', color: '#f4eee1' },
+    { media: '(prefers-color-scheme: dark)', color: '#111220' },
   ],
 };
 
@@ -59,23 +68,25 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang={defaultLocale}
       suppressHydrationWarning
       className={cn(
-        fraunces.variable,
-        notoSans.variable,
-        notoSansTelugu.variable,
-        notoSansDevanagari.variable,
+        anek.variable,
+        anekTelugu.variable,
+        anekDevanagari.variable,
+        hind.variable,
+        hindGuntur.variable,
+        martian.variable,
       )}
     >
       <head>
         <ThemeScript />
       </head>
-      <body className="flex min-h-dvh flex-col">
+      <body className="grain flex min-h-dvh flex-col">
         <a
           href="#main"
-          className="sr-only z-50 rounded-sm bg-primary px-4 py-2 text-on-primary focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+          className="sr-only z-50 bg-ink px-4 py-2 font-semibold text-on-ink focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
         >
           {t('a11y.skipToContent')}
         </a>
-        {children}
+        <MotionRoot>{children}</MotionRoot>
         <ServiceWorkerRegistration />
       </body>
     </html>

@@ -1,162 +1,296 @@
 @import 'tailwindcss';
 
+/*
+  Token & Stamp — a Hyderabad food counter in a browser.
+  Day counter (light): newsprint paper, carbon ink, haldi highlighter.
+  Night counter (dark): ink-blue night, paper-coloured type, haldi lamps.
+*/
+
 :root {
   color-scheme: light;
-  --bg: #fbf7f1;
-  --surface: #ffffff;
-  --surface-2: #f4ece1;
-  --text: #2a1d12;
-  --text-muted: #6a5644;
-  --border: #e4d8c8;
-  --border-strong: #8f7e6b;
-  --primary: #b4410f;
-  --on-primary: #ffffff;
-  --accent: #1f6f6b;
-  --danger: #b42318;
-  --focus-ring: #b4410f;
-  --diet-veg: #1d7a3e;
-  --diet-nonveg: #8a3a10;
-  --diet-egg: #8a5a00;
-  --rate-loved: #b4262d;
-  --rate-good: #2f6a3a;
-  --rate-okay: #7a5a12;
-  --rate-skip: #55565c;
-  --soft-mix: 10%;
-  --elev-color: 42 29 18;
-  --elev-1: 0 1px 2px rgb(var(--elev-color) / 0.08);
-  --elev-2: 0 4px 12px rgb(var(--elev-color) / 0.12);
-  --elev-3: 0 12px 32px rgb(var(--elev-color) / 0.18);
-  --dur-fast: 120ms;
-  --dur-base: 200ms;
-  --dur-slow: 320ms;
-  --motion-standard: cubic-bezier(0.2, 0, 0, 1);
-  --motion-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --paper: #f4eee1;
+  --paper-raised: #fffcf5;
+  --paper-sunk: #e8dfcb;
+  --ink: #1a1c2e;
+  --ink-soft: #55516a;
+  --rule: #d9cfb9;
+  --rule-strong: #7f745e;
+  --haldi: #f2b300;
+  --on-haldi: #1a1c2e;
+  --on-ink: #fffcf5;
+  --live: #0e6b60;
+  --danger: #a3241a;
+  --diet-veg: #18692d;
+  --diet-nonveg: #7a3410;
+  --diet-egg: #7e5a00;
+  --rate-loved: #b0102c;
+  --rate-good: #2c6a2e;
+  --rate-okay: #83560a;
+  --rate-skip: #4f4f5d;
+  --lift-color: #1a1c2e;
+  --grain-opacity: 0.06;
+  --dur-micro: 140ms;
+  --dur-ui: 260ms;
+  --dur-hero: 820ms;
+  --motion-snap: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --motion-out: cubic-bezier(0.4, 0, 1, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #16110c;
-    --surface: #211912;
-    --surface-2: #2c231a;
-    --text: #f6eee3;
-    --text-muted: #bcaa95;
-    --border: #3d3226;
-    --border-strong: #80705e;
-    --primary: #f2914f;
-    --on-primary: #16110c;
-    --accent: #5fc4bc;
-    --danger: #f97066;
-    --focus-ring: #f2914f;
-    --diet-veg: #5cc27f;
-    --diet-nonveg: #e58e5e;
-    --diet-egg: #e2b54a;
-    --rate-loved: #f2777c;
-    --rate-good: #7bc98a;
-    --rate-okay: #d9b45a;
-    --rate-skip: #a9abb2;
-    --soft-mix: 18%;
-    --elev-1: none;
-    --elev-2: none;
-    --elev-3: none;
+    --paper: #111220;
+    --paper-raised: #1b1c2e;
+    --paper-sunk: #0a0b15;
+    --ink: #f3ecdd;
+    --ink-soft: #b9b1a1;
+    --rule: #2e2f44;
+    --rule-strong: #6f6b84;
+    --haldi: #ffc21a;
+    --on-haldi: #111220;
+    --on-ink: #111220;
+    --live: #4fd1c0;
+    --danger: #ff8a7a;
+    --diet-veg: #62cf7e;
+    --diet-nonveg: #ec9a70;
+    --diet-egg: #e8c155;
+    --rate-loved: #ff8a97;
+    --rate-good: #86d38f;
+    --rate-okay: #e9bc5e;
+    --rate-skip: #b8b8c6;
+    --lift-color: #000000;
+    --grain-opacity: 0.08;
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #16110c;
-  --surface: #211912;
-  --surface-2: #2c231a;
-  --text: #f6eee3;
-  --text-muted: #bcaa95;
-  --border: #3d3226;
-  --border-strong: #80705e;
-  --primary: #f2914f;
-  --on-primary: #16110c;
-  --accent: #5fc4bc;
-  --danger: #f97066;
-  --focus-ring: #f2914f;
-  --diet-veg: #5cc27f;
-  --diet-nonveg: #e58e5e;
-  --diet-egg: #e2b54a;
-  --rate-loved: #f2777c;
-  --rate-good: #7bc98a;
-  --rate-okay: #d9b45a;
-  --rate-skip: #a9abb2;
-  --soft-mix: 18%;
-  --elev-1: none;
-  --elev-2: none;
-  --elev-3: none;
+  --paper: #111220;
+  --paper-raised: #1b1c2e;
+  --paper-sunk: #0a0b15;
+  --ink: #f3ecdd;
+  --ink-soft: #b9b1a1;
+  --rule: #2e2f44;
+  --rule-strong: #6f6b84;
+  --haldi: #ffc21a;
+  --on-haldi: #111220;
+  --on-ink: #111220;
+  --live: #4fd1c0;
+  --danger: #ff8a7a;
+  --diet-veg: #62cf7e;
+  --diet-nonveg: #ec9a70;
+  --diet-egg: #e8c155;
+  --rate-loved: #ff8a97;
+  --rate-good: #86d38f;
+  --rate-okay: #e9bc5e;
+  --rate-skip: #b8b8c6;
+  --lift-color: #000000;
+  --grain-opacity: 0.08;
 }
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-text: var(--text);
-  --color-muted: var(--text-muted);
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-primary: var(--primary);
-  --color-on-primary: var(--on-primary);
-  --color-primary-soft: color-mix(in oklab, var(--primary) var(--soft-mix), var(--surface));
-  --color-accent: var(--accent);
-  --color-accent-soft: color-mix(in oklab, var(--accent) var(--soft-mix), var(--surface));
+  --color-paper: var(--paper);
+  --color-raised: var(--paper-raised);
+  --color-sunk: var(--paper-sunk);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-haldi: var(--haldi);
+  --color-on-haldi: var(--on-haldi);
+  --color-on-ink: var(--on-ink);
+  --color-live: var(--live);
   --color-danger: var(--danger);
-  --color-danger-soft: color-mix(in oklab, var(--danger) var(--soft-mix), var(--surface));
-  --color-focus: var(--focus-ring);
   --color-diet-veg: var(--diet-veg);
   --color-diet-nonveg: var(--diet-nonveg);
   --color-diet-egg: var(--diet-egg);
   --color-rate-loved: var(--rate-loved);
-  --color-rate-loved-soft: color-mix(in oklab, var(--rate-loved) var(--soft-mix), var(--surface));
   --color-rate-good: var(--rate-good);
-  --color-rate-good-soft: color-mix(in oklab, var(--rate-good) var(--soft-mix), var(--surface));
   --color-rate-okay: var(--rate-okay);
-  --color-rate-okay-soft: color-mix(in oklab, var(--rate-okay) var(--soft-mix), var(--surface));
   --color-rate-skip: var(--rate-skip);
-  --color-rate-skip-soft: color-mix(in oklab, var(--rate-skip) var(--soft-mix), var(--surface));
 
-  --font-display: var(--font-fraunces), 'Noto Serif', Georgia, serif;
-  --font-sans:
-    var(--font-noto-sans), var(--font-noto-sans-telugu), var(--font-noto-sans-devanagari), system-ui,
-    sans-serif;
+  --font-display:
+    var(--font-anek), var(--font-anek-telugu), var(--font-anek-devanagari), 'Arial Narrow', sans-serif;
+  --font-sans: var(--font-hind), var(--font-hind-guntur), system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
 
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-4xl: 3.052rem;
+  --text-5xl: 3.815rem;
+  --text-6xl: 4.768rem;
+  --text-7xl: 5.96rem;
 
-  --shadow-1: var(--elev-1);
-  --shadow-2: var(--elev-2);
-  --shadow-3: var(--elev-3);
+  --radius-tick: 2px;
+  --radius-stamp: 5px;
 
-  --ease-standard: var(--motion-standard);
-  --ease-emphasized: var(--motion-emphasized);
+  --shadow-lift: 3px 3px 0 var(--lift-color);
+  --shadow-lift-sm: 2px 2px 0 var(--lift-color);
+  --shadow-lift-lg: 6px 6px 0 var(--lift-color);
+
+  --ease-snap: var(--motion-snap);
+  --ease-out-fast: var(--motion-out);
+
+  --animate-ticker: ticker 38s linear infinite;
 }
 
-@utility plate-saffron {
-  background: radial-gradient(circle at 35% 30%, #f6c27a, #d9772b 45%, #8a3a10 100%);
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
-@utility plate-chilli {
-  background: radial-gradient(circle at 35% 30%, #f4a77a, #c2412d 50%, #6e1f14 100%);
+@keyframes thump {
+  0% {
+    opacity: 0;
+    transform: scale(1.75) rotate(calc(var(--tilt, -4deg) - 9deg));
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.93) rotate(var(--tilt, -4deg));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(var(--tilt, -4deg));
+  }
 }
 
-@utility plate-cardamom {
-  background: radial-gradient(circle at 35% 30%, #f3e1c2, #b8925a 50%, #5c4425 100%);
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(18px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes rise-fade {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+/* The signature: a rubber stamp. Ink is never perfectly even. */
+@utility stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  border: 3px double currentColor;
+  border-radius: var(--radius-stamp);
+  padding: 0.18em 0.5em 0.08em;
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(var(--tilt, -4deg));
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.6 2.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)'/%3E%3C/svg%3E");
+  mask-size: 120px 120px;
+}
+
+@utility stamp-in {
+  animation: thump 520ms var(--motion-snap) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+}
+
+@utility rise-in {
+  animation: rise 520ms var(--motion-snap) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* Scroll reveal: visible by default, animated only where scroll-driven animations exist. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: rise-fade linear both;
+      animation-timeline: view();
+      animation-range: entry calc(5% + var(--reveal-delay, 0%)) cover 22%;
+    }
+  }
+}
+
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@utility perforate-b {
+  --hole: 5px;
+  mask: radial-gradient(circle at 50% 100%, transparent var(--hole), #000 calc(var(--hole) + 0.5px)) 0 0 /
+    16px 100% repeat-x;
+}
+
+@utility notch-x {
+  --notch: 9px;
+  --notch-y: 50%;
+  mask:
+    radial-gradient(circle at 0 var(--notch-y), transparent var(--notch), #000 calc(var(--notch) + 0.5px))
+      left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% var(--notch-y), transparent var(--notch), #000 calc(var(--notch) + 0.5px))
+      right / 51% 100% no-repeat;
+}
+
+@utility leader {
+  flex: 1 1 auto;
+  min-width: 1.5rem;
+  border-bottom: 2px dotted var(--rule-strong);
+  translate: 0 -0.3em;
+}
+
+@utility highlight {
+  background-image: linear-gradient(transparent 55%, var(--haldi) 55%, var(--haldi) 92%, transparent 92%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-inline: 0.06em;
+}
+
+@utility press {
+  transition:
+    transform var(--dur-micro) var(--motion-snap),
+    box-shadow var(--dur-micro) var(--motion-snap);
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--lift-color);
+  }
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    background: var(--paper);
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--paper);
+    color: var(--ink);
     font-family: var(--font-sans);
+    font-size: var(--text-base);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -165,17 +299,21 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    line-height: 1.2;
+    font-stretch: 80%;
+    line-height: 0.98;
+    letter-spacing: -0.01em;
     text-wrap: balance;
   }
 
   :focus-visible {
-    outline: 2px solid var(--focus-ring);
+    outline: 3px solid var(--haldi);
     outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--ink);
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--primary) 25%, transparent);
+    background: var(--haldi);
+    color: var(--on-haldi);
   }
 }
 
@@ -185,8 +323,7 @@
   *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
-    transition-property: opacity !important;
-    transition-duration: var(--dur-fast) !important;
+    transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
 }

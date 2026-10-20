@@ -16,7 +16,8 @@
     "post": "Post",
     "communities": "Communities",
     "battles": "Battles",
-    "you": "You"
+    "you": "You",
+    "menu": "Menu"
   },
   "city": {
     "label": "City",
@@ -47,16 +48,27 @@
     "family": "Family"
   },
   "discover": {
-    "title": "What should you eat today?",
-    "subtitle": "Ranked by people who ate it, not by who paid.",
+    "title": "Hyderabad, what are we eating?",
+    "subtitle": "Ranked dish by dish by people who ate it. Not by who paid.",
     "exploreAreas": "Explore areas",
-    "popularDishes": "Popular dishes across Hyderabad"
+    "popularDishes": "Popular dishes across Hyderabad",
+    "topTickets": "Top tickets in the city",
+    "topTicketsBody": "The highest-rated dish at any restaurant, right now.",
+    "bestAt": "Best at {branch}",
+    "cityRankingLink": "All {dish} ranked",
+    "shelfCount": "{count} dishes",
+    "exploreAreasBody": "Pick a neighbourhood. We’ll tell you what it does best.",
+    "areaStop": "Stop {n}",
+    "launchArea": "Launch area"
   },
   "footer": {
     "about": "About",
     "guidelines": "Community guidelines",
     "noPayToRank": "Nothing paid can change a ranking. Ever.",
-    "copyright": "© {year} FDN"
+    "copyright": "© {year} FDN",
+    "thanks": "Thank you · Visit again",
+    "receiptTitle": "FDN · Hyderabad",
+    "printed": "Printed fresh, every visit"
   },
   "about": {
     "title": "About FDN",
@@ -91,17 +103,20 @@
   "notFound": {
     "title": "We couldn’t find that page",
     "body": "The link may be old or mistyped.",
-    "cta": "Back to Discover"
+    "cta": "Back to Discover",
+    "stamp": "Not on the menu"
   },
   "offline": {
     "title": "You’re offline",
     "body": "Check your connection and try again. Pages you opened recently may still load.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "stamp": "Closed"
   },
   "error": {
     "title": "Something went wrong",
     "body": "Please try again. If it keeps happening, come back in a few minutes.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "stamp": "Spilled"
   },
   "rating": {
     "loved": "Loved",
@@ -126,7 +141,9 @@
     "foodScoreInfo": "Food score is the weighted average of this restaurant’s top five dishes. It appears once at least two dishes have enough ratings.",
     "noFoodScore": "Not enough ratings yet",
     "newRatingOne": "New · 1 rating",
-    "basedOnOne": "Based on 1 rating"
+    "basedOnOne": "Based on 1 rating",
+    "lovedWord": "loved",
+    "topPick": "Top pick"
   },
   "diet": {
     "veg": "Veg",
@@ -136,136 +153,138 @@
   },
   "landing": {
     "metaTitle": "FDN · Know what to order before you go",
-    "eyebrow": "Hyderabad’s dish-first food guide",
-    "title": "Know what to order before you go.",
-    "subtitle": "Find the best haleem, biryani or Irani chai near you, ranked dish by dish by people who actually ate it. Check if it’s open, how far it is, and what locals say, all in one place.",
+    "eyebrow": "Hyderabad · dish-first food guide",
+    "titleLead": "Know what to",
+    "titleKey": "order",
+    "titleTail": "before you go.",
+    "subtitle": "Every dish in the city, ranked by the people who actually ate it. Open now, how far, what it costs and what locals say, on one page.",
     "ctaPrimary": "Explore Hyderabad",
     "ctaSecondary": "How it works",
-    "guestNote": "No sign-up needed to browse.",
-    "preview": {
-      "label": "Example of a dish card",
-      "dish": "Mutton Haleem",
-      "area": "Old City",
-      "distance": "1.2 km",
-      "price": "₹280",
-      "open": "Open · closes 23:30",
-      "ratings": "148 ratings",
-      "topPick": "Top pick here",
-      "dish2": "Chicken Dum Biryani",
-      "area2": "Masab Tank",
-      "price2": "₹340",
-      "dish3": "Irani Chai & Osmania biscuits",
-      "area3": "Abids",
-      "price3": "₹40",
-      "question": "Where do I get haleem after midnight near Tolichowki?",
-      "answers": "12 answers from locals"
+    "guestNote": "No sign-up to browse. Ever.",
+    "ticker": {
+      "t1": "No. 01 · Mutton Haleem · Old City · 92% loved",
+      "t2": "No. 02 · Irani Chai · Abids · open till 00:30",
+      "t3": "No. 03 · Pesarattu · Madhapur · under ₹150",
+      "t4": "No. 04 · Mutton Mandi · Tolichowki · late night",
+      "t5": "No. 05 · Double ka Meetha · Banjara Hills · 78% loved"
     },
-    "problem": {
-      "title": "One dinner decision shouldn’t take six apps.",
-      "body": "Today you watch a reel to discover a place, open a map for distance and timings, a delivery app for prices, and a group chat for an honest opinion. FDN puts the answer in one page.",
-      "items": {
-        "discover": "Reels to discover",
-        "distance": "Maps for distance",
-        "prices": "Menus for prices",
-        "opinions": "Group chats for honest opinions"
-      }
+    "kot": {
+      "label": "Example kitchen order ticket",
+      "number": "KOT No. 042",
+      "table": "Table: you",
+      "dish": "Mutton Haleem",
+      "qty": "× 1",
+      "price": "₹280",
+      "area": "Old City · 1.2 km",
+      "open": "Open · till 23:30",
+      "meter": "92% loved · 148 ratings",
+      "dish2": "Chicken Dum Biryani",
+      "price2": "₹340",
+      "dish3": "Irani Chai",
+      "price3": "₹25"
+    },
+    "shuffle": {
+      "title": "One dinner. Six apps.",
+      "body": "Deciding where to eat in Hyderabad usually means a reel, a map, a delivery app, a booking app, a search and a group chat. We itemised it.",
+      "receipt": "Your usual dinner decision",
+      "i1": "Reels, to discover it",
+      "i2": "Maps, for distance and timings",
+      "i3": "Delivery app, for the price",
+      "i4": "Booking app, for a table",
+      "i5": "Search, to check it's open",
+      "i6": "Group chat, for an honest take",
+      "unit": "1 app",
+      "subtotal": "Subtotal",
+      "subtotalValue": "6 apps",
+      "discount": "FDN",
+      "discountValue": "−5",
+      "total": "Total",
+      "totalValue": "1 page",
+      "stamp": "Sorted"
     },
     "how": {
       "title": "How it works",
-      "steps": {
-        "find": {
-          "title": "Find a dish",
-          "body": "Search “haleem” or tap Open now, Under ₹300 or Late night. Dishes come first, ranked across the whole city."
-        },
-        "facts": {
-          "title": "Check the facts",
-          "body": "Distance, open status, price and timings, each showing when it was last confirmed."
-        },
-        "opinions": {
-          "title": "Read trusted opinions",
-          "body": "See what to order at every restaurant and what locals say about it."
-        },
-        "rate": {
-          "title": "Go, then rate it",
-          "body": "Get directions in one tap. Rate what you ate in under 20 seconds so the next person chooses better."
-        }
+      "kicker": "Tear along the dotted line",
+      "s1": {
+        "title": "Find a dish",
+        "body": "Search “haleem” or tap Open now, Under ₹300, Late night. Dishes come first, ranked across the whole city."
+      },
+      "s2": {
+        "title": "Check the facts",
+        "body": "Open now, distance, price and timings, each showing when it was last checked."
+      },
+      "s3": {
+        "title": "Read the room",
+        "body": "Every restaurant opens with what to order there, and what locals say about it."
+      },
+      "s4": {
+        "title": "Go. Then stamp it.",
+        "body": "Directions in one tap. Rate what you ate in under 20 seconds so the next person orders better."
       }
     },
-    "features": {
-      "title": "Built for the decision, not the scroll",
-      "items": {
-        "whatToOrder": {
-          "title": "What to order here",
-          "body": "Every restaurant page opens with its best dishes, ranked by community sentiment."
-        },
-        "cityRanking": {
-          "title": "The best version across the city",
-          "body": "“Haleem in Hyderabad” ranks every place that serves it, filterable by area, price and open now."
-        },
-        "battles": {
-          "title": "Dish Battles",
-          "body": "Two versions of the same dish go head to head. The community votes, the result is shareable."
-        },
-        "livingFacts": {
-          "title": "Living facts",
-          "body": "Prices and timings show their age. One tap on “Still true?” keeps them current."
-        },
-        "askLocals": {
-          "title": "Ask the locals",
-          "body": "Questions go to people in that neighbourhood. The best answer gets pinned."
-        },
-        "whatsapp": {
-          "title": "Made for WhatsApp",
-          "body": "Every dish, list and battle has a clean preview card, so sharing a plan takes one tap."
-        }
-      }
+    "stampDemo": {
+      "title": "Four honest words instead of 4.2 stars.",
+      "body": "Rate each dish, not the restaurant. Loved, Good, Okay or Skip says exactly what to order, and what to skip.",
+      "try": "Try it: stamp this dish",
+      "dish": "Chicken 65",
+      "price": "₹260",
+      "place": "Old City",
+      "reset": "Clear",
+      "stamped": "You stamped it {label}.",
+      "dietTitle": "Marks you can read in any light",
+      "dietBody": "Veg, egg and non-veg use shape as well as colour."
     },
-    "ratings": {
-      "title": "Four honest words instead of 4.2 stars",
-      "body": "Rate each dish Loved, Good, Okay or Skip. It’s faster, it’s clearer, and it tells the next person exactly what to order.",
-      "dietTitle": "Diet marks you can trust",
-      "dietBody": "Veg, egg and non-veg use shape as well as colour, so they’re readable for everyone."
+    "rules": {
+      "title": "House rules",
+      "kicker": "Posted at the counter",
+      "r1": "Nothing paid changes a ranking. Ever.",
+      "r2": "Free meals, paid posts and staff reviews are declared, and never counted.",
+      "r3": "New accounts count less until they have earned it.",
+      "r4": "Every fact shows when it was last checked.",
+      "r5": "Every score explains how it was calculated.",
+      "signoff": "By order of the management"
     },
-    "trust": {
-      "title": "Trust is never for sale",
-      "items": {
-        "noPayToRank": {
-          "title": "No pay-to-rank, ever",
-          "body": "Nothing paid can change a ranking, a dish score, a battle or a leaderboard."
-        },
-        "disclosure": {
-          "title": "Disclosure built in",
-          "body": "Free meals, paid partnerships and staff posts are tagged and never counted in scores."
-        },
-        "weighted": {
-          "title": "Weighted by trust",
-          "body": "New accounts count less, fake-rating patterns are caught, and every score explains how it was calculated."
-        }
-      }
+    "menu": {
+      "title": "On the menu",
+      "kicker": "Signature features",
+      "whatToOrder": "What to order here",
+      "whatToOrderBody": "Every restaurant page opens with its best dishes, ranked.",
+      "cityRanking": "Best in the city",
+      "cityRankingBody": "“Haleem in Hyderabad” ranks every place that serves it.",
+      "battles": "Dish Battles",
+      "battlesBody": "Two versions of one dish, head to head. The city votes.",
+      "livingFacts": "Living facts",
+      "livingFactsBody": "Prices and timings show their age. One tap keeps them true.",
+      "askLocals": "Ask the locals",
+      "askLocalsBody": "Questions go to people in that neighbourhood.",
+      "whatsapp": "Made for WhatsApp",
+      "whatsappBody": "Every dish, list and battle shares as a clean card."
     },
-    "community": {
-      "title": "Food communities for every corner of the city",
-      "body": "Join Hyderabad Food, your locality, or topics like Biryani, Haleem & Ramzan, Cafes, Street Food and Budget Eats.",
-      "tags": {
-        "city": "Hyderabad Food",
-        "biryani": "Biryani",
-        "haleem": "Haleem & Ramzan",
-        "cafes": "Cafes",
-        "streetFood": "Street Food",
-        "budget": "Budget Eats",
-        "desserts": "Desserts",
-        "veg": "Veg Hyderabad"
-      }
+    "board": {
+      "title": "The notice board",
+      "body": "Food communities for every corner of the city. Read them as a guest; join to post.",
+      "city": "Hyderabad Food",
+      "biryani": "Biryani",
+      "haleem": "Haleem & Ramzan",
+      "cafes": "Cafés",
+      "streetFood": "Street Food",
+      "budget": "Budget Eats",
+      "desserts": "Desserts",
+      "veg": "Veg Hyderabad"
     },
     "final": {
-      "title": "Hungry? Start with what’s good near you.",
-      "body": "Browse everything as a guest. Sign up only when you want to rate, post or save across devices.",
+      "title": "Your table is ready.",
+      "body": "Browse everything as a guest. Sign up only when you want to rate, post or save.",
+      "stub": "Admit one hungry person",
       "cta": "Explore Hyderabad"
+    },
+    "trust": {
+      "stampWord": "No pay-to-rank"
     },
     "nav": {
       "how": "How it works",
-      "features": "Features",
-      "trust": "Trust"
+      "menu": "Features",
+      "rules": "House rules"
     }
   },
   "place": {
@@ -330,7 +349,16 @@
       "d4": "Thu",
       "d5": "Fri",
       "d6": "Sat"
-    }
+    },
+    "factsStamp": "Checked",
+    "checkedDays": "Checked {days}d ago",
+    "checkedToday": "Checked today",
+    "staleShort": "Recheck",
+    "factsReceipt": "Facts receipt",
+    "whatToOrderKicker": "Ranked by the people who ate here",
+    "menuCard": "The menu",
+    "menuKicker": "Every dish, rated ones first",
+    "nearbyKicker": "Same cuisine, within 2 km"
   },
   "dish": {
     "atBranch": "at {branch}",
@@ -355,7 +383,11 @@
     "noMatches": "No places match these filters.",
     "jain": "Jain option",
     "metaDescription": "{dish} at {branch}, {locality}: {price}. See how the community rates it and where else to get it.",
-    "resultsCountOne": "1 place"
+    "resultsCountOne": "1 place",
+    "elsewhereKicker": "Same dish, ranked across the city",
+    "breakdownKicker": "How people rated it",
+    "ticketLabel": "Dish ticket",
+    "leaderboard": "City leaderboard"
   },
   "area": {
     "title": "Food in {area}",
@@ -363,18 +395,24 @@
     "topDishes": "Top dishes in {area}",
     "topPlaces": "Top restaurants in {area}",
     "empty": "Nothing rated here yet.",
-    "metaDescription": "Best dishes and restaurants in {area}, {city}, ranked by the community."
+    "metaDescription": "Best dishes and restaurants in {area}, {city}, ranked by the community.",
+    "kicker": "Neighbourhood"
   },
   "cuisine": {
     "title": "{cuisine} food in {city}",
     "intro": "Top {cuisine} restaurants and dishes in {city}.",
     "topDishes": "Top {cuisine} dishes",
     "topPlaces": "{cuisine} restaurants",
-    "metaDescription": "Find the best {cuisine} restaurants and dishes in {city}."
+    "metaDescription": "Find the best {cuisine} restaurants and dishes in {city}.",
+    "kicker": "Cuisine"
   },
   "common": {
     "close": "Close",
     "showAll": "Show all",
     "breadcrumb": "Breadcrumb"
+  },
+  "shell": {
+    "nowServing": "Now serving",
+    "cityShort": "HYD"
   }
 }

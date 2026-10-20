@@ -1,4 +1,4 @@
-import { Compass, MessagesSquare, PlusCircle, Search, UserRound, type LucideIcon } from 'lucide-react';
+import { Compass, MessagesSquare, Plus, Search, UserRound, type LucideIcon } from 'lucide-react';
 import type { CitySlug } from '@/features/geo/schemas/city';
 import type { MessageKey } from '@/i18n';
 
@@ -26,7 +26,7 @@ export function primaryNavItems(city: CitySlug): NavItem[] {
     {
       href: '/post/new',
       labelKey: 'nav.post',
-      icon: PlusCircle,
+      icon: Plus,
       match: (pathname) => pathname.startsWith('/post'),
     },
     {

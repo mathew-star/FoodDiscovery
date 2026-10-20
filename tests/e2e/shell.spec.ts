@@ -23,7 +23,7 @@ test('landing page leads into the city', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Know what to order before you go.');
   await page.getByRole('main').getByRole('link', { name: 'Explore Hyderabad' }).first().click();
   await expect(page).toHaveURL(/\/hyderabad$/);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('What should you eat today?');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hyderabad, what are we eating?');
 });
 
 test('landing page shows every rating word and diet mark with text', async ({ page }) => {

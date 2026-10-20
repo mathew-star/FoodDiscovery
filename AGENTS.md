@@ -19,7 +19,8 @@ Mobile-first web app + PWA for Hyderabad: dish-first discovery, Loved/Good/Okay/
 | Runtime / PM | Bun 1.3.11 (`bun --bun next …`), Node 22 on Vercel |
 | Framework | Next.js 16.4 App Router, React 19.3, `cacheComponents` + `partialPrefetching` on |
 | Language | TypeScript strict; zod for every external input |
-| Styling | Tailwind v4 (`@theme` mapped to CSS variables), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons |
+| Styling | Tailwind v4 (`@theme` mapped to CSS variables), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons; "Token & Stamp" identity (`docs/DESIGN-SYSTEM.md`) |
+| Motion | CSS first; Motion (`motion/react`, LazyMotion) for layout/spring interactions; anime.js for SVG drawing and counters |
 | Data | Neon Postgres + Drizzle 1.0 rc (HTTP driver for reads, Pool for transactions), PostGIS, `pg_trgm`, `unaccent` |
 | Cache / limits | Upstash Redis via `ioredis` (`rediss://`), sliding-window limiter on the same client |
 | Auth | Better Auth: email + password with verification via Resend; DB sessions. Google sign-in deferred (button shown disabled) |
@@ -77,6 +78,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 - All user-visible strings go through i18n keys (`i18n/messages/en.json`); no string literals in JSX.
 - Colours, spacing, radii, motion only via tokens (`docs/DESIGN-SYSTEM.md`). No hex in components.
 - Rating states and diet marks use the `RatingBadge`/`DietMark` components — never colour alone.
+- Never hide decision information (scores, open status, prices, titles) behind JS-driven entrance animation; entrances on LCP elements are transform-only.
 - Money is integer paise; time is `timestamptz` UTC, rendered in `Asia/Kolkata`. Coordinates are PostGIS `geography(Point,4326)`.
 - IDs are uuidv7; public slugs are immutable, renames write a redirect row.
 - Comments only where intent is non-obvious. No TODOs or placeholders in merged code.

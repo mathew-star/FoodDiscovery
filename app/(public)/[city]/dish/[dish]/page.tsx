@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { CityDishResults } from '@/features/dishes/components/city-dish-results';
+import { DishTile } from '@/features/dishes/components/dish-tile';
 import {
   getCanonicalDish,
   getCanonicalDishSlugs,
@@ -74,15 +75,22 @@ export default async function CityDishPage({ params, searchParams }: PageProps<'
         }}
       />
       <Breadcrumbs label={t('common.breadcrumb')} items={crumbs} />
-      <header className="flex max-w-3xl flex-col gap-2">
-        <p className="text-sm font-semibold tracking-wide text-primary uppercase">{dish.categoryName}</p>
-        <h1 className="text-3xl font-semibold md:text-4xl">
-          {t('dish.cityTitle', { dish: dish.name, city: city.name })}
-        </h1>
-        <p className="text-lg text-muted">{t('dish.cityIntro', { dish: dish.name, city: city.name })}</p>
-        {dish.description ? <p>{dish.description}</p> : null}
+      <header className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
+        <div className="flex max-w-4xl flex-col gap-4">
+          <p className="w-fit border-2 border-ink bg-haldi px-2 py-0.5 font-mono text-2xs font-bold tracking-widest text-on-haldi uppercase">
+            {dish.categoryName} · {t('dish.leaderboard')}
+          </p>
+          <h1 className="rise-in text-[clamp(3rem,9vw,6.5rem)] leading-[0.88] font-extrabold [font-stretch:72%]">
+            {t('dish.cityTitle', { dish: dish.name, city: city.name })}
+          </h1>
+          <p className="max-w-2xl text-lg text-ink-soft">
+            {t('dish.cityIntro', { dish: dish.name, city: city.name })}
+          </p>
+          {dish.description ? <p className="max-w-2xl font-mono text-sm">{dish.description}</p> : null}
+        </div>
+        <DishTile name={dish.name} size="xl" className="hidden rotate-3 shadow-lift-lg md:inline-flex" />
       </header>
-      <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+      <Suspense fallback={<Skeleton className="h-[32rem] w-full" />}>
         <CityDishResults
           searchParams={searchParams}
           path={path}

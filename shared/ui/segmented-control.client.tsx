@@ -30,13 +30,13 @@ export function SegmentedControl<T extends string>({
         const selected = options.find((option) => option.value === next[0]);
         if (selected) onValueChange(selected.value);
       }}
-      className={cn('inline-flex rounded-sm border border-border-strong bg-surface p-0.5', className)}
+      className={cn('inline-flex rounded-tick border border-rule-strong bg-raised p-0.5', className)}
     >
       {options.map((option) => (
         <Toggle
           key={option.value}
           value={option.value}
-          className="inline-flex h-10 min-w-11 items-center justify-center gap-1.5 rounded-xs px-3 text-sm font-medium text-muted transition-colors duration-(--dur-fast) hover:text-text data-pressed:bg-primary-soft data-pressed:text-text [&_svg]:size-4"
+          className="inline-flex h-10 min-w-11 items-center justify-center gap-1.5 rounded-tick px-3 text-sm font-medium text-ink-soft transition-colors duration-(--dur-micro) hover:text-ink data-pressed:bg-haldi data-pressed:text-ink [&_svg]:size-4"
         >
           {option.icon}
           {option.label}

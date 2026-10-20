@@ -52,7 +52,9 @@ Notes for later phases:
 - [ ] Static map + MapLibre on expand (E2-8; needs tile provider decision D11)
 - [ ] Exit: OG verified in WhatsApp debugger on a deployed URL
 
-Verified: typecheck, lint, format, 170 unit + integration tests, build (160+ prerendered catalogue pages), 56 Playwright tests incl. axe light/dark on catalogue pages.
+- [x] UI redesign "Token & Stamp" across shell, landing, discover, branch, dish, city ranking, area, cuisine, static and error pages (D23–D25)
+
+Verified: typecheck, lint, format, 164 unit + integration tests, build (160+ prerendered catalogue pages), 58 Playwright tests incl. axe light/dark. Throttled mobile LCP (Pixel 7, 4× CPU, 1.6 Mbps): 1.0–1.5 s across `/`, `/hyderabad`, branch, branch dish and city dish pages.
 
 Deferred by design: photo strip and photos grid (P4 media), posts tabs (E2-5, P4), Save/Rate actions (P2/P3), "Still true?" (P5), distance from user (P2 location).
 

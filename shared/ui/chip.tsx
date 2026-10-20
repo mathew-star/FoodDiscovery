@@ -4,12 +4,12 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/cn';
 
 export const chipVariants = cva(
-  'relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium whitespace-nowrap transition-[background-color,border-color,color] duration-(--dur-fast) ease-standard before:absolute before:inset-x-0 before:-inset-y-1 before:content-[""] [&_svg]:size-4',
+  'relative inline-flex h-10 shrink-0 press items-center gap-1.5 rounded-tick border-2 border-ink px-3 text-sm font-semibold whitespace-nowrap shadow-lift-sm before:absolute before:inset-x-0 before:-inset-y-1 before:content-[""] [&_svg]:size-4',
   {
     variants: {
       selected: {
-        true: 'border-primary bg-primary-soft text-text',
-        false: 'border-border-strong bg-surface text-text hover:bg-surface-2',
+        true: 'bg-haldi text-on-haldi',
+        false: 'bg-raised text-ink hover:bg-sunk',
       },
     },
     defaultVariants: { selected: false },

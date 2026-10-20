@@ -8,18 +8,25 @@ type ActionRowProps = { name: string; path: string; location: LatLng; phone: str
 
 export function ActionRow({ name, path, location, phone }: ActionRowProps) {
   return (
-    <div role="group" aria-label={t('place.actions')} className="flex flex-wrap gap-2">
+    <div
+      role="group"
+      aria-label={t('place.actions')}
+      className="flex gap-3 [&>*]:px-4 sm:[&>*]:px-7 [&>*:first-child]:flex-1 sm:[&>*:first-child]:flex-none"
+    >
       <a
         href={googleMapsDirectionsUrl(location)}
         target="_blank"
         rel="noopener noreferrer"
-        className={buttonVariants()}
+        className={buttonVariants({ variant: 'haldi', size: 'lg' })}
       >
         <Navigation aria-hidden="true" />
         {t('place.directions')}
       </a>
       {phone ? (
-        <a href={`tel:${phone.replace(/\s+/g, '')}`} className={buttonVariants({ variant: 'secondary' })}>
+        <a
+          href={`tel:${phone.replace(/\s+/g, '')}`}
+          className={buttonVariants({ variant: 'secondary', size: 'lg' })}
+        >
           <Phone aria-hidden="true" />
           {t('place.call')}
         </a>

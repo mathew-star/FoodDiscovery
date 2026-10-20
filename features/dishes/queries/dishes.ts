@@ -7,7 +7,7 @@ import {
   findBranchDish,
   findCanonicalDish,
   listBranchDishesForCanonical,
-  listCanonicalDishesByCategory,
+  listBestBranchDishPerCanonical,
   listBranchDishParams,
   listCanonicalDishSlugs,
   listDishesForBranch,
@@ -126,23 +126,40 @@ export async function getCuisineTopDishes(cityId: string, cuisineId: string) {
   return listTopDishesForCuisine(cityId, cuisineId, config.minWeightForDisplay, 10);
 }
 
-export async function getDishDirectory() {
+export type CategoryShelf = {
+  slug: string;
+  name: string;
+  dishes: (PlacedDish & { canonicalSlug: string; canonicalName: string })[];
+};
+
+export async function getCityShelves(cityId: string) {
   'use cache';
-  cacheLife('cuisine');
-  cacheTag('canonical-dishes');
-  const rows = await listCanonicalDishesByCategory();
-  const categories = new Map<
-    string,
-    { slug: string; name: string; dishes: { slug: string; name: string }[] }
-  >();
+  cacheLife('city');
+  cacheTag('branch-dishes', 'canonical-dishes');
+  const config = await getRankingConfig('dish_scoring');
+  const rows = await listBestBranchDishPerCanonical(cityId, config.minWeightForDisplay);
+  const shelves = new Map<string, CategoryShelf & { sort: number }>();
   for (const row of rows) {
-    const category = categories.get(row.categorySlug) ?? {
-      slug: row.categorySlug,
-      name: row.categoryName,
+    const { categorySlug, categoryName, categorySort, ...dish } = row;
+    const shelf = shelves.get(categorySlug) ?? {
+      slug: categorySlug,
+      name: categoryName,
+      sort: categorySort,
       dishes: [],
     };
-    category.dishes.push({ slug: row.slug, name: row.name });
-    categories.set(row.categorySlug, category);
+    shelf.dishes.push(dish);
+    shelves.set(categorySlug, shelf);
   }
-  return [...categories.values()];
+  const ordered = [...shelves.values()]
+    .sort((a, b) => a.sort - b.sort)
+    .map((shelf): CategoryShelf => ({
+      slug: shelf.slug,
+      name: shelf.name,
+      dishes: shelf.dishes.sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
+    }));
+  const topOverall = rows
+    .slice()
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    .slice(0, 6);
+  return { shelves: ordered, topOverall, minWeightForDisplay: config.minWeightForDisplay };
 }
