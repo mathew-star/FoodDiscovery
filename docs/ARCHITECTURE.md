@@ -157,7 +157,7 @@ Shared zod schema in `features/analytics/schemas/events.ts`; client sends via `n
 
 ## 10. Environment
 
-Names only; values live in local `.env` and Vercel. `.env.example` must list every name (Phase 0 removes it from `.gitignore`).
+Names only; values live in local `.env` and Vercel project settings, never in chat, code or commits. `.env.example` lists every name with empty values and is the only committed env file. Server code reads them through `infra/env.ts` (`requireEnv`).
 
 | Variable | Used by |
 | --- | --- |
@@ -167,8 +167,9 @@ Names only; values live in local `.env` and Vercel. `.env.example` must list eve
 | `API_TOKEN` | Cloudflare API token; not read by app code |
 | `RESEND_API_KEY` | OTP and transactional email |
 | `BETTER_AUTH_API_KEY` | Better Auth dashboard connection |
-| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Better Auth signing secret and base URL (to add before Phase 3) |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in (to add before Phase 3) |
+| `BETTER_AUTH_SECRET` | Better Auth signing/encryption secret |
+| `BETTER_AUTH_URL` | Better Auth base URL: `http://localhost:3000` locally, `https://food-discovery-eta.vercel.app` on Vercel |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in; OAuth redirect URI `{BETTER_AUTH_URL}/api/auth/callback/google` |
 | `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY` | Inngest (to add before Phase 3) |
 | `R2_PUBLIC_URL` | Public/CDN origin for photos (to add before Phase 4) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web push (to add before Phase 6) |

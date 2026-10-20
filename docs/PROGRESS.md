@@ -20,7 +20,8 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 
 ## P0 Foundations
 
-- [ ] `.env.example` committed; `bun.lock` synced; pre-1.0 deps pinned
+- [x] `.env.example` committed (names only)
+- [ ] `bun.lock` synced; pre-1.0 deps pinned
 - [ ] `lib/` → `infra/`, `drizzle/src/` → `db/`; Pool client; gated startup checks
 - [ ] Scripts: typecheck, test, test:e2e, format; ESLint boundaries
 - [ ] CI workflow green
