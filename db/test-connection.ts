@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
-import { drizzle } from 'drizzle-orm/neon-http';
 import { sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/neon-http';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -11,7 +11,7 @@ if (!databaseUrl) {
 
 const db = drizzle(databaseUrl);
 
-async function testConnection() {
+async function testConnection(): Promise<void> {
   const result = await db.execute(sql`SELECT 1 + 1 AS sum`);
   console.log('Database connected:', result.rows);
 }

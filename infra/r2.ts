@@ -16,7 +16,14 @@ try {
 
 const expectedHost = `${accountId}.r2.cloudflarestorage.com`;
 
-if (url.protocol !== 'https:' || url.hostname !== expectedHost || url.username || url.password || url.search || url.hash) {
+if (
+  url.protocol !== 'https:' ||
+  url.hostname !== expectedHost ||
+  url.username ||
+  url.password ||
+  url.search ||
+  url.hash
+) {
   throw new ConfigurationError('S3_API must be an HTTPS R2 endpoint for R2_ACCOUNT_ID');
 }
 

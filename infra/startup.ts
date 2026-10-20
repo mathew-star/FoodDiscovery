@@ -26,9 +26,20 @@ async function checkService(service: string, check: () => Promise<unknown>): Pro
 
   try {
     await withTimeout(check());
-    logger.info({ service, status: 'ready', durationMs: Math.round(performance.now() - startedAt) }, 'Infrastructure check');
+    logger.info(
+      { service, status: 'ready', durationMs: Math.round(performance.now() - startedAt) },
+      'Infrastructure check',
+    );
   } catch (error) {
-    logger.error({ service, status: 'unavailable', durationMs: Math.round(performance.now() - startedAt), error: toLoggedError(error, true) }, 'Infrastructure check');
+    logger.error(
+      {
+        service,
+        status: 'unavailable',
+        durationMs: Math.round(performance.now() - startedAt),
+        error: toLoggedError(error, true),
+      },
+      'Infrastructure check',
+    );
   }
 }
 
@@ -44,7 +55,7 @@ export async function registerServer(): Promise<void> {
 
   await Promise.all([
     checkService('neon', async () => {
-      const { db } = await import('../drizzle/src');
+      const { db } = await import('@/db/client');
       await db.execute(sql`select 1`);
     }),
     checkService('upstash-redis', async () => {
@@ -53,7 +64,9 @@ export async function registerServer(): Promise<void> {
     }),
     checkService('cloudflare-r2', async () => {
       const { r2, r2Bucket } = await import('./r2');
-      await r2.send(new HeadBucketCommand({ Bucket: r2Bucket }), { abortSignal: AbortSignal.timeout(CHECK_TIMEOUT_MS) });
+      await r2.send(new HeadBucketCommand({ Bucket: r2Bucket }), {
+        abortSignal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
+      });
     }),
   ]);
 }

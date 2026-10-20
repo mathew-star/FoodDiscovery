@@ -44,9 +44,7 @@ function redactMessage(message: string): string {
     }
   }
 
-  return safeMessage
-    .replace(/\b(?:postgres(?:ql)?|rediss?):\/\/\S+/gi, '[REDACTED_URL]')
-    .slice(0, 300);
+  return safeMessage.replace(/\b(?:postgres(?:ql)?|rediss?):\/\/\S+/gi, '[REDACTED_URL]').slice(0, 300);
 }
 
 export function toLoggedError(error: unknown, includeMessage = false, depth = 0): LoggedError {
@@ -60,23 +58,26 @@ export function toLoggedError(error: unknown, includeMessage = false, depth = 0)
     sourceError?: unknown;
     $metadata?: { httpStatusCode?: unknown };
   };
-  const code = typeof details.code === 'string' && /^[A-Za-z0-9_]{1,80}$/.test(details.code)
-    ? details.code
-    : undefined;
+  const code =
+    typeof details.code === 'string' && /^[A-Za-z0-9_]{1,80}$/.test(details.code) ? details.code : undefined;
   const statusCode = details.statusCode ?? details.$metadata?.httpStatusCode;
   const sourceError = error.cause ?? details.sourceError;
-  const cause = depth < 3 && sourceError !== undefined
-    ? toLoggedError(sourceError, includeMessage, depth + 1)
-    : undefined;
-  const errors = depth < 3 && error instanceof AggregateError
-    ? error.errors.slice(0, 3).map((item: unknown) => toLoggedError(item, includeMessage, depth + 1))
-    : undefined;
+  const cause =
+    depth < 3 && sourceError !== undefined
+      ? toLoggedError(sourceError, includeMessage, depth + 1)
+      : undefined;
+  const errors =
+    depth < 3 && error instanceof AggregateError
+      ? error.errors.slice(0, 3).map((item: unknown) => toLoggedError(item, includeMessage, depth + 1))
+      : undefined;
 
   return {
     name: /^[A-Za-z][A-Za-z0-9_]{0,79}$/.test(error.name) ? error.name : 'Error',
     ...(code ? { code } : {}),
     ...(typeof statusCode === 'number' ? { statusCode } : {}),
-    ...(includeMessage || error instanceof ConfigurationError ? { message: redactMessage(error.message) } : {}),
+    ...(includeMessage || error instanceof ConfigurationError
+      ? { message: redactMessage(error.message) }
+      : {}),
     ...(cause ? { cause } : {}),
     ...(errors?.length ? { errors } : {}),
   };
