@@ -55,8 +55,8 @@ export async function registerServer(): Promise<void> {
 
   await Promise.all([
     checkService('neon', async () => {
-      const { db } = await import('@/db/client');
-      await db.execute(sql`select 1`);
+      const { getDb } = await import('@/db/client');
+      await getDb().execute(sql`select 1`);
     }),
     checkService('upstash-redis', async () => {
       const { redis } = await import('./redis');
