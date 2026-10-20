@@ -7,3 +7,111 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# FDN — Food Discovery Network
+
+Mobile-first web app + PWA for Hyderabad: dish-first discovery, Loved/Good/Okay/Skip ratings, posts, threaded comments, votes, communities, lists, Dish Battles, living facts. Guests read everything; sign-in only to engage. Source of truth: `docs/spec/MVP-SPEC.md`. Where this repo deviates from the spec, `docs/ARCHITECTURE.md` §Decisions wins.
+
+## Stack
+
+| Concern | Choice |
+| --- | --- |
+| Runtime / PM | Bun 1.3.11 (`bun --bun next …`), Node 22 on Vercel |
+| Framework | Next.js 16.4 App Router, React 19.3, `cacheComponents` + `partialPrefetching` on |
+| Language | TypeScript strict; zod for every external input |
+| Styling | Tailwind v4 (`@theme` mapped to CSS variables), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons |
+| Data | Neon Postgres + Drizzle 1.0 rc (HTTP driver for reads, Pool for transactions), PostGIS, `pg_trgm`, `unaccent` |
+| Cache / limits | Upstash Redis via `ioredis` (`rediss://`), sliding-window limiter on the same client |
+| Auth | Better Auth: Google (One Tap + button) and email OTP via Resend; DB sessions |
+| Jobs | Inngest (`app/api/inngest/route.ts`) |
+| Storage | Cloudflare R2 via S3 API, presigned PUT from the browser |
+| Email | Resend |
+| Observability | pino JSON logs + `instrumentation.ts`; no third-party tracker or analytics SaaS |
+| Hosting | Vercel — `https://food-discovery-eta.vercel.app`, auth base path `/api/auth` |
+
+No LLM, no SMS, no PostHog in the MVP. Do not add vendors without an ARCHITECTURE.md decision entry.
+
+## Commands
+
+```bash
+bun install                 # commit bun.lock changes
+bun run dev                 # next dev (Bun runtime)
+bun run build && bun run start
+bunx next typegen && bunx tsc --noEmit   # typecheck (typegen generates PageProps/LayoutProps)
+bun run lint
+bun run db:generate         # SQL migration from db schema diff; review before commit
+bun run db:migrate          # never against production from a laptop
+bun run db:check
+bun run db:test             # read-only connectivity check
+```
+
+Phase 0 adds `typecheck`, `test` (Vitest), `test:e2e` (Playwright), `format`, `db:seed`, `inngest:dev`. Update this list when they land.
+
+## Architecture rules
+
+Full detail: `docs/ARCHITECTURE.md`.
+
+- `app/` is routing only: read params, call a feature query, render a feature component, export metadata. No SQL, no business rules.
+- Features live in `features/<domain>/{components,server,queries,schemas,hooks,jobs}`.
+  - `server/actions.ts` (`'use server'`) is the only mutation entry point from UI.
+  - `server/service.ts` holds rules; `server/repo.ts` holds Drizzle. Both `import 'server-only'` and are private to the feature.
+  - `queries/` are cached reads: `'use cache'` + `cacheLife(profile)` + `cacheTag('<entity>:<id>')`.
+  - `schemas/` are zod; types derive from them (`z.infer`).
+- Cross-feature imports: only another feature's `components/`, `queries/`, `schemas/`, `server/actions.ts`. Never `repo.ts`/`service.ts`.
+- `shared/ui` (design-system primitives), `shared/lib` (pure utils) never import `features/`, `db/`, `infra/`.
+- `db/` owns schema, migrations, seed. `infra/` owns env, logger, redis, r2, inngest, ratelimit, email clients.
+- Route handlers only for: Better Auth, Inngest, typeahead GET, analytics beacon, OG images (file convention). Everything else is a server action.
+- Long, scheduled or fan-out work is an Inngest function in `features/<domain>/jobs/`, registered in `infra/inngest/functions.ts`.
+- Every tunable ranking constant reads from `ranking_config`, never a literal.
+
+## Code standards
+
+- No `any`, no non-null `!`, no `@ts-ignore`. `noUncheckedIndexedAccess` on.
+- Actions return `Result<T, AppError>` (`{ ok: true, data } | { ok: false, error }`); never throw to the client. Order: session → zod parse → permission + trust → rate limit → service → `updateTag`.
+- Server Components by default; client files end in `.client.tsx` and stay leaf-level.
+- All user-visible strings go through i18n keys (`i18n/messages/en.json`); no string literals in JSX.
+- Colours, spacing, radii, motion only via tokens (`docs/DESIGN-SYSTEM.md`). No hex in components.
+- Rating states and diet marks use the `RatingBadge`/`DietMark` components — never colour alone.
+- Money is integer paise; time is `timestamptz` UTC, rendered in `Asia/Kolkata`. Coordinates are PostGIS `geography(Point,4326)`.
+- IDs are uuidv7; public slugs are immutable, renames write a redirect row.
+- Comments only where intent is non-obvious. No TODOs or placeholders in merged code.
+- Names: files kebab-case; components PascalCase; actions `verbNounAction`; schemas `nounInputSchema`; tables snake_case plural.
+
+## Git and PR workflow
+
+- Branch from `main`: `feat/p<phase>-<slug>`, `fix/<slug>`, `chore/<slug>`. Never push to `main` directly.
+- Conventional commits (`feat(ratings): …`). One concern per PR; ≤ ~400 changed lines excluding migrations and generated files.
+- PR body: spec story IDs covered, screenshots (light + dark, 390 px and 1280 px) for UI, migration notes.
+- Squash-merge after CI green and review. Migrations merge before code that depends on them.
+- At the end of every phase update `docs/PROGRESS.md` in the same PR that closes the phase.
+
+## Definition of done
+
+1. Acceptance criteria of the referenced story IDs met; deviations recorded in ARCHITECTURE.md §Decisions.
+2. Typecheck, lint, unit, e2e, build pass locally and in CI.
+3. New rules (scores, limits, permissions, consensus) have unit tests; new flows have a Playwright test.
+4. axe: no serious/critical violations; keyboard path works; reduced-motion respected.
+5. Public pages: metadata, OG image, JSON-LD where applicable; LCP < 2 s on throttled mid-range Android profile.
+6. Strings in i18n; dark mode checked; no console errors.
+7. Logs contain no secrets or personal data; analytics events emitted per `docs/ARCHITECTURE.md` §Analytics.
+
+## Do not
+
+- Do not read, print, request or commit secrets. Reference `.env.example` names only.
+- Do not use `export const revalidate`/`dynamic` segment configs; Cache Components uses `use cache` + `cacheLife`.
+- Do not use `middleware.ts`; the Next 16 convention is `proxy.ts`, and it only does optimistic redirects — authorise in the server.
+- Do not query the database from components, `app/` files or client code.
+- Do not add paid ranking, ads, scraped competitor data or third-party fingerprinting.
+- Do not auto-apply "permanently closed", count disclosed ratings in scores, or show vote shares before a member votes.
+- Do not skip, disable or `.only` tests; do not weaken lint/tsconfig rules to pass CI.
+- Do not add dependencies without checking bundle impact and pinning exact versions for pre-1.0 packages.
+- Do not run migrations against production outside the release workflow.
+
+## Docs
+
+- `docs/spec/MVP-SPEC.md` — product spec (source of truth)
+- `docs/ARCHITECTURE.md` — structure, boundaries, data model, caching, jobs, decisions
+- `docs/DESIGN-SYSTEM.md` — tokens, type, motion, components, a11y rules
+- `docs/PRODUCT-FLOWS.md` — W1–W11 mapped to routes, components, actions, jobs
+- `docs/ROADMAP.md` — 7 phases with scope, exit criteria, tests
+- `docs/PROGRESS.md` — phase checklist; update at the end of every phase
