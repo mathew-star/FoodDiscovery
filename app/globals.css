@@ -136,6 +136,18 @@
   --ease-emphasized: var(--motion-emphasized);
 }
 
+@utility plate-saffron {
+  background: radial-gradient(circle at 35% 30%, #f6c27a, #d9772b 45%, #8a3a10 100%);
+}
+
+@utility plate-chilli {
+  background: radial-gradient(circle at 35% 30%, #f4a77a, #c2412d 50%, #6e1f14 100%);
+}
+
+@utility plate-cardamom {
+  background: radial-gradient(circle at 35% 30%, #f3e1c2, #b8925a 50%, #5c4425 100%);
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;

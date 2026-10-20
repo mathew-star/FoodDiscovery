@@ -18,10 +18,19 @@ async function expectNoSeriousViolations(page: Page): Promise<void> {
   ).toEqual([]);
 }
 
-test('root redirects to the city discover page', async ({ page }) => {
+test('landing page leads into the city', async ({ page }) => {
   await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Know what to order before you go.');
+  await page.getByRole('main').getByRole('link', { name: 'Explore Hyderabad' }).first().click();
   await expect(page).toHaveURL(/\/hyderabad$/);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('What should you eat today?');
+});
+
+test('landing page shows every rating word and diet mark with text', async ({ page }) => {
+  await page.goto('/');
+  for (const label of ['Loved', 'Good', 'Okay', 'Skip', 'Veg', 'Egg', 'Non-veg']) {
+    await expect(page.getByText(label, { exact: true }).first()).toBeAttached();
+  }
 });
 
 test('discover page shows search and context chips', async ({ page }) => {
@@ -68,7 +77,7 @@ test('skip link moves focus to main content', async ({ page, isMobile }) => {
   await expect(page.locator('#main')).toBeFocused();
 });
 
-for (const path of ['/hyderabad', '/about', '/guidelines', '/offline']) {
+for (const path of ['/', '/hyderabad', '/about', '/guidelines', '/offline']) {
   test(`${path} has no serious accessibility violations in light and dark`, async ({ page, context }) => {
     await page.goto(path);
     await expectNoSeriousViolations(page);

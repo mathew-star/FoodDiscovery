@@ -1,9 +1,16 @@
 import type { NextConfig } from 'next';
-import { defaultCity } from './features/geo/schemas/city';
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  cacheLife: {
+    feed: { stale: 60, revalidate: 120, expire: 3_600 },
+    city: { stale: 300, revalidate: 300, expire: 86_400 },
+    branch: { stale: 300, revalidate: 600, expire: 86_400 },
+    catalog: { stale: 300, revalidate: 900, expire: 86_400 },
+    cuisine: { stale: 900, revalidate: 3_600, expire: 86_400 },
+    config: { stale: 900, revalidate: 3_600, expire: 86_400 },
+  },
   turbopack: {
     rules: {
       '*.css': {
@@ -11,9 +18,6 @@ const nextConfig: NextConfig = {
         as: '*.css',
       },
     },
-  },
-  async redirects() {
-    return [{ source: '/', destination: `/${defaultCity}`, permanent: false }];
   },
   async headers() {
     return [

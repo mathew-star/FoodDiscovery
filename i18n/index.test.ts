@@ -25,3 +25,13 @@ describe('t', () => {
     expect(leafValues(en).every((value) => value.trim().length > 0)).toBe(true);
   });
 });
+
+function hasArray(node: unknown): boolean {
+  if (Array.isArray(node)) return true;
+  if (typeof node === 'object' && node !== null) return Object.values(node).some(hasArray);
+  return false;
+}
+
+it('uses objects, not arrays, so every message has a typed key', () => {
+  expect(hasArray(en)).toBe(false);
+});
