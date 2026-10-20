@@ -8,8 +8,8 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 
 | # | Decision | Replaces / fills | Reason |
 | --- | --- | --- | --- |
-| D1 | Sign-in = Google (One Tap + button) **or email OTP** via Resend | Spec phone OTP (E1-2, W2.3) | No SMS vendor in MVP; Resend already provisioned |
-| D2 | Email OTP rules: 6 digits, 5-min expiry, 5 verify attempts, 3 sends per email / 15 min, 10 per IP / hour, resend after 30 s | E1-2 limits | Same abuse envelope as the spec's phone OTP |
+| D1 | Sign-in = **email + password** (Better Auth `emailAndPassword`) with email verification and password reset via Resend. Google sign-in is deferred: the auth pages show a disabled "Continue with Google" button until it ships | Spec Google One Tap + phone OTP (E1-1, E1-2, W2.3) | Ship the core product first; no SMS vendor |
+| D2 | Auth limits: password ≥ 10 chars checked against a common-password list; 5 failed sign-ins per email / 15 min and 20 per IP / hour; verification and reset emails 3 per email / 15 min; links expire in 30 min | E1-2 limits | Same abuse envelope as the spec's OTP rules |
 | D3 | Redis client stays `ioredis` over `rediss://` (Upstash TCP); sliding-window limiter implemented as a Lua script on that client in `infra/ratelimit.ts` | `@upstash/ratelimit` (§7.1) | Upstash's documented ioredis path; one client for limiter, counters, locks. Singleton reused across warm Fluid invocations |
 | D4 | No LLM in MVP. Pre-publish screening (E14-2, §7.2) is rule-based: link allowlist, PII regexes (Indian phone numbers, emails), blocklist, T0 link hold, pHash match against removed images. Screening is behind a `Screener` interface so a model can plug in later | LLM text + vision moderation | Product decision |
 | D5 | Snap-to-post suggests **nearby branches only** (PostGIS ≤ 300 m) plus typeahead; no photo-based dish suggestion | E5-2 AI dish suggestion | Follows D4 |
@@ -20,6 +20,10 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D10 | Search = Postgres (`pg_trgm` similarity + `unaccent` + `tsvector`), alias table for canonical dishes; distance via PostGIS | Spec silent | No extra service; meets 150 ms p95 at MVP scale |
 | D11 | Maps: static map image + MapLibre GL on expand; tile provider chosen in Phase 1 (free tier, attribution shown) | E2-8 | Provider not yet fixed |
 | D12 | Spec has no sections after §8; data model, API surface, admin and analytics events are defined here | Spec §9–14 references | Spec is final at its current length |
+| D13 | `/privacy`, `/terms`, `/grievance` ship in P6 with reviewed legal copy and the grievance officer's details; P0 ships `/about` and `/guidelines` | Spec §3.2 static pages, E14-6 | Legal text and officer identity must come from the business, not be drafted by engineering |
+| D14 | `proxy.ts` returns a real 404 for any first path segment that is not a known city or top-level route | Spec silent | `[city]` is a top-level dynamic segment; without the guard a first hit on an unknown slug streams a 200 soft-404 and is cached |
+| D15 | Active state in the bottom nav is read after hydration | — | `usePathname()` under a fallback `[city]` param blocks the static shell; the nav renders without `aria-current` in the shell and updates on hydrate |
+| D16 | Only `en` messages exist; `te`/`hi` catalogs are added when translations are ready, through the same `t()` helper | Spec "Telugu/Hindi-ready" | i18n keys from day one without shipping empty catalogs |
 
 ## 2. Repository layout
 
@@ -52,18 +56,19 @@ features/<domain>/
   hooks/        client hooks
   jobs/         Inngest functions
 shared/ui/      design-system primitives
-shared/lib/     result, geo, time, slug, money, format, i18n helpers
+shared/lib/     cn, result, time; later geo, slug, money, format
+shared/config/  site URL, theme cookie
 db/             schema/<domain>.ts  client.ts  migrations/  seed/
 infra/          env, logger, redis, ratelimit, r2, inngest/{client,functions}.ts, email, startup
-i18n/           messages/{en,te,hi}.json  config.ts
-proxy.ts        optimistic redirect for (member)/(admin) when no session cookie
+i18n/           index.ts (typed t), messages/en.json
+proxy.ts        404 for unknown first segments (D14); later optimistic redirect for (member)/(admin) without a session cookie
 instrumentation.ts
 tests/e2e/      Playwright; unit tests sit beside code as *.test.ts
 ```
 
-Phase 0 moves today's `lib/*` → `infra/*` and `drizzle/src/*` → `db/*` (and `drizzle.config.ts` paths).
+**Domains:** `shell` (top bar, bottom nav, footer, theme, service worker), `content` (static pages), `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`.
 
-**Domains:** `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`.
+**Top-level routes** are listed in the `proxy.ts` matcher (D14). Adding a top-level route means adding it there and to `proxy.test.ts`.
 
 ## 3. Boundaries
 
@@ -98,7 +103,7 @@ Tags: `city:{slug}`, `locality:{id}`, `branch:{id}`, `branch-dish:{id}`, `dish:{
 ## 5. Auth
 
 - Better Auth with Drizzle adapter; tables `user`, `session`, `account`, `verification` in `db/schema/auth.ts`.
-- Providers: Google social + One Tap plugin; Email OTP plugin sending through Resend (`features/auth/emails/otp.tsx`).
+- Providers: email + password with required email verification; verification and reset emails sent through Resend (`features/auth/emails/`). Google social provider added later (D1).
 - Session: database-backed, 30-day `expiresIn`, sliding `updateAge` 1 day, cookie HttpOnly, Secure, SameSite=Lax. Sessions listed/revocable in settings; all revoked on ban or deletion.
 - Base URL `https://food-discovery-eta.vercel.app`, base path `/api/auth`. Dashboard connection uses `BETTER_AUTH_API_KEY`.
 - Roles on `profiles.role`: `member | ops | admin`; community moderators in `community_moderators`; trust in `profiles.trust_level` (T0/T1/T2/FOUNDING) recomputed nightly and after moderation.
@@ -169,7 +174,9 @@ Names only; values live in local `.env` and Vercel project settings, never in ch
 | `BETTER_AUTH_API_KEY` | Better Auth dashboard connection |
 | `BETTER_AUTH_SECRET` | Better Auth signing/encryption secret |
 | `BETTER_AUTH_URL` | Better Auth base URL: `http://localhost:3000` locally, `https://food-discovery-eta.vercel.app` on Vercel |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in; OAuth redirect URI `{BETTER_AUTH_URL}/api/auth/callback/google` |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in when enabled (D1); OAuth redirect URI `{BETTER_AUTH_URL}/api/auth/callback/google` |
+| `STARTUP_CHECKS` | `1` runs Neon/Redis/R2 checks at server start; unset on Vercel |
+| `VERCEL_PROJECT_PRODUCTION_URL` | Set by Vercel; used for `metadataBase`, sitemap and robots (falls back to `http://localhost:3000`) |
 | `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY` | Inngest (to add before Phase 3) |
 | `R2_PUBLIC_URL` | Public/CDN origin for photos (to add before Phase 4) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web push (to add before Phase 6) |

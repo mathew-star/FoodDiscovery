@@ -22,30 +22,33 @@ Mobile-first web app + PWA for Hyderabad: dish-first discovery, Loved/Good/Okay/
 | Styling | Tailwind v4 (`@theme` mapped to CSS variables), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons |
 | Data | Neon Postgres + Drizzle 1.0 rc (HTTP driver for reads, Pool for transactions), PostGIS, `pg_trgm`, `unaccent` |
 | Cache / limits | Upstash Redis via `ioredis` (`rediss://`), sliding-window limiter on the same client |
-| Auth | Better Auth: Google (One Tap + button) and email OTP via Resend; DB sessions |
+| Auth | Better Auth: email + password with verification via Resend; DB sessions. Google sign-in deferred (button shown disabled) |
 | Jobs | Inngest (`app/api/inngest/route.ts`) |
 | Storage | Cloudflare R2 via S3 API, presigned PUT from the browser |
 | Email | Resend |
 | Observability | pino JSON logs + `instrumentation.ts`; no third-party tracker or analytics SaaS |
 | Hosting | Vercel — `https://food-discovery-eta.vercel.app`, auth base path `/api/auth` |
 
-No LLM, no SMS, no PostHog in the MVP. Do not add vendors without an ARCHITECTURE.md decision entry.
+No LLM, no SMS, no PostHog, no Google sign-in yet in the MVP. Do not add vendors without an ARCHITECTURE.md decision entry.
 
 ## Commands
 
 ```bash
-bun install                 # commit bun.lock changes
+bun install                 # commit bun.lock changes; CI uses --frozen-lockfile
 bun run dev                 # next dev (Bun runtime)
 bun run build && bun run start
-bunx next typegen && bunx tsc --noEmit   # typecheck (typegen generates PageProps/LayoutProps)
-bun run lint
+bun run typecheck           # next typegen + tsc --noEmit
+bun run lint                # eslint, zero warnings, import boundaries
+bun run format              # prettier (format:check in CI)
+bun run test                # vitest unit tests (*.test.ts beside code)
+bun run test:e2e            # playwright against next start on :3100 (build first)
 bun run db:generate         # SQL migration from db schema diff; review before commit
 bun run db:migrate          # never against production from a laptop
 bun run db:check
 bun run db:test             # read-only connectivity check
 ```
 
-Phase 0 adds `typecheck`, `test` (Vitest), `test:e2e` (Playwright), `format`, `db:seed`, `inngest:dev`. Update this list when they land.
+In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. Later phases add `db:seed` and `inngest:dev`; update this list when they land.
 
 ## Architecture rules
 
@@ -99,7 +102,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 
 - Do not read, print, request or commit secrets. Reference `.env.example` names only.
 - Do not use `export const revalidate`/`dynamic` segment configs; Cache Components uses `use cache` + `cacheLife`.
-- Do not use `middleware.ts`; the Next 16 convention is `proxy.ts`, and it only does optimistic redirects — authorise in the server.
+- Do not use `middleware.ts`; the Next 16 convention is `proxy.ts`. It only returns 404s for unknown top-level paths and (later) optimistic redirects — authorise in the server. New top-level routes must be added to its matcher and `proxy.test.ts`.
 - Do not query the database from components, `app/` files or client code.
 - Do not add paid ranking, ads, scraped competitor data or third-party fingerprinting.
 - Do not auto-apply "permanently closed", count disclosed ratings in scores, or show vote shares before a member votes.

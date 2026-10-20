@@ -12,7 +12,7 @@ Seven phases, each shippable to the beta environment. Story IDs from `docs/spec/
 - Tokens + fonts + `shared/ui` primitives (DESIGN-SYSTEM §1–2); light/dark theme switch.
 - App shell: `TopBar`, `BottomNav`, `CitySwitcher` (§3.1); `/` → `/hyderabad`; i18n scaffolding (en keys, te/hi files).
 - PWA `manifest.ts`, icons, offline fallback page; `robots.ts`.
-- Static pages `/about`, `/guidelines`, `/privacy`, `/terms`, `/grievance` (E14-6, §7.7; final legal copy and grievance officer details required before launch).
+- Static pages `/about`, `/guidelines` (§7.7). `/privacy`, `/terms`, `/grievance` move to P6 (D13).
 
 **Exit:** CI green on a PR; shell LCP < 2 s on Lighthouse mobile (throttled); axe 0 serious; contrast test passes.
 **Tests:** Vitest contrast/token test, Result/slug utils; Playwright smoke (shell, nav, theme toggle, static pages) + axe.
@@ -41,14 +41,14 @@ Seven phases, each shippable to the beta environment. Story IDs from `docs/spec/
 
 ## P3 Accounts and ratings
 
-**Scope:** W2, W3; E1-1…E1-7, E4-5, E6-1…E6-4, E9-2, E9-3; §2.2 trust, §7.1 limits; Inngest.
-- Better Auth (Google, One Tap, email OTP via Resend — D1/D2), sessions, onboarding, device-save import.
+**Scope:** W2, W3; E1-2 (as email + password, D1), E1-3…E1-7, E4-5, E6-1…E6-4, E9-2, E9-3; §2.2 trust, §7.1 limits; Inngest. E1-1 Google sign-in deferred (button shown disabled).
+- Better Auth email + password, verification and reset emails via Resend (D1/D2), sessions, onboarding, device-save import.
 - Profiles, settings (sessions list/revoke, data export, delete account).
 - Rating sheet, aspect ratings, score jobs (§6.1–6.3), nightly recompute, What to order here goes live.
 - Trust levels, `infra/ratelimit.ts` (D3), lists (default + custom).
 
 **Exit:** sign-in resumes original intent; under-18 blocked; score visible < 60 s after rating; re-rate keeps history; limits return `rate_limited` with retry.
-**Tests:** score/aspect/trust unit tests with spec examples; limiter tests against Redis container; `@inngest/test` for recompute; Playwright W2 + W3 (Better Auth test mode for OTP).
+**Tests:** score/aspect/trust unit tests with spec examples; limiter tests against Redis container; `@inngest/test` for recompute; Playwright W2 + W3 (verification emails captured by a test transport).
 
 ## P4 Posts, comments, communities
 
@@ -79,7 +79,9 @@ Seven phases, each shippable to the beta environment. Story IDs from `docs/spec/
 - Review-bombing detection (§7.3), brand affiliations zero-weighting.
 - In-app notifications, web push (prompt after first post/save), visit nudge, weekly digest (Resend).
 - Admin: users, communities, battles, queues, audit, seeding, analytics dashboard views.
-- Launch hardening: perf budget on every public route, full a11y pass, guidelines copy, grievance officer details.
+- `/privacy`, `/terms`, `/grievance` with reviewed legal copy and officer details (D13, E14-6).
+- Google sign-in (E1-1) if prioritised.
+- Launch hardening: perf budget on every public route, full a11y pass.
 
 **Exit:** every moderation action writes audit + notifies; nudge max 1/day; all public routes LCP < 2 s; 0 serious axe issues; §1.4 metrics queryable.
 **Tests:** detection rule unit tests; admin RBAC e2e; push/email contract tests; Lighthouse CI budgets; Playwright W10, W11.

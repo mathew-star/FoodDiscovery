@@ -4,7 +4,7 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 
 | Phase | Status | Closing PR |
 | --- | --- | --- |
-| P0 Foundations | Not started | — |
+| P0 Foundations | Done | branch `claude/food-discovery-audit-7wepur` |
 | P1 Catalogue | Not started | — |
 | P2 Search and Discover | Not started | — |
 | P3 Accounts and ratings | Not started | — |
@@ -21,15 +21,22 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 ## P0 Foundations
 
 - [x] `.env.example` committed (names only)
-- [ ] `bun.lock` synced; pre-1.0 deps pinned
-- [ ] `lib/` → `infra/`, `drizzle/src/` → `db/`; Pool client; gated startup checks
-- [ ] Scripts: typecheck, test, test:e2e, format; ESLint boundaries
-- [ ] CI workflow green
-- [ ] Tokens, fonts, theme switch, `shared/ui` primitives
-- [ ] Shell: TopBar, BottomNav, CitySwitcher, `/` redirect
-- [ ] i18n scaffolding; PWA manifest; robots
-- [ ] Static pages incl. grievance
-- [ ] Exit: LCP < 2 s, axe clean, contrast test
+- [x] `bun.lock` synced (`--frozen-lockfile` passes); pre-1.0 deps pinned; runtime `dotenv` removed
+- [x] `lib/` → `infra/`, `drizzle/src/` → `db/`; Pool client with `withTransaction`; startup checks behind `STARTUP_CHECKS=1`
+- [x] Scripts: typecheck, test, test:e2e, format, format:check; ESLint import boundaries; stricter tsconfig
+- [x] CI workflow (`.github/workflows/ci.yml`)
+- [x] Tokens (contrast-tested), fonts, theme switch without flash
+- [x] `shared/ui`: Button, IconButton, Input, Textarea, ChipButton/ChipLink, Badge, Card, Avatar, Skeleton, EmptyState, VisuallyHidden, Dialog/Sheet, Tooltip, Tabs, Checkbox, Switch, SegmentedControl. Select, Combobox, Popover, Toast, InfiniteList land with their first consumer
+- [x] Shell: TopBar, BottomNav, CitySwitcher, SiteFooter, `/` → `/hyderabad`, 404 guard for unknown paths (D14)
+- [x] i18n (`t()` with typed keys, `en` catalog); PWA manifest, icons, service worker with offline page; robots, sitemap
+- [x] Static pages `/about`, `/guidelines` (`/privacy`, `/terms`, `/grievance` moved to P6, D13)
+- [x] Exit: LCP ≈ 0.65 s on `/hyderabad`, `/about`, `/guidelines` (Pixel 7, 4× CPU, 1.6 Mbps / 150 ms); axe 0 serious/critical in light and dark; contrast test passes
+
+Verified: `bun run typecheck`, `bun run lint`, `bun run format:check`, `bun run test` (125 passing), `bun run build`, `bun run test:e2e` (20 passing, 2 viewport-specific skips).
+
+Notes for later phases:
+- `/hyderabad` transfers ~520 KiB on first load, mostly fonts; revisit font axes/subsets in P6 hardening.
+- Nav links to `/hyderabad/search`, `/post/new`, `/communities`, `/battles`, `/saved` 404 until their phases land.
 
 ## P1 Catalogue
 

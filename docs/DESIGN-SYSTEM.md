@@ -18,7 +18,7 @@ Ratios are WCAG 2.2 contrast against `bg` (and `surface`). Text tokens ≥ 4.5:1
 | `--text` | `#2A1D12` | `#F6EEE3` | 15.3 / 16.3 |
 | `--text-muted` | `#6A5644` | `#BCAA95` | 6.5 / 8.3 |
 | `--border` | `#E4D8C8` | `#3D3226` | decorative only |
-| `--border-strong` (inputs, focus-adjacent) | `#9C8B78` | `#7A6A58` | 3.1 / 3.6 |
+| `--border-strong` (inputs, focus-adjacent) | `#8F7E6B` | `#80705E` | ≥ 3.3 on bg, surface, surface-2 |
 | `--primary` | `#B4410F` | `#F2914F` | 5.3 / 8.0 |
 | `--on-primary` | `#FFFFFF` | `#16110C` | 5.7 / 8.0 on primary |
 | `--accent` | `#1F6F6B` | `#5FC4BC` | 5.6 / 9.0 |
