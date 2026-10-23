@@ -8,8 +8,8 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 
 | # | Decision | Replaces / fills | Reason |
 | --- | --- | --- | --- |
-| D1 | Sign-in = Google (One Tap + button) **or email OTP** via Resend | Spec phone OTP (E1-2, W2.3) | No SMS vendor in MVP; Resend already provisioned |
-| D2 | Email OTP rules: 6 digits, 5-min expiry, 5 verify attempts, 3 sends per email / 15 min, 10 per IP / hour, resend after 30 s | E1-2 limits | Same abuse envelope as the spec's phone OTP |
+| D1 | Sign-in = **email + password** (Better Auth `emailAndPassword`) with email verification and password reset via Resend. Google sign-in is deferred: the auth pages show a disabled "Continue with Google" button until it ships | Spec Google One Tap + phone OTP (E1-1, E1-2, W2.3) | Ship the core product first; no SMS vendor |
+| D2 | Auth limits: password ≥ 10 chars checked against a common-password list; 5 failed sign-ins per email / 15 min and 20 per IP / hour; verification and reset emails 3 per email / 15 min; links expire in 30 min | E1-2 limits | Same abuse envelope as the spec's OTP rules |
 | D3 | Redis client stays `ioredis` over `rediss://` (Upstash TCP); sliding-window limiter implemented as a Lua script on that client in `infra/ratelimit.ts` | `@upstash/ratelimit` (§7.1) | Upstash's documented ioredis path; one client for limiter, counters, locks. Singleton reused across warm Fluid invocations |
 | D4 | No LLM in MVP. Pre-publish screening (E14-2, §7.2) is rule-based: link allowlist, PII regexes (Indian phone numbers, emails), blocklist, T0 link hold, pHash match against removed images. Screening is behind a `Screener` interface so a model can plug in later | LLM text + vision moderation | Product decision |
 | D5 | Snap-to-post suggests **nearby branches only** (PostGIS ≤ 300 m) plus typeahead; no photo-based dish suggestion | E5-2 AI dish suggestion | Follows D4 |
@@ -20,11 +20,25 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D10 | Search = Postgres (`pg_trgm` similarity + `unaccent` + `tsvector`), alias table for canonical dishes; distance via PostGIS | Spec silent | No extra service; meets 150 ms p95 at MVP scale |
 | D11 | Maps: static map image + MapLibre GL on expand; tile provider chosen in Phase 1 (free tier, attribution shown) | E2-8 | Provider not yet fixed |
 | D12 | Spec has no sections after §8; data model, API surface, admin and analytics events are defined here | Spec §9–14 references | Spec is final at its current length |
+| D13 | `/privacy`, `/terms`, `/grievance` ship in P6 with reviewed legal copy and the grievance officer's details; P0 ships `/about` and `/guidelines` | Spec §3.2 static pages, E14-6 | Legal text and officer identity must come from the business, not be drafted by engineering |
+| D14 | `proxy.ts` returns a real 404 for any first path segment that is not a known city or top-level route | Spec silent | `[city]` is a top-level dynamic segment; without the guard a first hit on an unknown slug streams a 200 soft-404 and is cached |
+| D15 | Active state in the bottom nav is read after hydration | — | `usePathname()` under a fallback `[city]` param blocks the static shell; the nav renders without `aria-current` in the shell and updates on hydrate |
+| D17 | `/` is a marketing landing page (static) that leads into `/hyderabad`; it no longer redirects | Spec §3.2 `/` redirect | Product request; first-time visitors need the pitch, deep links still land on entity pages |
+| D18 | `DATABASE_DRIVER=pg` switches Drizzle to node-postgres for local and CI databases; default `neon` uses Neon HTTP for reads and the Neon Pool for transactions | D8 | Same schema and queries everywhere; Neon drivers cannot talk to a plain Postgres |
+| D19 | Sample catalogue (`db/seed/`) uses fictional brands, real locality names, no phone numbers, and writes dish/branch aggregates directly from simulated ratings using the real §6.1/6.2 formulas. From P3 the seed creates sample ratings and the recompute job owns aggregates | Spec §13 seeding | Realistic pages before ratings exist, without inventing facts about real businesses |
+| D20 | Features may contain `lib/` for pure, client-safe domain logic (opening hours, scoring, JSON-LD builders) | §2 layout | Keeps rules testable and shareable between queries, jobs and components |
+| D21 | Open/closed status renders as a request-time hole (`connection()` inside `<Suspense>`) on otherwise static pages | Spec "Answer first" | Cached HTML must never show a stale open state |
+| D22 | Catalogue routes prerender from `generateStaticParams` at build, so `next build` needs a migrated, seeded database (CI uses a PostGIS service; Vercel uses Neon) | — | Static shells for every public entity page; unknown slugs get the not-found UI with a 200 and `noindex` on first hit (framework behaviour under Cache Components) |
+| D23 | Visual identity "Token & Stamp" replaces the first token set: Anek/Hind/Martian Mono, ink + haldi palette, stamps, tickets, receipts (`docs/DESIGN-SYSTEM.md`) | Earlier "Ghee & Saffron" tokens | Product request for a distinctive, non-template UI |
+| D24 | Motion: CSS keyframes and scroll-driven animation by default; `motion` (LazyMotion, `domAnimation`) only in client islands that need layout or spring physics; `animejs` only for SVG path drawing and number rolls | Spec silent | Keeps public pages under the 2 s budget; content stays visible without JS |
+| D25 | City dish filters run client-side over the cached ranking (area, price cap, open now) and sync the URL with `history.replaceState`; the server still parses `searchParams` for the initial state | E3-2 | Instant, animated filtering without extra requests; shareable URLs |
+| D16 | Only `en` messages exist; `te`/`hi` catalogs are added when translations are ready, through the same `t()` helper | Spec "Telugu/Hindi-ready" | i18n keys from day one without shipping empty catalogs |
 
 ## 2. Repository layout
 
 ```
 app/                         routes only
+  (marketing)/page.tsx                          / landing (D17)
   (public)/[city]/page.tsx                      /hyderabad
   (public)/[city]/search/page.tsx
   (public)/[city]/area/[locality]/page.tsx
@@ -51,19 +65,21 @@ features/<domain>/
   schemas/      zod
   hooks/        client hooks
   jobs/         Inngest functions
-shared/ui/      design-system primitives
-shared/lib/     result, geo, time, slug, money, format, i18n helpers
-db/             schema/<domain>.ts  client.ts  migrations/  seed/
+  lib/          pure domain logic, safe on client and server (D20)
+shared/ui/      design-system primitives (+ og-card, json-ld, breadcrumbs)
+shared/lib/     cn, result, time, geo, slug, money, uuid
+shared/config/  site URL, theme cookie
+db/             schema/<domain>.ts  client.ts (getDb, withTransaction)  migrations/  seed/ (sample catalogue)
 infra/          env, logger, redis, ratelimit, r2, inngest/{client,functions}.ts, email, startup
-i18n/           messages/{en,te,hi}.json  config.ts
-proxy.ts        optimistic redirect for (member)/(admin) when no session cookie
+i18n/           index.ts (typed t), messages/en.json
+proxy.ts        404 for unknown first segments (D14); later optimistic redirect for (member)/(admin) without a session cookie
 instrumentation.ts
 tests/e2e/      Playwright; unit tests sit beside code as *.test.ts
 ```
 
-Phase 0 moves today's `lib/*` → `infra/*` and `drizzle/src/*` → `db/*` (and `drizzle.config.ts` paths).
+**Domains:** `shell` (top bar, bottom nav, footer, theme, service worker), `content` (static pages), `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`.
 
-**Domains:** `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`.
+**Top-level routes** are listed in the `proxy.ts` matcher (D14). Adding a top-level route means adding it there and to `proxy.test.ts`.
 
 ## 3. Boundaries
 
@@ -98,7 +114,7 @@ Tags: `city:{slug}`, `locality:{id}`, `branch:{id}`, `branch-dish:{id}`, `dish:{
 ## 5. Auth
 
 - Better Auth with Drizzle adapter; tables `user`, `session`, `account`, `verification` in `db/schema/auth.ts`.
-- Providers: Google social + One Tap plugin; Email OTP plugin sending through Resend (`features/auth/emails/otp.tsx`).
+- Providers: email + password with required email verification; verification and reset emails sent through Resend (`features/auth/emails/`). Google social provider added later (D1).
 - Session: database-backed, 30-day `expiresIn`, sliding `updateAge` 1 day, cookie HttpOnly, Secure, SameSite=Lax. Sessions listed/revocable in settings; all revoked on ban or deletion.
 - Base URL `https://food-discovery-eta.vercel.app`, base path `/api/auth`. Dashboard connection uses `BETTER_AUTH_API_KEY`.
 - Roles on `profiles.role`: `member | ops | admin`; community moderators in `community_moderators`; trust in `profiles.trust_level` (T0/T1/T2/FOUNDING) recomputed nightly and after moderation.
@@ -157,18 +173,22 @@ Shared zod schema in `features/analytics/schemas/events.ts`; client sends via `n
 
 ## 10. Environment
 
-Names only; values live in local `.env` and Vercel. `.env.example` must list every name (Phase 0 removes it from `.gitignore`).
+Names only; values live in local `.env` and Vercel project settings, never in chat, code or commits. `.env.example` lists every name with empty values and is the only committed env file. Server code reads them through `infra/env.ts` (`requireEnv`).
 
 | Variable | Used by |
 | --- | --- |
-| `DATABASE_URL` | Drizzle (HTTP + Pool), drizzle-kit |
+| `DATABASE_URL` | Drizzle (HTTP + Pool), drizzle-kit, seed |
+| `DATABASE_DRIVER` | `neon` (default) or `pg` for local/CI Postgres (D18) |
 | `REDIS_URL` | ioredis (`rediss://`) |
 | `R2_ACCOUNT_ID`, `S3_API`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` (optional) | R2 client |
 | `API_TOKEN` | Cloudflare API token; not read by app code |
 | `RESEND_API_KEY` | OTP and transactional email |
 | `BETTER_AUTH_API_KEY` | Better Auth dashboard connection |
-| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Better Auth signing secret and base URL (to add before Phase 3) |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in (to add before Phase 3) |
+| `BETTER_AUTH_SECRET` | Better Auth signing/encryption secret |
+| `BETTER_AUTH_URL` | Better Auth base URL: `http://localhost:3000` locally, `https://food-discovery-eta.vercel.app` on Vercel |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in when enabled (D1); OAuth redirect URI `{BETTER_AUTH_URL}/api/auth/callback/google` |
+| `STARTUP_CHECKS` | `1` runs Neon/Redis/R2 checks at server start; unset on Vercel |
+| `VERCEL_PROJECT_PRODUCTION_URL` | Set by Vercel; used for `metadataBase`, sitemap and robots (falls back to `http://localhost:3000`) |
 | `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY` | Inngest (to add before Phase 3) |
 | `R2_PUBLIC_URL` | Public/CDN origin for photos (to add before Phase 4) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web push (to add before Phase 6) |
@@ -177,7 +197,7 @@ Names only; values live in local `.env` and Vercel. `.env.example` must list eve
 ## 11. Testing and CI
 
 - Unit: Vitest, beside code (`*.test.ts`) — scores, hot/Wilson, consensus, trust, limits, slugs, schemas.
-- Integration: Vitest against a `postgis/postgis` container (CI service) with migrations applied; repos and services only.
+- Integration: `tests/integration/*.test.ts`, Vitest against a migrated and seeded Postgres (`DATABASE_DRIVER=pg`); skipped when no database is configured.
 - Jobs: `@inngest/test`.
 - E2E: Playwright on `next build && next start` with seeded DB; `@axe-core/playwright` on every page visited.
-- CI (`.github/workflows/ci.yml`, Phase 0): `bun install --frozen-lockfile` → `next typegen` → `tsc --noEmit` → lint → unit → integration → build → e2e.
+- CI (`.github/workflows/ci.yml`): `postgis/postgis:16-3.4` service → `bun install --frozen-lockfile` → typecheck → lint → format check → `db:migrate` → `db:check` → `db:seed` → unit + integration → build → e2e.

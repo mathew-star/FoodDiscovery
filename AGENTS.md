@@ -19,40 +19,46 @@ Mobile-first web app + PWA for Hyderabad: dish-first discovery, Loved/Good/Okay/
 | Runtime / PM | Bun 1.3.11 (`bun --bun next …`), Node 22 on Vercel |
 | Framework | Next.js 16.4 App Router, React 19.3, `cacheComponents` + `partialPrefetching` on |
 | Language | TypeScript strict; zod for every external input |
-| Styling | Tailwind v4 (`@theme` mapped to CSS variables), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons |
+| Styling | Tailwind v4 (`@theme` mapped to CSS variables), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons; "Token & Stamp" identity (`docs/DESIGN-SYSTEM.md`) |
+| Motion | CSS first; Motion (`motion/react`, LazyMotion) for layout/spring interactions; anime.js for SVG drawing and counters |
 | Data | Neon Postgres + Drizzle 1.0 rc (HTTP driver for reads, Pool for transactions), PostGIS, `pg_trgm`, `unaccent` |
 | Cache / limits | Upstash Redis via `ioredis` (`rediss://`), sliding-window limiter on the same client |
-| Auth | Better Auth: Google (One Tap + button) and email OTP via Resend; DB sessions |
+| Auth | Better Auth: email + password with verification via Resend; DB sessions. Google sign-in deferred (button shown disabled) |
 | Jobs | Inngest (`app/api/inngest/route.ts`) |
 | Storage | Cloudflare R2 via S3 API, presigned PUT from the browser |
 | Email | Resend |
 | Observability | pino JSON logs + `instrumentation.ts`; no third-party tracker or analytics SaaS |
 | Hosting | Vercel — `https://food-discovery-eta.vercel.app`, auth base path `/api/auth` |
 
-No LLM, no SMS, no PostHog in the MVP. Do not add vendors without an ARCHITECTURE.md decision entry.
+No LLM, no SMS, no PostHog, no Google sign-in yet in the MVP. Do not add vendors without an ARCHITECTURE.md decision entry.
 
 ## Commands
 
 ```bash
-bun install                 # commit bun.lock changes
+bun install                 # commit bun.lock changes; CI uses --frozen-lockfile
 bun run dev                 # next dev (Bun runtime)
 bun run build && bun run start
-bunx next typegen && bunx tsc --noEmit   # typecheck (typegen generates PageProps/LayoutProps)
-bun run lint
+bun run typecheck           # next typegen + tsc --noEmit
+bun run lint                # eslint, zero warnings, import boundaries
+bun run format              # prettier (format:check in CI)
+bun run test                # vitest unit tests (*.test.ts beside code)
+bun run test:e2e            # playwright against next start on :3100 (build first)
 bun run db:generate         # SQL migration from db schema diff; review before commit
 bun run db:migrate          # never against production from a laptop
 bun run db:check
 bun run db:test             # read-only connectivity check
+bun run db:seed             # sample catalogue into an empty database
+bun run db:reseed           # truncate catalogue tables and reseed (never on production)
 ```
 
-Phase 0 adds `typecheck`, `test` (Vitest), `test:e2e` (Playwright), `format`, `db:seed`, `inngest:dev`. Update this list when they land.
+`next build`, e2e and integration tests need a migrated, seeded database. Locally use Postgres 16 + PostGIS with `DATABASE_DRIVER=pg`. In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. `inngest:dev` lands in P3.
 
 ## Architecture rules
 
 Full detail: `docs/ARCHITECTURE.md`.
 
 - `app/` is routing only: read params, call a feature query, render a feature component, export metadata. No SQL, no business rules.
-- Features live in `features/<domain>/{components,server,queries,schemas,hooks,jobs}`.
+- Features live in `features/<domain>/{components,server,queries,schemas,hooks,jobs,lib}`; `lib/` is pure, client-safe domain logic.
   - `server/actions.ts` (`'use server'`) is the only mutation entry point from UI.
   - `server/service.ts` holds rules; `server/repo.ts` holds Drizzle. Both `import 'server-only'` and are private to the feature.
   - `queries/` are cached reads: `'use cache'` + `cacheLife(profile)` + `cacheTag('<entity>:<id>')`.
@@ -72,6 +78,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 - All user-visible strings go through i18n keys (`i18n/messages/en.json`); no string literals in JSX.
 - Colours, spacing, radii, motion only via tokens (`docs/DESIGN-SYSTEM.md`). No hex in components.
 - Rating states and diet marks use the `RatingBadge`/`DietMark` components — never colour alone.
+- Never hide decision information (scores, open status, prices, titles) behind JS-driven entrance animation; entrances on LCP elements are transform-only.
 - Money is integer paise; time is `timestamptz` UTC, rendered in `Asia/Kolkata`. Coordinates are PostGIS `geography(Point,4326)`.
 - IDs are uuidv7; public slugs are immutable, renames write a redirect row.
 - Comments only where intent is non-obvious. No TODOs or placeholders in merged code.
@@ -99,7 +106,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 
 - Do not read, print, request or commit secrets. Reference `.env.example` names only.
 - Do not use `export const revalidate`/`dynamic` segment configs; Cache Components uses `use cache` + `cacheLife`.
-- Do not use `middleware.ts`; the Next 16 convention is `proxy.ts`, and it only does optimistic redirects — authorise in the server.
+- Do not use `middleware.ts`; the Next 16 convention is `proxy.ts`. It only returns 404s for unknown top-level paths and (later) optimistic redirects — authorise in the server. New top-level routes must be added to its matcher and `proxy.test.ts`.
 - Do not query the database from components, `app/` files or client code.
 - Do not add paid ranking, ads, scraped competitor data or third-party fingerprinting.
 - Do not auto-apply "permanently closed", count disclosed ratings in scores, or show vote shares before a member votes.

@@ -1,26 +1,329 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+/*
+  Token & Stamp — a Hyderabad food counter in a browser.
+  Day counter (light): newsprint paper, carbon ink, haldi highlighter.
+  Night counter (dark): ink-blue night, paper-coloured type, haldi lamps.
+*/
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  color-scheme: light;
+  --paper: #f4eee1;
+  --paper-raised: #fffcf5;
+  --paper-sunk: #e8dfcb;
+  --ink: #1a1c2e;
+  --ink-soft: #55516a;
+  --rule: #d9cfb9;
+  --rule-strong: #7f745e;
+  --haldi: #f2b300;
+  --on-haldi: #1a1c2e;
+  --on-ink: #fffcf5;
+  --live: #0e6b60;
+  --danger: #a3241a;
+  --diet-veg: #18692d;
+  --diet-nonveg: #7a3410;
+  --diet-egg: #7e5a00;
+  --rate-loved: #b0102c;
+  --rate-good: #2c6a2e;
+  --rate-okay: #83560a;
+  --rate-skip: #4f4f5d;
+  --lift-color: #1a1c2e;
+  --grain-opacity: 0.06;
+  --dur-micro: 140ms;
+  --dur-ui: 260ms;
+  --dur-hero: 820ms;
+  --motion-snap: cubic-bezier(0.2, 0.9, 0.1, 1);
+  --motion-out: cubic-bezier(0.4, 0, 1, 1);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #111220;
+    --paper-raised: #1b1c2e;
+    --paper-sunk: #0a0b15;
+    --ink: #f3ecdd;
+    --ink-soft: #b9b1a1;
+    --rule: #2e2f44;
+    --rule-strong: #6f6b84;
+    --haldi: #ffc21a;
+    --on-haldi: #111220;
+    --on-ink: #111220;
+    --live: #4fd1c0;
+    --danger: #ff8a7a;
+    --diet-veg: #62cf7e;
+    --diet-nonveg: #ec9a70;
+    --diet-egg: #e8c155;
+    --rate-loved: #ff8a97;
+    --rate-good: #86d38f;
+    --rate-okay: #e9bc5e;
+    --rate-skip: #b8b8c6;
+    --lift-color: #000000;
+    --grain-opacity: 0.08;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #111220;
+  --paper-raised: #1b1c2e;
+  --paper-sunk: #0a0b15;
+  --ink: #f3ecdd;
+  --ink-soft: #b9b1a1;
+  --rule: #2e2f44;
+  --rule-strong: #6f6b84;
+  --haldi: #ffc21a;
+  --on-haldi: #111220;
+  --on-ink: #111220;
+  --live: #4fd1c0;
+  --danger: #ff8a7a;
+  --diet-veg: #62cf7e;
+  --diet-nonveg: #ec9a70;
+  --diet-egg: #e8c155;
+  --rate-loved: #ff8a97;
+  --rate-good: #86d38f;
+  --rate-okay: #e9bc5e;
+  --rate-skip: #b8b8c6;
+  --lift-color: #000000;
+  --grain-opacity: 0.08;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-raised: var(--paper-raised);
+  --color-sunk: var(--paper-sunk);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-haldi: var(--haldi);
+  --color-on-haldi: var(--on-haldi);
+  --color-on-ink: var(--on-ink);
+  --color-live: var(--live);
+  --color-danger: var(--danger);
+  --color-diet-veg: var(--diet-veg);
+  --color-diet-nonveg: var(--diet-nonveg);
+  --color-diet-egg: var(--diet-egg);
+  --color-rate-loved: var(--rate-loved);
+  --color-rate-good: var(--rate-good);
+  --color-rate-okay: var(--rate-okay);
+  --color-rate-skip: var(--rate-skip);
+
+  --font-display:
+    var(--font-anek), var(--font-anek-telugu), var(--font-anek-devanagari), 'Arial Narrow', sans-serif;
+  --font-sans: var(--font-hind), var(--font-hind-guntur), system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-4xl: 3.052rem;
+  --text-5xl: 3.815rem;
+  --text-6xl: 4.768rem;
+  --text-7xl: 5.96rem;
+
+  --radius-tick: 2px;
+  --radius-stamp: 5px;
+
+  --shadow-lift: 3px 3px 0 var(--lift-color);
+  --shadow-lift-sm: 2px 2px 0 var(--lift-color);
+  --shadow-lift-lg: 6px 6px 0 var(--lift-color);
+
+  --ease-snap: var(--motion-snap);
+  --ease-out-fast: var(--motion-out);
+
+  --animate-ticker: ticker 38s linear infinite;
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes thump {
+  0% {
+    opacity: 0;
+    transform: scale(1.75) rotate(calc(var(--tilt, -4deg) - 9deg));
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.93) rotate(var(--tilt, -4deg));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(var(--tilt, -4deg));
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(18px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes rise-fade {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+/* The signature: a rubber stamp. Ink is never perfectly even. */
+@utility stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  border: 3px double currentColor;
+  border-radius: var(--radius-stamp);
+  padding: 0.18em 0.5em 0.08em;
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: rotate(var(--tilt, -4deg));
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.6 2.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)'/%3E%3C/svg%3E");
+  mask-size: 120px 120px;
+}
+
+@utility stamp-in {
+  animation: thump 520ms var(--motion-snap) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+}
+
+@utility rise-in {
+  animation: rise 520ms var(--motion-snap) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* Scroll reveal: visible by default, animated only where scroll-driven animations exist. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: rise-fade linear both;
+      animation-timeline: view();
+      animation-range: entry calc(5% + var(--reveal-delay, 0%)) cover 22%;
+    }
+  }
+}
+
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@utility perforate-b {
+  --hole: 5px;
+  mask: radial-gradient(circle at 50% 100%, transparent var(--hole), #000 calc(var(--hole) + 0.5px)) 0 0 /
+    16px 100% repeat-x;
+}
+
+@utility notch-x {
+  --notch: 9px;
+  --notch-y: 50%;
+  mask:
+    radial-gradient(circle at 0 var(--notch-y), transparent var(--notch), #000 calc(var(--notch) + 0.5px))
+      left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% var(--notch-y), transparent var(--notch), #000 calc(var(--notch) + 0.5px))
+      right / 51% 100% no-repeat;
+}
+
+@utility leader {
+  flex: 1 1 auto;
+  min-width: 1.5rem;
+  border-bottom: 2px dotted var(--rule-strong);
+  translate: 0 -0.3em;
+}
+
+@utility highlight {
+  background-image: linear-gradient(transparent 55%, var(--haldi) 55%, var(--haldi) 92%, transparent 92%);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-inline: 0.06em;
+}
+
+@utility press {
+  transition:
+    transform var(--dur-micro) var(--motion-snap),
+    box-shadow var(--dur-micro) var(--motion-snap);
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--lift-color);
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    background: var(--paper);
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-stretch: 80%;
+    line-height: 0.98;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--haldi);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--ink);
+  }
+
+  ::selection {
+    background: var(--haldi);
+    color: var(--on-haldi);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -4,8 +4,8 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 
 | Phase | Status | Closing PR |
 | --- | --- | --- |
-| P0 Foundations | Not started | — |
-| P1 Catalogue | Not started | — |
+| P0 Foundations | Done | branch `claude/food-discovery-audit-7wepur` |
+| P1 Catalogue | In progress | — |
 | P2 Search and Discover | Not started | — |
 | P3 Accounts and ratings | Not started | — |
 | P4 Posts, comments, communities | Not started | — |
@@ -20,24 +20,43 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 
 ## P0 Foundations
 
-- [ ] `.env.example` committed; `bun.lock` synced; pre-1.0 deps pinned
-- [ ] `lib/` → `infra/`, `drizzle/src/` → `db/`; Pool client; gated startup checks
-- [ ] Scripts: typecheck, test, test:e2e, format; ESLint boundaries
-- [ ] CI workflow green
-- [ ] Tokens, fonts, theme switch, `shared/ui` primitives
-- [ ] Shell: TopBar, BottomNav, CitySwitcher, `/` redirect
-- [ ] i18n scaffolding; PWA manifest; robots
-- [ ] Static pages incl. grievance
-- [ ] Exit: LCP < 2 s, axe clean, contrast test
+- [x] `.env.example` committed (names only)
+- [x] `bun.lock` synced (`--frozen-lockfile` passes); pre-1.0 deps pinned; runtime `dotenv` removed
+- [x] `lib/` → `infra/`, `drizzle/src/` → `db/`; Pool client with `withTransaction`; startup checks behind `STARTUP_CHECKS=1`
+- [x] Scripts: typecheck, test, test:e2e, format, format:check; ESLint import boundaries; stricter tsconfig
+- [x] CI workflow (`.github/workflows/ci.yml`)
+- [x] Tokens (contrast-tested), fonts, theme switch without flash
+- [x] `shared/ui`: Button, IconButton, Input, Textarea, ChipButton/ChipLink, Badge, Card, Avatar, Skeleton, EmptyState, VisuallyHidden, Dialog/Sheet, Tooltip, Tabs, Checkbox, Switch, SegmentedControl. Select, Combobox, Popover, Toast, InfiniteList land with their first consumer
+- [x] Shell: TopBar, BottomNav, CitySwitcher, SiteFooter, `/` → `/hyderabad`, 404 guard for unknown paths (D14)
+- [x] i18n (`t()` with typed keys, `en` catalog); PWA manifest, icons, service worker with offline page; robots, sitemap
+- [x] Static pages `/about`, `/guidelines` (`/privacy`, `/terms`, `/grievance` moved to P6, D13)
+- [x] Exit: LCP ≈ 0.65 s on `/hyderabad`, `/about`, `/guidelines` (Pixel 7, 4× CPU, 1.6 Mbps / 150 ms); axe 0 serious/critical in light and dark; contrast test passes
+
+Verified: `bun run typecheck`, `bun run lint`, `bun run format:check`, `bun run test` (125 passing), `bun run build`, `bun run test:e2e` (20 passing, 2 viewport-specific skips).
+
+Notes for later phases:
+- `/hyderabad` transfers ~520 KiB on first load, mostly fonts; revisit font axes/subsets in P6 hardening.
+- Nav links to `/hyderabad/search`, `/post/new`, `/communities`, `/battles`, `/saved` 404 until their phases land.
 
 ## P1 Catalogue
 
-- [ ] Schema + extensions + migrations
-- [ ] Seed tooling; 3 localities seeded
-- [ ] Admin entity CRUD + dish merge (E3-5)
-- [ ] Branch, branch-dish, city-dish, cuisine, area pages
-- [ ] OG images, JSON-LD, sitemap, canonical URLs
-- [ ] Exit criteria met
+- [x] Landing page at `/` (D17)
+- [x] Schema + extensions (`postgis`, `pg_trgm`, `unaccent`) + migrations: geo, places, facts, dishes, `ranking_config`
+- [x] `DATABASE_DRIVER` switch for local/CI Postgres (D18); CI runs migrate + seed on a PostGIS service
+- [x] Sample seed: 5 localities (3 launch), 12 fictional brands, 17 branches, 100 dishes, 24 canonical dishes (D19)
+- [x] Scoring (§6.1 dish score, §6.2 food score), What to order here (§6.3), opening hours with overnight/split shifts — unit tested
+- [x] Branch page (E2-1, E2-2, E2-3, E2-4, E2-6, E2-7), branch dish page (E3-1), city dish ranking with area/price/open-now filters (E3-2), area page (E4-6), cuisine page
+- [x] Discover home: popular dishes by category and explore areas (partial E4-4)
+- [x] JSON-LD (Restaurant, BreadcrumbList, ItemList), OG images per branch, branch dish and city dish (E12-1, E12-2), DB-backed sitemap
+- [ ] Minimal `/admin` entity CRUD + canonical dish/alias merge (E3-5)
+- [ ] Static map + MapLibre on expand (E2-8; needs tile provider decision D11)
+- [ ] Exit: OG verified in WhatsApp debugger on a deployed URL
+
+- [x] UI redesign "Token & Stamp" across shell, landing, discover, branch, dish, city ranking, area, cuisine, static and error pages (D23–D25)
+
+Verified: typecheck, lint, format, 164 unit + integration tests, build (160+ prerendered catalogue pages), 58 Playwright tests incl. axe light/dark. Throttled mobile LCP (Pixel 7, 4× CPU, 1.6 Mbps): 1.0–1.5 s across `/`, `/hyderabad`, branch, branch dish and city dish pages.
+
+Deferred by design: photo strip and photos grid (P4 media), posts tabs (E2-5, P4), Save/Rate actions (P2/P3), "Still true?" (P5), distance from user (P2 location).
 
 ## P2 Search and Discover
 
