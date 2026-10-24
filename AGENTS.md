@@ -19,8 +19,9 @@ Mobile-first web app + PWA for Hyderabad: dish-first discovery, Loved/Good/Okay/
 | Runtime / PM | Bun 1.3.11 (`bun --bun next …`), Node 22 on Vercel |
 | Framework | Next.js 16.4 App Router, React 19.3, `cacheComponents` + `partialPrefetching` on |
 | Language | TypeScript strict; zod for every external input |
-| Styling | Tailwind v4 (`@theme` mapped to CSS variables), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons; "Token & Stamp" identity (`docs/DESIGN-SYSTEM.md`) |
-| Motion | CSS first; Motion (`motion/react`, LazyMotion) for layout/spring interactions; anime.js for SVG drawing and counters |
+| Styling | Tailwind v4 (`@theme inline` over `--fdn-*` tokens in `app/globals.css`, default palette reset), Base UI headless primitives, `cva` + `tailwind-merge`, Lucide icons; "warm brutalist" FDN design system (`docs/DESIGN-SYSTEM.md`, visual reference `docs/reference/fdn-landing-full.html`) |
+| Fonts | Bricolage Grotesque (headings) + Inder (everything else) via `next/font/google`; nothing else |
+| Motion | CSS only (transitions, keyframes and the motion tokens in DESIGN-SYSTEM §8); no JS animation libraries |
 | Data | Neon Postgres + Drizzle 1.0 rc (HTTP driver for reads, Pool for transactions), PostGIS, `pg_trgm`, `unaccent` |
 | Cache / limits | Upstash Redis via `ioredis` (`rediss://`), sliding-window limiter on the same client |
 | Auth | Better Auth: email + password with verification via Resend; DB sessions. Google sign-in deferred (button shown disabled) |
@@ -76,8 +77,11 @@ Full detail: `docs/ARCHITECTURE.md`.
 - Actions return `Result<T, AppError>` (`{ ok: true, data } | { ok: false, error }`); never throw to the client. Order: session → zod parse → permission + trust → rate limit → service → `updateTag`.
 - Server Components by default; client files end in `.client.tsx` and stay leaf-level.
 - All user-visible strings go through i18n keys (`i18n/messages/en.json`); no string literals in JSX.
-- Colours, spacing, radii, motion only via tokens (`docs/DESIGN-SYSTEM.md`). No hex in components.
-- Rating states and diet marks use the `RatingBadge`/`DietMark` components — never colour alone.
+- Colours, type, radii, shadows, motion only via tokens (`docs/DESIGN-SYSTEM.md` §3–§8, §12). No hex in components; off-palette Tailwind classes do not exist.
+- Reuse `shared/ui` primitives and their variants (`Button`, `ChipButton`, `Badge`, `Card`, tabs, `ImageSlot`, `Ticker`, toast) before writing new markup. A new primitive goes into DESIGN-SYSTEM §7 and §12.4 in the same PR.
+- Rating states and diet marks use `VerdictPill`/`VerdictBar`/`DietMark` — never colour alone, never stars or a "4.2". Text on olive is ink; terracotta that carries text is `terracottaDeep`.
+- Sentence case for every label; no ALL-CAPS, no italics, no trailing "→". Inder has one weight: no `font-bold` on Inder text except tiny pills and badges.
+- Every dish element in a list carries `data-diet`; guest write actions go through `useSignInPrompt`/`IntentButton`, never a sign-up wall.
 - Never hide decision information (scores, open status, prices, titles) behind JS-driven entrance animation; entrances on LCP elements are transform-only.
 - Money is integer paise; time is `timestamptz` UTC, rendered in `Asia/Kolkata`. Coordinates are PostGIS `geography(Point,4326)`.
 - IDs are uuidv7; public slugs are immutable, renames write a redirect row.
@@ -88,7 +92,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 
 - Branch from `main`: `feat/p<phase>-<slug>`, `fix/<slug>`, `chore/<slug>`. Never push to `main` directly.
 - Conventional commits (`feat(ratings): …`). One concern per PR; ≤ ~400 changed lines excluding migrations and generated files.
-- PR body: spec story IDs covered, screenshots (light + dark, 390 px and 1280 px) for UI, migration notes.
+- PR body: spec story IDs covered, screenshots (390 px and 1280 px) for UI, migration notes.
 - Squash-merge after CI green and review. Migrations merge before code that depends on them.
 - At the end of every phase update `docs/PROGRESS.md` in the same PR that closes the phase.
 
@@ -99,7 +103,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 3. New rules (scores, limits, permissions, consensus) have unit tests; new flows have a Playwright test.
 4. axe: no serious/critical violations; keyboard path works; reduced-motion respected.
 5. Public pages: metadata, OG image, JSON-LD where applicable; LCP < 2 s on throttled mid-range Android profile.
-6. Strings in i18n; dark mode checked; no console errors.
+6. Strings in i18n; no horizontal scroll at 390 px; no console errors.
 7. Logs contain no secrets or personal data; analytics events emitted per `docs/ARCHITECTURE.md` §Analytics.
 
 ## Do not
@@ -119,6 +123,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 - `docs/spec/MVP-SPEC.md` — product spec (source of truth)
 - `docs/ARCHITECTURE.md` — structure, boundaries, data model, caching, jobs, decisions
 - `docs/DESIGN-SYSTEM.md` — tokens, type, motion, components, a11y rules
+- `docs/reference/fdn-landing-full.html` — visual reference for the design system (the doc wins on conflicts)
 - `docs/PRODUCT-FLOWS.md` — W1–W11 mapped to routes, components, actions, jobs
 - `docs/ROADMAP.md` — 7 phases with scope, exit criteria, tests
 - `docs/PROGRESS.md` — phase checklist; update at the end of every phase

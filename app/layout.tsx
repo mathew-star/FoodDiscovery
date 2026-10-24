@@ -1,47 +1,22 @@
 import type { Metadata, Viewport } from 'next';
-import { Anek_Devanagari, Anek_Latin, Anek_Telugu, Hind, Hind_Guntur, Martian_Mono } from 'next/font/google';
+import { Bricolage_Grotesque, Inder } from 'next/font/google';
+import Script from 'next/script';
+import { vegOnlyBootScript } from '@/features/dishes/lib/veg-only';
 import { ServiceWorkerRegistration } from '@/features/shell/components/service-worker.client';
-import { ThemeScript } from '@/features/shell/components/theme-script';
-import { MotionRoot } from '@/shared/ui/motion.client';
 import { defaultLocale, t } from '@/i18n';
 import { siteUrl } from '@/shared/config/site';
 import { cn } from '@/shared/lib/cn';
+import { ToastProvider } from '@/shared/ui/toast.client';
 import './globals.css';
 
-const anek = Anek_Latin({ subsets: ['latin'], axes: ['wdth'], display: 'swap', variable: '--font-anek' });
-const anekTelugu = Anek_Telugu({
-  subsets: ['telugu'],
-  axes: ['wdth'],
-  display: 'swap',
-  preload: false,
-  variable: '--font-anek-telugu',
-});
-const anekDevanagari = Anek_Devanagari({
-  subsets: ['devanagari'],
-  axes: ['wdth'],
-  display: 'swap',
-  preload: false,
-  variable: '--font-anek-devanagari',
-});
-const hind = Hind({
+const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  axes: ['opsz'],
   display: 'swap',
-  variable: '--font-hind',
+  variable: '--font-bricolage',
 });
-const hindGuntur = Hind_Guntur({
-  subsets: ['telugu'],
-  weight: ['400', '600'],
-  display: 'swap',
-  preload: false,
-  variable: '--font-hind-guntur',
-});
-const martian = Martian_Mono({
-  subsets: ['latin'],
-  axes: ['wdth'],
-  display: 'swap',
-  variable: '--font-martian',
-});
+
+const inder = Inder({ subsets: ['latin'], weight: '400', display: 'swap', variable: '--font-inder' });
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
@@ -56,37 +31,28 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f4eee1' },
-    { media: '(prefers-color-scheme: dark)', color: '#111220' },
-  ],
+  colorScheme: 'light',
+  themeColor: '#ecebc9',
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html
-      lang={defaultLocale}
-      suppressHydrationWarning
-      className={cn(
-        anek.variable,
-        anekTelugu.variable,
-        anekDevanagari.variable,
-        hind.variable,
-        hindGuntur.variable,
-        martian.variable,
-      )}
-    >
+    <html lang={defaultLocale} suppressHydrationWarning className={cn(bricolage.variable, inder.variable)}>
       <head>
-        <ThemeScript />
+        <Script
+          id="fdn-diet"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: vegOnlyBootScript }}
+        />
       </head>
-      <body className="grain flex min-h-dvh flex-col">
+      <body className="flex min-h-dvh flex-col antialiased">
         <a
           href="#main"
-          className="sr-only z-50 bg-ink px-4 py-2 font-semibold text-on-ink focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+          className="sr-only z-[70] rounded-full border-2 border-ink bg-ink px-4 py-2 text-sm text-cream focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
         >
           {t('a11y.skipToContent')}
         </a>
-        <MotionRoot>{children}</MotionRoot>
+        <ToastProvider>{children}</ToastProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>

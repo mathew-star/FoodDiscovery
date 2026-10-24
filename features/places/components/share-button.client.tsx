@@ -1,13 +1,15 @@
 'use client';
 
-import { Check, Share2 } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '@/shared/ui/button';
+import { Share2 } from 'lucide-react';
+import { t } from '@/i18n';
+import { Button, type ButtonProps } from '@/shared/ui/button';
+import { useToast } from '@/shared/ui/toast.client';
 
-type ShareButtonProps = { title: string; path: string; label: string; copiedLabel: string };
+type ShareButtonProps = { title: string; path: string; size?: ButtonProps['size']; className?: string };
 
-export function ShareButton({ title, path, label, copiedLabel }: ShareButtonProps) {
-  const [copied, setCopied] = useState(false);
+/** Web Share API with a copy-link fallback (spec E2-3). */
+export function ShareButton({ title, path, size, className }: ShareButtonProps) {
+  const toast = useToast();
 
   async function share() {
     const url = new URL(path, window.location.origin).toString();
@@ -19,15 +21,18 @@ export function ShareButton({ title, path, label, copiedLabel }: ShareButtonProp
         if (error instanceof DOMException && error.name === 'AbortError') return;
       }
     }
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2_000);
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ message: t('place.linkCopied') });
+    } catch {
+      toast({ message: t('place.copyFailed', { url }) });
+    }
   }
 
   return (
-    <Button variant="secondary" size="lg" onClick={share} aria-live="polite">
-      {copied ? <Check aria-hidden="true" /> : <Share2 aria-hidden="true" />}
-      {copied ? copiedLabel : label}
+    <Button variant="outline" size={size} onClick={share} className={className}>
+      <Share2 aria-hidden="true" />
+      {t('place.share')}
     </Button>
   );
 }

@@ -10,7 +10,7 @@ export default function PublicLayout({ children }: LayoutProps<'/'>) {
       <main
         id="main"
         tabIndex={-1}
-        className="mx-auto w-full max-w-[1200px] flex-1 px-4 pt-6 pb-24 md:px-6 lg:pb-12"
+        className="mx-auto w-full max-w-[1200px] flex-1 px-5 pt-8 pb-16 md:px-10 md:pb-24"
       >
         {children}
       </main>

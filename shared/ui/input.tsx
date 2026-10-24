@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/cn';
 
 const fieldClass =
-  'w-full rounded-tick border-2 border-ink bg-raised px-3 text-base text-ink placeholder:text-ink-soft aria-invalid:border-danger disabled:opacity-50';
+  'w-full rounded-2xl border-2 border-ink bg-paper px-3 text-base text-ink placeholder:text-inkMuted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-lime aria-invalid:border-terracotta disabled:opacity-50';
 
 export function Input({ className, type = 'text', ...props }: ComponentProps<'input'>) {
   return <input type={type} className={cn(fieldClass, 'h-12', className)} {...props} />;

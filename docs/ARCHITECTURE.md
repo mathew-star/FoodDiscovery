@@ -29,9 +29,16 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D20 | Features may contain `lib/` for pure, client-safe domain logic (opening hours, scoring, JSON-LD builders) | §2 layout | Keeps rules testable and shareable between queries, jobs and components |
 | D21 | Open/closed status renders as a request-time hole (`connection()` inside `<Suspense>`) on otherwise static pages | Spec "Answer first" | Cached HTML must never show a stale open state |
 | D22 | Catalogue routes prerender from `generateStaticParams` at build, so `next build` needs a migrated, seeded database (CI uses a PostGIS service; Vercel uses Neon) | — | Static shells for every public entity page; unknown slugs get the not-found UI with a 200 and `noindex` on first hit (framework behaviour under Cache Components) |
-| D23 | Visual identity "Token & Stamp" replaces the first token set: Anek/Hind/Martian Mono, ink + haldi palette, stamps, tickets, receipts (`docs/DESIGN-SYSTEM.md`) | Earlier "Ghee & Saffron" tokens | Product request for a distinctive, non-template UI |
-| D24 | Motion: CSS keyframes and scroll-driven animation by default; `motion` (LazyMotion, `domAnimation`) only in client islands that need layout or spring physics; `animejs` only for SVG path drawing and number rolls | Spec silent | Keeps public pages under the 2 s budget; content stays visible without JS |
+| D23 | ~~Visual identity "Token & Stamp"~~ — superseded by D26 | Earlier "Ghee & Saffron" tokens | — |
+| D24 | ~~Motion with `motion` and `animejs`~~ — superseded by D27 | Spec silent | — |
 | D25 | City dish filters run client-side over the cached ranking (area, price cap, open now) and sync the URL with `history.replaceState`; the server still parses `searchParams` for the initial state | E3-2 | Instant, animated filtering without extra requests; shareable URLs |
+| D26 | Visual identity is the warm-brutalist FDN design system (`docs/DESIGN-SYSTEM.md`, reference `docs/reference/fdn-landing-full.html`): Bricolage Grotesque + Inder, fixed cream/ink/lime/olive/terracotta/saffron palette, 2px ink borders, hard offset shadows. One light theme: the theme switch, theme cookie and dark tokens are removed, and Tailwind's default palette is reset so off-palette classes don't exist | D23 "Token & Stamp", light/dark themes | Product request; the palette and its single dark section are designed as fixed |
+| D27 | Motion is CSS only (DESIGN-SYSTEM §8 tokens); `motion` and `animejs` are removed. No scroll-reveal; motion follows a user action except live dots, the ticker and the typed placeholder | D24 | Design-system rule; smaller client bundles on cheap phones |
+| D28 | The landing page is static and never reads the database (the footer's area and dish links are static too; the Score X-Ray uses `rankingConfigDefaults` and `defaultRatingWeights`), and its previews are illustrative (`features/landing/lib/content.ts`): places are the fictional seeded brands (a unit test checks every slug against `db/seed`), numbers are sample values, and links go to existing pages or to spec routes that ship later (`/c/*`, `/communities`, `/battles`). Previews move to live queries once P2 search and chips land | Reference HTML used real restaurants with invented scores | No made-up verdicts about real businesses (same reason as D19); links resolve |
+| D29 | AA colour pairing: `terracottaDeep` (#A9443D) is added for terracotta that carries text (CTA, Skip pill, warnings); text on olive fills is ink. `shared/ui/tokens.test.ts` enforces every text/surface pair | Design doc as received (paper on olive 2.9:1, paper on terracotta 4.1:1) | WCAG AA and the axe gate in the Definition of done |
+| D30 | `ratingWeight()` in `features/ratings/lib/score.ts` applies the §6.1 weights (trust T0 0.5, T1 1.0, T2/Founding 1.2; 270-day half-life; disclosed or held ratings at 0). Until P3 the weights are a code constant, `defaultRatingWeights`, with no database row or migration; P3 moves them into `ranking_config` with its own migration | Spec §6.1 constants; AGENTS rule that tunable constants live in `ranking_config` | No database changes during the UI phase. The landing Score X-Ray runs this code (D28) |
+| D31 | Veg-only is a device preference: `localStorage` plus `vegOnlyBootScript` (a `beforeInteractive` script in the root layout) set `.veg-only` on `<html>`, and CSS hides list items whose `data-diet` is `egg` or `nonveg`. Client lists (city dish board) also filter in JS so counts stay right. Members get a server-side default in P3 (E4-5) | Spec E4-5 (members only) | Works for guests with no cookie or flash |
+| D32 | Until auth ships (P3), every guest write action shows the sign-in toast (`useSignInPrompt`, `IntentButton`) whose action links to `/login?next=<path>`; the Post button is a button, not a link to `/post/new` | W2 `AuthSheet` | Same intent copy and resume path now; P3 swaps the toast action for the sheet |
 | D16 | Only `en` messages exist; `te`/`hi` catalogs are added when translations are ready, through the same `t()` helper | Spec "Telugu/Hindi-ready" | i18n keys from day one without shipping empty catalogs |
 
 ## 2. Repository layout
@@ -66,9 +73,9 @@ features/<domain>/
   hooks/        client hooks
   jobs/         Inngest functions
   lib/          pure domain logic, safe on client and server (D20)
-shared/ui/      design-system primitives (+ og-card, json-ld, breadcrumbs)
+shared/ui/      design-system primitives (+ og-card, json-ld, breadcrumbs); map in DESIGN-SYSTEM §12.4
 shared/lib/     cn, result, time, geo, slug, money, uuid
-shared/config/  site URL, theme cookie
+shared/config/  site URL, sign-in path
 db/             schema/<domain>.ts  client.ts (getDb, withTransaction)  migrations/  seed/ (sample catalogue)
 infra/          env, logger, redis, ratelimit, r2, inngest/{client,functions}.ts, email, startup
 i18n/           index.ts (typed t), messages/en.json
@@ -77,7 +84,7 @@ instrumentation.ts
 tests/e2e/      Playwright; unit tests sit beside code as *.test.ts
 ```
 
-**Domains:** `shell` (top bar, bottom nav, footer, theme, service worker), `content` (static pages), `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`.
+**Domains:** `shell` (top bar, bottom nav, footer, sign-in prompt, service worker), `landing` (marketing page at `/`, D17/D28), `content` (static pages), `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`.
 
 **Top-level routes** are listed in the `proxy.ts` matcher (D14). Adding a top-level route means adding it there and to `proxy.test.ts`.
 
@@ -199,5 +206,6 @@ Names only; values live in local `.env` and Vercel project settings, never in ch
 - Unit: Vitest, beside code (`*.test.ts`) — scores, hot/Wilson, consensus, trust, limits, slugs, schemas.
 - Integration: `tests/integration/*.test.ts`, Vitest against a migrated and seeded Postgres (`DATABASE_DRIVER=pg`); skipped when no database is configured.
 - Jobs: `@inngest/test`.
-- E2E: Playwright on `next build && next start` with seeded DB; `@axe-core/playwright` on every page visited.
+- E2E: Playwright on `next build && next start` with seeded DB; `@axe-core/playwright` on every page visited (one light theme, D26). `tests/e2e/landing.spec.ts` covers the landing interactions.
+- Design tokens: `shared/ui/tokens.test.ts` pins the palette to DESIGN-SYSTEM §3.1, checks AA for every text/surface pair and keeps the OG palette in sync.
 - CI (`.github/workflows/ci.yml`): `postgis/postgis:16-3.4` service → `bun install --frozen-lockfile` → typecheck → lint → format check → `db:migrate` → `db:check` → `db:seed` → unit + integration → build → e2e.

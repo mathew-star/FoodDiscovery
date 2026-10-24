@@ -16,8 +16,8 @@ export default function GuidelinesPage() {
       intro={t('guidelines.intro')}
       sections={[
         { title: t('guidelines.beHonestTitle'), body: t('guidelines.beHonestBody') },
-        { title: t('guidelines.discloseTitle'), body: t('guidelines.discloseBody') },
-        { title: t('guidelines.scoresTitle'), body: t('guidelines.scoresBody') },
+        { id: 'disclose', title: t('guidelines.discloseTitle'), body: t('guidelines.discloseBody') },
+        { id: 'scores', title: t('guidelines.scoresTitle'), body: t('guidelines.scoresBody') },
         {
           title: t('guidelines.removeTitle'),
           body: (

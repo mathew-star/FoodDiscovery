@@ -1,53 +1,56 @@
-import { ArrowDown, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { defaultCity } from '@/features/geo/schemas/city';
 import { t } from '@/i18n';
 import { buttonVariants } from '@/shared/ui/button';
-import { KotStack } from './kot-stack';
-import { MagneticLink } from './magnetic-link.client';
-import { Scribble } from './scribble.client';
+import { HeroDemo } from './hero-demo.client';
+import { LiveBattle } from './live-battle.client';
 
+/** Section 1: a live demo, not a promise. */
 export function Hero() {
   return (
-    <section aria-labelledby="hero-title" className="relative overflow-hidden">
-      <div className="mx-auto grid max-w-[1240px] items-center gap-6 px-4 pt-10 pb-12 md:px-6 md:pt-16 lg:grid-cols-[1.25fr_1fr] lg:gap-10 lg:pb-20">
-        <div className="flex flex-col gap-7">
-          <p className="inline-flex w-fit rise-in items-center gap-2 border-2 border-ink bg-raised px-2.5 py-1 font-mono text-2xs tracking-widest uppercase">
-            <span aria-hidden="true" className="size-2 rounded-full bg-haldi ring-2 ring-ink" />
-            {t('landing.eyebrow')}
-          </p>
-          <h1
-            id="hero-title"
-            className="rise-in text-[clamp(3.6rem,13vw,8.5rem)] leading-[0.86] font-extrabold [font-stretch:72%] [--i:1]"
-          >
-            {t('landing.titleLead')}{' '}
-            <span className="relative inline-block">
-              <span className="highlight">{t('landing.titleKey')}</span>
-              <Scribble className="-inset-x-[12%] -inset-y-[22%] h-[144%] w-[124%] text-rate-loved" />
-            </span>{' '}
-            {t('landing.titleTail')}
-          </h1>
-          <p className="max-w-xl rise-in text-lg text-ink-soft [--i:2] md:text-xl">{t('landing.subtitle')}</p>
-          <div className="flex rise-in flex-wrap items-center gap-4 [--i:3]">
-            <MagneticLink
-              href={`/${defaultCity}`}
-              className={buttonVariants({ variant: 'haldi', size: 'lg' })}
-            >
-              {t('landing.ctaPrimary')}
-              <ArrowRight aria-hidden="true" />
-            </MagneticLink>
-            <a
-              href="#how"
-              className="inline-flex h-14 items-center gap-2 font-mono text-sm uppercase underline decoration-2 underline-offset-4"
-            >
-              {t('landing.ctaSecondary')}
-              <ArrowDown aria-hidden="true" className="size-4" />
-            </a>
-          </div>
-          <p className="font-mono text-2xs tracking-widest text-ink-soft uppercase">
-            {t('landing.guestNote')}
-          </p>
+    <section
+      aria-labelledby="hero-title"
+      className="relative border-b-4 border-ink pt-8 pb-14 md:py-16 lg:py-20"
+    >
+      <div className="mx-auto max-w-[1360px] px-5 md:px-10">
+        <ul
+          aria-label={t('landing.promises.label')}
+          className="mb-7 inline-flex flex-wrap items-center gap-x-4 gap-y-1 border-[1.5px] border-ink bg-paper px-3.5 py-1.5 text-xs shadow-brutal-sm"
+        >
+          <li className="text-terracottaDeep">{t('landing.promises.noStars')}</li>
+          <li>{t('landing.promises.noSignup')}</li>
+          <li className="hidden sm:list-item">{t('landing.promises.noPay')}</li>
+        </ul>
+
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12 lg:gap-12">
+          <HeroDemo
+            title={
+              <h1 id="hero-title" className="type-display-xl">
+                {t('landing.hero.titleLine1')} <br className="hidden sm:inline" />
+                {t('landing.hero.titleLine2')}{' '}
+                <span className="font-semibold underline decoration-terracotta decoration-4 underline-offset-8">
+                  {t('landing.hero.titleEmphasis')}
+                </span>
+              </h1>
+            }
+            footer={
+              <div className="grid items-end gap-6 border-t-2 border-ink/15 pt-5 sm:grid-cols-12">
+                <p className="text-base leading-relaxed text-inkMuted sm:col-span-7">
+                  {t('landing.hero.body')}
+                </p>
+                <div className="flex flex-wrap items-center gap-4 sm:col-span-5 sm:justify-end">
+                  <Link href={`/${defaultCity}`} className={buttonVariants({ variant: 'secondary' })}>
+                    {t('landing.explore')}
+                  </Link>
+                  <a href="#six-apps" className={buttonVariants({ variant: 'link' })}>
+                    {t('landing.hero.why')}
+                  </a>
+                </div>
+              </div>
+            }
+            aside={<LiveBattle />}
+          />
         </div>
-        <KotStack />
       </div>
     </section>
   );

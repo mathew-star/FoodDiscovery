@@ -1,3 +1,4 @@
+import { Fragment, createElement, type ReactNode } from 'react';
 import en from './messages/en.json';
 
 export const locales = ['en'] as const;
@@ -30,4 +31,23 @@ export function t(key: MessageKey, vars?: MessageVars, locale: Locale = defaultL
     const value = vars[name];
     return value === undefined ? match : String(value);
   });
+}
+
+/**
+ * Like `t`, but `{name}` placeholders may be React nodes, so a sentence can carry styled parts
+ * (a coloured verdict, a bold label) without being split into separately translated fragments.
+ */
+export function tRich(
+  key: MessageKey,
+  nodes: Record<string, ReactNode>,
+  locale: Locale = defaultLocale,
+): ReactNode[] {
+  return lookup(catalogs[locale], key)
+    .split(/(\{\w+\})/)
+    .filter((part) => part.length > 0)
+    .map((part, index) => {
+      const name = /^\{(\w+)\}$/.exec(part)?.[1];
+      const node = name !== undefined && name in nodes ? nodes[name] : part;
+      return createElement(Fragment, { key: index }, node);
+    });
 }

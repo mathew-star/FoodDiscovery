@@ -3,53 +3,78 @@ import { cn } from '@/shared/lib/cn';
 import { ScoreInfo } from './score-info.client';
 
 type ScoreBadgeProps = {
+  /** Null until the weighted sum reaches the display minimum (spec §6.1). */
   lovedPct: number | null;
   ratingCount: number;
-  withInfo?: boolean;
+  /**
+   * `box`: lime score box with count (proof card, dish header).
+   * `pill`: lime loved % pill (leaderboard rows).
+   * `inline`: quiet text for dense lists (menus).
+   */
+  variant?: 'box' | 'pill' | 'inline';
   size?: 'sm' | 'md' | 'lg';
+  withInfo?: boolean;
   className?: string;
 };
 
-function countLabel(count: number): string {
-  return count === 1 ? t('rating.basedOnOne') : t('rating.basedOn', { count });
-}
+const boxNumber = { sm: 'text-lg', md: 'text-2xl', lg: 'text-4xl' } as const;
 
 export function ScoreBadge({
   lovedPct,
   ratingCount,
+  variant = 'box',
+  size = 'md',
   withInfo = false,
-  size = 'sm',
   className,
 }: ScoreBadgeProps) {
+  const info = withInfo ? (
+    <ScoreInfo label={t('rating.scoreInfoLabel')} content={t('rating.scoreInfo')} />
+  ) : null;
+  const count = ratingCount.toLocaleString('en-IN');
+
   if (lovedPct === null) {
     return (
-      <span className={cn('inline-flex items-center gap-2', className)}>
-        <span className="rounded-tick border border-dashed border-rule-strong px-1.5 py-px font-mono text-2xs tracking-wide text-ink-soft uppercase">
-          {ratingCount === 1 ? t('rating.newRatingOne') : t('rating.newRatings', { count: ratingCount })}
+      <span className={cn('inline-flex items-center gap-1.5', className)}>
+        <span className="rounded border border-dashed border-ink/40 bg-paper px-1.5 py-0.5 text-[11px] whitespace-nowrap text-inkMuted">
+          {ratingCount === 1 ? t('rating.newRatingOne') : t('rating.newRatings', { count })}
         </span>
-        {withInfo ? <ScoreInfo label={t('rating.scoreInfoLabel')} content={t('rating.scoreInfo')} /> : null}
+        {info}
       </span>
     );
   }
 
   const pct = Math.round(lovedPct);
-  const number = { sm: 'text-2xl', md: 'text-4xl', lg: 'text-7xl' }[size];
+
+  if (variant === 'inline') {
+    return (
+      <span className={cn('inline-flex items-center gap-1.5 text-xs', className)}>
+        <span className="text-oliveDeep">{t('rating.lovedPct', { pct })}</span>
+        <span className="text-inkMuted">· {t('rating.ratingsCount', { count })}</span>
+        {info}
+      </span>
+    );
+  }
+
+  if (variant === 'pill') {
+    return (
+      <span className={cn('inline-flex items-center gap-1.5', className)}>
+        <span className="rounded-lg border-[1.5px] border-ink bg-lime px-2 py-0.5 text-[13px] font-bold tabular-nums">
+          {pct}%<span className="sr-only"> {t('rating.lovedWord')}</span>
+        </span>
+        {info}
+      </span>
+    );
+  }
+
   return (
-    <span className={cn('inline-flex flex-wrap items-end gap-x-2 gap-y-0.5', className)}>
-      <span className="flex items-baseline gap-1 text-rate-loved">
-        <span
-          className={cn('font-display leading-none font-extrabold [font-stretch:72%] tabular-nums', number)}
-        >
-          {pct}%
-        </span>
-        <span className="font-display text-sm font-bold tracking-wide uppercase [font-stretch:80%]">
-          {t('rating.lovedWord')}
+    <span className={cn('inline-flex items-center gap-1.5', className)}>
+      <span className="inline-flex flex-col items-end rounded-xl border-2 border-ink bg-lime px-3 py-1.5 text-right shadow-brutal-sm">
+        <span className={cn('type-score', boxNumber[size])}>{pct}%</span>
+        <span className="text-[10px] leading-tight font-bold whitespace-nowrap">
+          {t('rating.lovedCount', { count })}
         </span>
       </span>
-      <span className="pb-0.5 font-mono text-2xs whitespace-nowrap text-ink-soft uppercase">
-        {countLabel(ratingCount)}
-      </span>
-      {withInfo ? <ScoreInfo label={t('rating.scoreInfoLabel')} content={t('rating.scoreInfo')} /> : null}
+      {info}
     </span>
   );
 }

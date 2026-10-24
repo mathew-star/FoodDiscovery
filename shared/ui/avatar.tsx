@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import { cn } from '@/shared/lib/cn';
 
-const sizes = { sm: 32, md: 40, lg: 64 } as const;
+/** Avatars are the only circles allowed (DESIGN-SYSTEM §7.5). */
+const sizes = { sm: 28, md: 40 } as const;
 
 type AvatarProps = {
   name: string;
@@ -12,8 +13,9 @@ type AvatarProps = {
 
 function initials(name: string): string {
   return name
+    .replace(/^@/, '')
     .trim()
-    .split(/\s+/)
+    .split(/[\s._-]+/)
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join('');
@@ -22,7 +24,7 @@ function initials(name: string): string {
 export function Avatar({ name, src, size = 'md', className }: AvatarProps) {
   const pixels = sizes[size];
   const frame = cn(
-    'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-sunk font-semibold text-ink',
+    'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-ink bg-saffron font-display font-extrabold text-ink',
     className,
   );
 

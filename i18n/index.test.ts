@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import en from './messages/en.json';
-import { t } from './index';
+import { createElement, isValidElement, type ReactElement } from 'react';
+import { t, tRich } from './index';
 
 function leafValues(node: unknown): string[] {
   if (typeof node === 'string') return [node];
@@ -18,11 +19,27 @@ describe('t', () => {
   });
 
   it('leaves unknown variables intact', () => {
-    expect(t('footer.copyright')).toBe('© {year} FDN');
+    expect(t('footer.copyright')).toBe('© {year} Food Discovery Network. Made in Hyderabad.');
   });
 
   it('has no empty messages', () => {
     expect(leafValues(en).every((value) => value.trim().length > 0)).toBe(true);
+  });
+});
+
+describe('tRich', () => {
+  const children = (parts: ReturnType<typeof tRich>) =>
+    parts.map((part) =>
+      isValidElement(part) ? (part as ReactElement<{ children: unknown }>).props.children : part,
+    );
+
+  it('replaces placeholders with nodes and keeps the surrounding text', () => {
+    const city = createElement('b', null, 'Hyderabad');
+    expect(children(tRich('city.current', { city }))).toEqual(['Current city: ', city]);
+  });
+
+  it('keeps placeholders without a node as text', () => {
+    expect(children(tRich('footer.copyright', {})).join('')).toBe(t('footer.copyright'));
   });
 });
 

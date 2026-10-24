@@ -44,3 +44,18 @@ next-env.d.ts
 # playwright
 /playwright-report/
 /test-results/
+
+# local AI and editor tooling
+.claude/
+.serena/
+.codegraph/
+.headroom*
+.vscode/
+.idea/
+*.swp
+
+# stray nested repo created outside the project
+/FoodDiscovery/
+
+# local scratch output (verification screenshots, temp scripts)
+*.tmp.*

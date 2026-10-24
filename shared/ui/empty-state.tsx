@@ -1,35 +1,28 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/shared/lib/cn';
-import { Stamp } from './stamp';
 
 type EmptyStateProps = {
   title: string;
+  /** Directs the next action; no apologies (DESIGN-SYSTEM §9.5). */
   body?: string;
-  stamp?: string;
-  icon?: ReactNode;
   action?: ReactNode;
+  /** `page` for full-page states (404, error, offline); `inline` inside a section. */
+  size?: 'page' | 'inline';
   className?: string;
 };
 
-export function EmptyState({ title, body, stamp, icon, action, className }: EmptyStateProps) {
+export function EmptyState({ title, body, action, size = 'inline', className }: EmptyStateProps) {
+  const Heading = size === 'page' ? 'h1' : 'h2';
   return (
     <div
       className={cn(
-        'flex flex-col items-start gap-4 border-2 border-dashed border-rule-strong bg-raised/60 px-6 py-8',
+        'flex flex-col items-start gap-4 rounded-panel border-2 border-dashed border-ink/40 bg-paper',
+        size === 'page' ? 'px-6 py-10 sm:px-10 sm:py-14' : 'px-5 py-6',
         className,
       )}
     >
-      {stamp ? (
-        <Stamp size="lg" tilt={-6} animate className="text-danger">
-          {stamp}
-        </Stamp>
-      ) : icon ? (
-        <span className="text-ink-soft [&_svg]:size-8" aria-hidden="true">
-          {icon}
-        </span>
-      ) : null}
-      <h2 className="text-3xl font-bold">{title}</h2>
-      {body ? <p className="max-w-prose text-ink-soft">{body}</p> : null}
+      <Heading className={size === 'page' ? 'type-display-l' : 'type-title-m'}>{title}</Heading>
+      {body ? <p className="max-w-prose text-inkMuted">{body}</p> : null}
       {action}
     </div>
   );

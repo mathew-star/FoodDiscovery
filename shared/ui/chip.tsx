@@ -3,13 +3,14 @@ import Link from 'next/link';
 import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/cn';
 
+/** DESIGN-SYSTEM §7.2. Context filters; active chips are lime and lift by 1px. */
 export const chipVariants = cva(
-  'relative inline-flex h-10 shrink-0 press items-center gap-1.5 rounded-tick border-2 border-ink px-3 text-sm font-semibold whitespace-nowrap shadow-lift-sm before:absolute before:inset-x-0 before:-inset-y-1 before:content-[""] [&_svg]:size-4',
+  'inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-ink px-3 py-1.5 text-xs whitespace-nowrap text-ink transition-[background-color,box-shadow,translate] duration-(--dur-instant) [&_svg]:size-3.5',
   {
     variants: {
       selected: {
-        true: 'bg-haldi text-on-haldi',
-        false: 'bg-raised text-ink hover:bg-sunk',
+        true: '-translate-x-px -translate-y-px bg-lime shadow-brutal-sm',
+        false: 'bg-paper hover:bg-cream',
       },
     },
     defaultVariants: { selected: false },
@@ -18,6 +19,7 @@ export const chipVariants = cva(
 
 type ChipVariantProps = VariantProps<typeof chipVariants>;
 
+/** A toggle: `selected` is exposed as `aria-pressed`. */
 export function ChipButton({
   selected = false,
   className,

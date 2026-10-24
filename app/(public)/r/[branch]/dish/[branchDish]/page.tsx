@@ -2,22 +2,24 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DietMark } from '@/features/dishes/components/diet-mark';
-import { DishTile } from '@/features/dishes/components/dish-tile';
-import { PlacedDishRow } from '@/features/dishes/components/placed-dish-row';
+import { LeaderboardList, PlacedDishRow } from '@/features/dishes/components/placed-dish-row';
 import { getBranchDish, getBranchDishParams, getCityDishRanking } from '@/features/dishes/queries/dishes';
 import { breadcrumbJsonLd } from '@/features/places/lib/json-ld';
 import { getBranch } from '@/features/places/queries/branches';
 import { RatingDistribution } from '@/features/ratings/components/rating-distribution';
 import { ScoreBadge } from '@/features/ratings/components/score-badge';
-import { ScoreInfo } from '@/features/ratings/components/score-info.client';
+import { VerdictBar } from '@/features/ratings/components/verdict-bar';
+import { verdictShares } from '@/features/ratings/lib/verdict-shares';
 import { getRankingConfig } from '@/features/ratings/queries/ranking-config';
 import { t } from '@/i18n';
 import { siteUrl } from '@/shared/config/site';
+import { cn } from '@/shared/lib/cn';
 import { formatRupees } from '@/shared/lib/money';
 import { Badge } from '@/shared/ui/badge';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { buttonVariants } from '@/shared/ui/button';
-import { CountUp } from '@/shared/ui/count-up.client';
+import { cardVariants } from '@/shared/ui/card';
+import { ImageSlot } from '@/shared/ui/image-slot';
 import { JsonLd } from '@/shared/ui/json-ld';
 
 export async function generateStaticParams() {
@@ -65,6 +67,15 @@ export default async function BranchDishPage({ params }: PageProps<'/r/[branch]/
     { href: path, label: dish.name },
   ];
 
+  const weights = {
+    loved: dish.lovedWeight,
+    good: dish.goodWeight,
+    okay: dish.okayWeight,
+    skip: dish.skipWeight,
+  };
+  const basedOn =
+    dish.ratingCount === 1 ? t('rating.basedOnOne') : t('rating.basedOn', { count: dish.ratingCount });
+
   return (
     <div className="flex flex-col gap-8">
       <JsonLd
@@ -75,81 +86,69 @@ export default async function BranchDishPage({ params }: PageProps<'/r/[branch]/
       <Breadcrumbs label={t('common.breadcrumb')} items={crumbs} />
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_23rem]">
         <div className="flex min-w-0 flex-col gap-14">
-          <header aria-label={t('dish.ticketLabel')} className="drop-shadow-[6px_6px_0_var(--lift-color)]">
-            <div className="flex flex-col gap-6 bg-raised p-5 pb-10 perforate-b md:flex-row md:p-8 md:pb-12">
-              <DishTile name={dish.name} size="xl" />
-              <div className="flex min-w-0 flex-1 flex-col gap-4">
-                <p className="font-mono text-xs tracking-wide uppercase">
-                  <Link
-                    href={`/r/${branch.slug}`}
-                    className="underline decoration-rule-strong decoration-2 underline-offset-4 hover:decoration-ink"
-                  >
-                    {t('dish.atBranch', { branch: dish.branchName })}
-                  </Link>
-                  {' / '}
-                  {dish.localityName}
-                </p>
-                <h1 className="rise-in text-6xl font-extrabold md:text-7xl">{dish.name}</h1>
-                <div className="flex flex-wrap items-center gap-4 font-mono">
-                  {dish.pricePaise !== null ? (
-                    <span className="text-2xl font-bold tabular-nums">{formatRupees(dish.pricePaise)}</span>
-                  ) : null}
-                  <DietMark diet={dish.diet} showLabel size="md" className="text-sm" />
-                  {dish.isJain ? <Badge>{t('dish.jain')}</Badge> : null}
-                </div>
-                {rated && dish.lovedPct !== null ? (
-                  <p className="flex items-end gap-3 text-rate-loved">
-                    <CountUp
-                      value={Math.round(dish.lovedPct)}
-                      suffix="%"
-                      className="font-display text-8xl leading-[0.8] font-extrabold [font-stretch:68%] tabular-nums"
-                    />
-                    <span className="flex flex-col pb-1">
-                      <span className="flex items-center gap-1 font-display text-2xl font-bold uppercase [font-stretch:80%]">
-                        {t('rating.lovedWord')}
-                        <ScoreInfo label={t('rating.scoreInfoLabel')} content={t('rating.scoreInfo')} />
-                      </span>
-                      <span className="font-mono text-2xs text-ink-soft uppercase">
-                        {dish.ratingCount === 1
-                          ? t('rating.basedOnOne')
-                          : t('rating.basedOn', { count: dish.ratingCount })}
-                      </span>
-                    </span>
-                  </p>
-                ) : (
-                  <ScoreBadge lovedPct={null} ratingCount={dish.ratingCount} withInfo />
-                )}
+          <header className={cn(cardVariants({ size: 'lg' }), 'flex flex-col overflow-hidden md:flex-row')}>
+            <ImageSlot
+              label={t('imageSlot.dishPhoto', { width: 800, height: 1000 })}
+              className="aspect-[4/5] w-full shrink-0 border-b-2 border-ink md:w-56 md:border-r-2 md:border-b-0"
+            />
+            <div className="flex min-w-0 flex-1 flex-col gap-4 p-5 md:p-7">
+              <p className="text-xs text-inkMuted">
+                <Link
+                  href={`/r/${branch.slug}`}
+                  className="text-ink underline underline-offset-4 hover:text-terracottaDeep"
+                >
+                  {t('dish.atBranch', { branch: dish.branchName })}
+                </Link>
+                {' · '}
+                {dish.localityName}
+              </p>
+              <h1 className="type-display-l">{dish.name}</h1>
+              <div className="flex flex-wrap items-center gap-3">
+                {dish.pricePaise !== null ? (
+                  <span className="font-display text-2xl font-extrabold tabular-nums">
+                    {formatRupees(dish.pricePaise)}
+                  </span>
+                ) : null}
+                <DietMark diet={dish.diet} showLabel size="md" className="text-sm" />
+                {dish.isJain ? <Badge>{t('dish.jain')}</Badge> : null}
+              </div>
+              <div className="mt-auto flex flex-wrap items-end justify-between gap-4 border-t-2 border-dashed border-ink/25 pt-4">
+                <ScoreBadge
+                  lovedPct={rated ? dish.lovedPct : null}
+                  ratingCount={dish.ratingCount}
+                  size="lg"
+                  withInfo
+                />
+                {rated ? <VerdictBar shares={verdictShares(weights)} className="w-full max-w-xs" /> : null}
               </div>
             </div>
           </header>
 
           {dish.description ? (
-            <p className="max-w-prose text-xl leading-relaxed">{dish.description}</p>
+            <p className="max-w-prose text-lg leading-relaxed">{dish.description}</p>
           ) : null}
 
-          <section aria-labelledby="same-dish" className="flex flex-col gap-5">
+          <section aria-labelledby="same-dish" className="flex flex-col gap-4">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div className="flex flex-col gap-1">
-                <p className="font-mono text-xs tracking-widest text-ink-soft uppercase">
-                  {t('dish.elsewhereKicker')}
-                </p>
-                <h2 id="same-dish" className="text-5xl font-extrabold md:text-6xl">
+                <h2 id="same-dish" className="type-title-l">
                   {t('dish.sameDishElsewhere')}
                 </h2>
+                <p className="text-sm text-inkMuted">{t('dish.sameDishBody')}</p>
               </div>
               {dish.canonicalSlug && dish.canonicalName ? (
                 <Link
                   href={`/${branch.citySlug}/dish/${dish.canonicalSlug}`}
-                  className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
                 >
                   {t('dish.seeCityRanking', { dish: dish.canonicalName, city: branch.cityName })}
                 </Link>
               ) : null}
             </div>
             {elsewhere.length === 0 ? (
-              <p className="text-ink-soft">{t('dish.sameDishEmpty')}</p>
+              <p className="text-inkMuted">{t('dish.sameDishEmpty')}</p>
             ) : (
-              <ol className="flex flex-col gap-4">
+              <LeaderboardList>
                 {elsewhere.slice(0, 6).map((entry, index) => (
                   <li key={entry.id}>
                     <PlacedDishRow
@@ -160,7 +159,7 @@ export default async function BranchDishPage({ params }: PageProps<'/r/[branch]/
                     />
                   </li>
                 ))}
-              </ol>
+              </LeaderboardList>
             )}
           </section>
         </div>
@@ -168,27 +167,14 @@ export default async function BranchDishPage({ params }: PageProps<'/r/[branch]/
         <aside>
           <section
             aria-labelledby="breakdown"
-            className="border-2 border-ink bg-raised p-5 shadow-lift lg:sticky lg:top-24"
+            className={cn(cardVariants({ size: 'md' }), 'p-5 lg:sticky lg:top-24')}
           >
-            <p className="font-mono text-2xs tracking-widest text-ink-soft uppercase">
-              {t('dish.breakdownKicker')}
-            </p>
-            <h2 id="breakdown" className="mb-5 text-4xl font-extrabold">
+            <h2 id="breakdown" className="type-title-m">
               {t('rating.distributionLabel')}
             </h2>
-            <RatingDistribution
-              weights={{
-                loved: dish.lovedWeight,
-                good: dish.goodWeight,
-                okay: dish.okayWeight,
-                skip: dish.skipWeight,
-              }}
-            />
-            <p className="mt-5 font-mono text-2xs text-ink-soft uppercase">
-              {dish.ratingCount === 1
-                ? t('rating.basedOnOne')
-                : t('rating.basedOn', { count: dish.ratingCount })}
-            </p>
+            <p className="mb-5 text-xs text-inkMuted">{t('dish.breakdownBody')}</p>
+            <RatingDistribution weights={weights} />
+            <p className="mt-5 text-xs text-inkMuted">{basedOn}</p>
           </section>
         </aside>
       </div>

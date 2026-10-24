@@ -20,17 +20,12 @@ async function expectNoSeriousViolations(page: Page): Promise<void> {
 
 test('landing page leads into the city', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Know what to order before you go.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Know exactly what to order, before you go.',
+  );
   await page.getByRole('main').getByRole('link', { name: 'Explore Hyderabad' }).first().click();
   await expect(page).toHaveURL(/\/hyderabad$/);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hyderabad, what are we eating?');
-});
-
-test('landing page shows every rating word and diet mark with text', async ({ page }) => {
-  await page.goto('/');
-  for (const label of ['Loved', 'Good', 'Okay', 'Skip', 'Veg', 'Egg', 'Non-veg']) {
-    await expect(page.getByText(label, { exact: true }).first()).toBeAttached();
-  }
 });
 
 test('discover page shows search and context chips', async ({ page }) => {
@@ -52,19 +47,9 @@ test('primary navigation marks the current page', async ({ page, isMobile }) => 
   await page.goto('/hyderabad');
   const nav = page.getByRole('navigation', { name: 'Primary' });
   await expect(nav.getByRole('link', { name: 'Discover' })).toHaveAttribute('aria-current', 'page');
-  await expect(nav.getByRole('link')).toHaveCount(5);
-});
-
-test('theme toggle persists across reloads', async ({ page }) => {
-  await page.goto('/hyderabad');
-  const toggle = page.getByRole('button', { name: /^Theme:/ });
-  await expect(toggle).toHaveAccessibleName('Theme: System');
-  await toggle.click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await toggle.click();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(nav.getByRole('link')).toHaveCount(4);
+  await nav.getByRole('button', { name: 'Create post' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Sign in to share what you ate.' })).toBeVisible();
 });
 
 test('skip link moves focus to main content', async ({ page, isMobile }) => {
@@ -78,15 +63,24 @@ test('skip link moves focus to main content', async ({ page, isMobile }) => {
 });
 
 for (const path of ['/', '/hyderabad', '/about', '/guidelines', '/offline']) {
-  test(`${path} has no serious accessibility violations in light and dark`, async ({ page, context }) => {
+  test(`${path} has no serious accessibility violations`, async ({ page }) => {
     await page.goto(path);
-    await expectNoSeriousViolations(page);
-    await context.addCookies([{ name: 'theme', value: 'dark', url: page.url() }]);
-    await page.reload();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expectNoSeriousViolations(page);
   });
 }
+
+test('veg-only filter hides non-veg dishes and persists across reloads', async ({ page }) => {
+  await page.goto('/hyderabad');
+  const toggle = page.getByRole('button', { name: 'Veg only' });
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('html')).toHaveClass(/veg-only/);
+  await expect(page.locator('[data-diet="nonveg"]').first()).toBeHidden();
+  await page.reload();
+  await expect(page.locator('html')).toHaveClass(/veg-only/);
+  await expect(page.getByRole('button', { name: 'Veg only' })).toHaveAttribute('aria-pressed', 'true');
+});
 
 test('manifest and robots are served', async ({ request }) => {
   const manifest = await request.get('/manifest.webmanifest');

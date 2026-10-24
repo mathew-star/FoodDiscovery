@@ -5,7 +5,7 @@ export type Crumb = { href: string; label: string };
 
 export function Breadcrumbs({ items, label }: { items: Crumb[]; label: string }) {
   return (
-    <nav aria-label={label} className="text-sm text-ink-soft">
+    <nav aria-label={label} className="text-xs text-inkMuted">
       <ol className="flex flex-wrap items-center gap-1">
         {items.map((item, index) => {
           const last = index === items.length - 1;

@@ -5,12 +5,5 @@ import { EmptyState } from '@/shared/ui/empty-state';
 export const metadata: Metadata = { title: t('offline.title'), robots: { index: false } };
 
 export default function OfflinePage() {
-  return (
-    <EmptyState
-      stamp={t('offline.stamp')}
-      title={t('offline.title')}
-      body={t('offline.body')}
-      className="my-8"
-    />
-  );
+  return <EmptyState size="page" title={t('offline.title')} body={t('offline.body')} />;
 }

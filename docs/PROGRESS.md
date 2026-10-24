@@ -58,6 +58,18 @@ Verified: typecheck, lint, format, 164 unit + integration tests, build (160+ pre
 
 Deferred by design: photo strip and photos grid (P4 media), posts tabs (E2-5, P4), Save/Rate actions (P2/P3), "Still true?" (P5), distance from user (P2 location).
 
+- [x] Design system v2 (warm brutalist, `docs/DESIGN-SYSTEM.md`) replaces "Token & Stamp" everywhere: tokens and type scale in `app/globals.css`, every `shared/ui` primitive, shell (top bar, bottom nav, ink footer), Discover, branch, branch dish, city ranking, area, cuisine, static, error and offline pages (D26, D27, D29)
+- [x] Landing page rebuilt from `docs/reference/fdn-landing-full.html`: live proof card, live battle, six-step dinner journey, four modes with real routes, community feed with tabs and ticker, Score X-Ray on the production scoring code (default weights, no database), searchable FAQ with FAQPage JSON-LD, closing CTA with install prompt (D28, D30)
+- [x] Veg-only device filter (D31) and sign-in-at-intent toast for guest write actions (D32)
+- [x] `bun.lock`: removed four duplicated entries left by the merge (frozen install failed); `motion` and `animejs` removed
+
+Verified on a local PostGIS 15 database (migrate + seed): typecheck, lint, format, unit tests, `next build` (Node), 75 Playwright tests passed / 3 viewport skips, axe 0 serious/critical on `/`, `/hyderabad`, `/about`, `/guidelines`, `/offline`, branch, branch dish, city dish and area pages; no horizontal scroll at 390 px.
+
+Notes for later phases:
+- `bun --bun next build` fails locally while collecting page data ("Expected CommonJS module to have a function wrapper … bug in Bun"); the same failure reproduces on the commit before this change, and `next build` under Node succeeds. Check CI on the next push.
+- Landing and footer links to `/c/*`, `/communities`, `/battles` light up in P4/P5; the footer shows Privacy, Terms and Grievances as "soon", and the grievance officer block, until P6 (D13).
+- No migrations or seed changes in this work. Rating weights stay a code constant until P3 adds them to `ranking_config` (D30).
+
 ## P2 Search and Discover
 
 - [ ] Typeahead + search results + filters + chips

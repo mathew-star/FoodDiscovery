@@ -2,78 +2,114 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const css = readFileSync(join(process.cwd(), 'app/globals.css'), 'utf8');
+const read = (path: string) => readFileSync(join(process.cwd(), path), 'utf8');
 
-function block(selector: string): Record<string, string> {
-  const start = css.indexOf(`${selector} {`);
-  if (start === -1) throw new Error(`Missing selector ${selector}`);
-  const end = css.indexOf('}', start);
+function rootTokens(): Record<string, string> {
+  const css = read('app/globals.css');
+  const start = css.indexOf(':root {');
+  const block = css.slice(start, css.indexOf('}', start));
   const tokens: Record<string, string> = {};
-  for (const match of css.slice(start, end).matchAll(/--([\w-]+):\s*(#[0-9a-f]{6});/gi)) {
-    const [, name, value] = match;
+  for (const [, name, value] of block.matchAll(/--fdn-([\w-]+):\s*(#[0-9a-f]{6});/gi)) {
     if (name && value) tokens[name] = value.toLowerCase();
   }
   return tokens;
 }
 
 function luminance(hex: string): number {
-  const channels = [1, 3, 5].map((index) => {
+  const [r = 0, g = 0, b = 0] = [1, 3, 5].map((index) => {
     const value = Number.parseInt(hex.slice(index, index + 2), 16) / 255;
     return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   });
-  const [r = 0, g = 0, b = 0] = channels;
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
 function contrast(a: string, b: string): number {
-  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return ((high ?? 0) + 0.05) / ((low ?? 0) + 0.05);
+  const [high = 0, low = 0] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (high + 0.05) / (low + 0.05);
 }
 
-const textTokens = [
-  'ink',
-  'ink-soft',
-  'live',
-  'danger',
-  'diet-veg',
-  'diet-nonveg',
-  'diet-egg',
-  'rate-loved',
-  'rate-good',
-  'rate-okay',
-  'rate-skip',
-];
-const backgrounds = ['paper', 'paper-raised', 'paper-sunk'];
-
-const themes = {
-  light: block(':root'),
-  dark: block(":root[data-theme='dark']"),
+const tokens = rootTokens();
+const get = (name: string): string => {
+  const value = tokens[name];
+  if (!value) throw new Error(`Missing token --fdn-${name}`);
+  return value;
 };
 
-describe.each(Object.entries(themes))('%s theme', (_, tokens) => {
-  const get = (name: string): string => {
-    const value = tokens[name];
-    if (!value) throw new Error(`Missing token --${name}`);
-    return value;
-  };
-
-  it.each(textTokens.flatMap((fg) => backgrounds.map((bg) => [fg, bg] as const)))(
-    '%s on %s meets 4.5:1',
-    (fg, bg) => {
-      expect(contrast(get(fg), get(bg))).toBeGreaterThanOrEqual(4.5);
-    },
-  );
-
-  it('ink text on haldi and paper text on ink buttons meet 4.5:1', () => {
-    expect(contrast(get('on-haldi'), get('haldi'))).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(get('on-ink'), get('ink'))).toBeGreaterThanOrEqual(4.5);
-  });
-
-  it.each(backgrounds)('rule-strong meets 3:1 on %s', (bg) => {
-    expect(contrast(get('rule-strong'), get(bg))).toBeGreaterThanOrEqual(3);
+it('matches the fixed palette in DESIGN-SYSTEM §3.1', () => {
+  expect(tokens).toEqual({
+    cream: '#ecebc9',
+    'cream-dark': '#e2e0b5',
+    paper: '#f8f7e8',
+    ink: '#141612',
+    'ink-muted': '#4a4d43',
+    lime: '#c7ea76',
+    'lime-bright': '#b8e94a',
+    olive: '#76a02b',
+    'olive-deep': '#4f6e17',
+    'olive-btn': '#97ae42',
+    terracotta: '#c8524b',
+    'terracotta-deep': '#a9443d',
+    saffron: '#f2b33d',
   });
 });
 
-it('system dark and explicit dark themes define identical colours', () => {
-  expect(block(":root:not([data-theme='light'])")).toEqual(themes.dark);
+/* Every text/surface pair the components use (§3.3, §3.4). */
+const textPairs: [text: string, surface: string][] = [
+  ['ink', 'cream'],
+  ['ink', 'cream-dark'],
+  ['ink', 'paper'],
+  ['ink', 'lime'],
+  ['ink', 'lime-bright'],
+  ['ink', 'olive'],
+  ['ink', 'olive-btn'],
+  ['ink', 'saffron'],
+  ['ink-muted', 'cream'],
+  ['ink-muted', 'cream-dark'],
+  ['ink-muted', 'paper'],
+  ['ink-muted', 'lime'],
+  ['olive-deep', 'cream'],
+  ['olive-deep', 'paper'],
+  ['terracotta-deep', 'cream'],
+  ['terracotta-deep', 'paper'],
+  ['paper', 'terracotta-deep'],
+  ['paper', 'ink'],
+  ['cream', 'ink'],
+  ['lime', 'ink'],
+  ['saffron', 'ink'],
+];
+
+describe('text contrast meets WCAG AA (4.5:1)', () => {
+  it.each(textPairs)('%s on %s', (text, surface) => {
+    expect(contrast(get(text), get(surface))).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+describe('graphics contrast meets 3:1', () => {
+  it.each(['cream', 'paper'])('terracotta focus ring on %s', (surface) => {
+    expect(contrast(get('terracotta'), get(surface))).toBeGreaterThanOrEqual(3);
+  });
+});
+
+it('paper text fails on olive and terracotta, so olive fills carry ink text and terracotta text uses terracotta-deep', () => {
+  expect(contrast(get('paper'), get('olive'))).toBeLessThan(4.5);
+  expect(contrast(get('paper'), get('terracotta'))).toBeLessThan(4.5);
+});
+
+it('OG image palette mirrors the CSS tokens', () => {
+  const source = read('shared/ui/og-card.tsx');
+  const block = source.slice(
+    source.indexOf('ogPalette = {'),
+    source.indexOf('};', source.indexOf('ogPalette = {')),
+  );
+  const og = Object.fromEntries(
+    [...block.matchAll(/(\w+): '(#[0-9a-f]{6})'/gi)].map(([, name = '', value = '']) => [name, value]),
+  );
+  expect(og).toEqual({
+    cream: get('cream'),
+    paper: get('paper'),
+    ink: get('ink'),
+    inkMuted: get('ink-muted'),
+    lime: get('lime'),
+    olive: get('olive'),
+  });
 });

@@ -1,36 +1,29 @@
 import Link from 'next/link';
+import { DietToggle } from '@/features/dishes/components/diet-toggle.client';
 import { defaultCity } from '@/features/geo/schemas/city';
+import { CityPill } from '@/features/shell/components/city-pill.client';
 import { Logo } from '@/features/shell/components/logo';
-import { ThemeToggle } from '@/features/shell/components/theme-toggle.client';
 import { t } from '@/i18n';
+import { cn } from '@/shared/lib/cn';
 import { buttonVariants } from '@/shared/ui/button';
-
-const anchors = [
-  { href: '#how', labelKey: 'landing.nav.how' },
-  { href: '#menu', labelKey: 'landing.nav.menu' },
-  { href: '#rules', labelKey: 'landing.nav.rules' },
-] as const;
+import { SectionNav } from './section-nav.client';
 
 export function LandingHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-[1240px] items-center gap-4 px-4 md:px-6">
-        <Logo href="/" />
-        <nav aria-label={t('a11y.primaryNav')} className="ml-6 hidden gap-1 md:flex">
-          {anchors.map((anchor) => (
-            <a
-              key={anchor.href}
-              href={anchor.href}
-              className="inline-flex h-10 items-center px-3 font-mono text-xs font-medium tracking-wide uppercase decoration-2 underline-offset-[6px] hover:underline"
-            >
-              {t(anchor.labelKey)}
-            </a>
-          ))}
-        </nav>
-        <div className="ml-auto flex items-center gap-2">
-          <ThemeToggle />
-          <Link href={`/${defaultCity}`} className={buttonVariants({ variant: 'primary', size: 'sm' })}>
-            {t('landing.ctaPrimary')}
+    <header className="sticky top-0 z-50 border-b-2 border-ink bg-cream/95 backdrop-blur-md">
+      <div className="mx-auto flex h-[72px] max-w-[1360px] items-center justify-between gap-4 px-5 md:px-10">
+        <div className="flex items-center gap-3">
+          <Logo href="/" />
+          <CityPill city={defaultCity} className="hidden sm:flex" />
+        </div>
+        <SectionNav />
+        <div className="flex items-center gap-2.5">
+          <DietToggle />
+          <Link
+            href={`/${defaultCity}`}
+            className={cn(buttonVariants({ size: 'sm' }), 'hidden sm:inline-flex')}
+          >
+            {t('landing.explore')}
           </Link>
         </div>
       </div>

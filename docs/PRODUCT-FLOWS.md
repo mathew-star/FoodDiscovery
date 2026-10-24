@@ -23,7 +23,7 @@ Legend — **A** server action (`features/x/server/actions.ts`), **R** route han
 ## W2 Guest → member
 
 1. Save as guest → stored on device (≤ 20) + toast "Saved on this phone. Sign in to keep it everywhere."
-2. Rate / Post / Comment / Vote / 21st save → `AuthSheet` with reason.
+2. Rate / Post / Comment / Vote / Answer / Confirm fact / 21st save → sign-in prompt stating the reason (DESIGN-SYSTEM §7.11, §9.1). Today this is the toast from `useSignInPrompt` [shell] (`IntentButton` for one-tap actions); its Sign in link carries `?next=<path>`. P3 swaps the toast action for `AuthSheet`.
 3. Sign up / sign in with **email + password**; new accounts verify their email via a Resend link (30-min expiry). A disabled "Continue with Google" button is shown until Google sign-in ships (D1).
 4. First sign-in → `/onboarding`: display name, username (suggested), 18+ checkbox (required; under 18 → no account), diet, ≤ 5 cuisines, home locality.
 5. Device saves migrated and cleared; original action resumes (`?intent=` param restores the sheet).
@@ -31,6 +31,7 @@ Legend — **A** server action (`features/x/server/actions.ts`), **R** route han
 | Step | Route | Components | Server |
 | --- | --- | --- | --- |
 | Guest save | any | `SaveButton` [saves] | client storage `fdn_saves` |
+| Intent prompt | any | `useSignInPrompt`, `IntentButton` [shell], `ToastProvider` [shared/ui] | — |
 | Sign in / up | `/login`, `/signup` or sheet | `AuthSheet`, `SignInForm`, `SignUpForm` [auth] | R `/api/auth/*` (Better Auth email + password; verification and reset via Resend) |
 | Onboarding | `/onboarding` | `OnboardingForm` [profile] | A `completeOnboardingAction`, A `importDeviceSavesAction` |
 

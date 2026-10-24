@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { CityDishResults } from '@/features/dishes/components/city-dish-results';
-import { DishTile } from '@/features/dishes/components/dish-tile';
 import {
   getCanonicalDish,
   getCanonicalDishSlugs,
@@ -13,6 +12,7 @@ import { getCity, getLocalities } from '@/features/geo/queries/geo';
 import { breadcrumbJsonLd } from '@/features/places/lib/json-ld';
 import { t } from '@/i18n';
 import { siteUrl } from '@/shared/config/site';
+import { Badge } from '@/shared/ui/badge';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
 import { JsonLd } from '@/shared/ui/json-ld';
 import { Skeleton } from '@/shared/ui/skeleton';
@@ -75,20 +75,15 @@ export default async function CityDishPage({ params, searchParams }: PageProps<'
         }}
       />
       <Breadcrumbs label={t('common.breadcrumb')} items={crumbs} />
-      <header className="grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
-        <div className="flex max-w-4xl flex-col gap-4">
-          <p className="w-fit border-2 border-ink bg-haldi px-2 py-0.5 font-mono text-2xs font-bold tracking-widest text-on-haldi uppercase">
-            {dish.categoryName} · {t('dish.leaderboard')}
-          </p>
-          <h1 className="rise-in text-[clamp(3rem,9vw,6.5rem)] leading-[0.88] font-extrabold [font-stretch:72%]">
-            {t('dish.cityTitle', { dish: dish.name, city: city.name })}
-          </h1>
-          <p className="max-w-2xl text-lg text-ink-soft">
-            {t('dish.cityIntro', { dish: dish.name, city: city.name })}
-          </p>
-          {dish.description ? <p className="max-w-2xl font-mono text-sm">{dish.description}</p> : null}
-        </div>
-        <DishTile name={dish.name} size="xl" className="hidden rotate-3 shadow-lift-lg md:inline-flex" />
+      <header className="flex max-w-4xl flex-col gap-4">
+        <Badge tone="ink" className="w-fit">
+          {dish.categoryName} · {t('dish.leaderboard')}
+        </Badge>
+        <h1 className="type-display-xl">{t('dish.cityTitle', { dish: dish.name, city: city.name })}</h1>
+        <p className="max-w-2xl text-lg text-inkMuted">
+          {t('dish.cityIntro', { dish: dish.name, city: city.name })}
+        </p>
+        {dish.description ? <p className="max-w-2xl text-sm">{dish.description}</p> : null}
       </header>
       <Suspense fallback={<Skeleton className="h-[32rem] w-full" />}>
         <CityDishResults

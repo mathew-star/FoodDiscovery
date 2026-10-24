@@ -11,6 +11,8 @@ import { getRankingConfig } from '@/features/ratings/queries/ranking-config';
 import { t } from '@/i18n';
 import { siteUrl } from '@/shared/config/site';
 import { Breadcrumbs } from '@/shared/ui/breadcrumbs';
+import { cn } from '@/shared/lib/cn';
+import { cardVariants } from '@/shared/ui/card';
 import { EmptyState } from '@/shared/ui/empty-state';
 import { JsonLd } from '@/shared/ui/json-ld';
 
@@ -40,7 +42,7 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
   const path = `/r/${branch.slug}`;
 
   return (
-    <div className="flex flex-col gap-8 pt-2">
+    <div className="flex flex-col gap-8">
       <JsonLd
         data={{
           '@graph': [
@@ -68,28 +70,26 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
         <div className="flex min-w-0 flex-col gap-14">
           <BranchHeader branch={branch} />
 
-          <section aria-labelledby="what-to-order" className="flex flex-col gap-5">
+          <section aria-labelledby="what-to-order" className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <p className="font-mono text-xs tracking-widest text-ink-soft uppercase">
-                {t('place.whatToOrderKicker')}
-              </p>
-              <h2 id="what-to-order" className="text-5xl font-extrabold md:text-6xl">
+              <h2 id="what-to-order" className="type-title-l">
                 {t('place.whatToOrder')}
               </h2>
+              <p className="text-sm text-inkMuted">{t('place.whatToOrderBody')}</p>
             </div>
             {menu.whatToOrder.length === 0 ? (
               <EmptyState title={t('place.whatToOrder')} body={t('place.whatToOrderEmpty')} />
             ) : (
-              <ol className="grid gap-4 pt-2 sm:grid-cols-2">
+              <ol className="space-y-2">
                 {menu.whatToOrder.map(({ dish, knownFor }, index) => (
-                  <li key={dish.id} className={index === 0 ? 'sm:col-span-2' : undefined}>
+                  <li key={dish.id}>
                     <DishRow
                       dish={dish}
                       branchSlug={branch.slug}
                       knownFor={knownFor}
                       rank={index + 1}
                       minWeightForDisplay={scoring.minWeightForDisplay}
-                      variant="feature"
+                      variant="xray"
                     />
                   </li>
                 ))}
@@ -98,30 +98,21 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
           </section>
 
           <div className="lg:hidden">
-            <FactsCard facts={branch.facts} />
+            <FactsCard facts={branch.facts} headingId="facts-inline" />
           </div>
 
-          <section
-            aria-labelledby="full-menu"
-            className="border-2 border-ink bg-raised p-5 shadow-lift md:p-8"
-          >
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-4 border-double border-ink pb-3">
-              <h2 id="full-menu" className="text-5xl font-extrabold">
+          <section aria-labelledby="full-menu" className={cn(cardVariants({ size: 'lg' }), 'p-5 md:p-8')}>
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-ink pb-3">
+              <h2 id="full-menu" className="type-title-l">
                 {t('place.fullMenu')}
               </h2>
-              <p className="font-mono text-2xs tracking-widest text-ink-soft uppercase">
-                {t('place.menuKicker')}
-              </p>
+              <p className="text-xs text-inkMuted">{t('place.fullMenuBody')}</p>
             </div>
-            <div className="mt-4 grid gap-x-10 md:grid-cols-2">
+            <div className="mt-2 grid gap-x-10 md:grid-cols-2">
               {menu.sections.map((section) => (
-                <section
-                  key={section.name}
-                  aria-label={section.name}
-                  className="mt-4 flex break-inside-avoid flex-col"
-                >
-                  <h3 className="font-mono text-xs font-bold tracking-[0.2em] uppercase">{section.name}</h3>
-                  <ul className="divide-y-2 divide-dashed divide-rule">
+                <section key={section.name} aria-label={section.name} className="mt-4 flex flex-col">
+                  <h3 className="font-sans text-xs text-inkMuted">{section.name}</h3>
+                  <ul className="divide-y-2 divide-dashed divide-ink/15">
                     {section.dishes.map((dish) => (
                       <li key={dish.id}>
                         <DishRow
@@ -137,19 +128,17 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
             </div>
           </section>
 
-          <section aria-labelledby="nearby" className="flex flex-col gap-5">
+          <section aria-labelledby="nearby" className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <p className="font-mono text-xs tracking-widest text-ink-soft uppercase">
-                {t('place.nearbyKicker')}
-              </p>
-              <h2 id="nearby" className="text-5xl font-extrabold md:text-6xl">
+              <h2 id="nearby" className="type-title-l">
                 {t('place.nearby')}
               </h2>
+              <p className="text-sm text-inkMuted">{t('place.nearbyBody')}</p>
             </div>
             {nearby.length === 0 ? (
-              <p className="text-ink-soft">{t('place.nearbyEmpty')}</p>
+              <p className="text-inkMuted">{t('place.nearbyEmpty')}</p>
             ) : (
-              <ul className="grid gap-4 sm:grid-cols-2">
+              <ul className="grid gap-5 sm:grid-cols-2">
                 {nearby.map((alternative) => (
                   <li key={alternative.id}>
                     <BranchCard branch={alternative} timezone={branch.timezone} />
@@ -162,7 +151,7 @@ export default async function BranchPage({ params }: PageProps<'/r/[branch]'>) {
 
         <aside className="hidden lg:block">
           <div className="sticky top-24">
-            <FactsCard facts={branch.facts} />
+            <FactsCard facts={branch.facts} headingId="facts-aside" />
           </div>
         </aside>
       </div>

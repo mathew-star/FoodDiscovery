@@ -5,34 +5,32 @@ import { t } from '@/i18n';
 
 type AreaBoardProps = { city: CitySlug; areas: { slug: string; name: string; isLaunch: boolean }[] };
 
+/** "Explore areas" (spec §3.5), the Discover page's one dark section. */
 export function AreaBoard({ city, areas }: AreaBoardProps) {
   return (
-    <section aria-labelledby="explore-areas" className="bg-ink p-6 text-on-ink md:p-10">
+    <section
+      aria-labelledby="explore-areas"
+      className="rounded-card border-2 border-ink bg-ink p-6 text-cream md:p-10"
+    >
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h2 id="explore-areas" className="text-6xl font-extrabold text-haldi md:text-7xl">
+        <h2 id="explore-areas" className="type-display-l">
           {t('discover.exploreAreas')}
         </h2>
-        <p className="max-w-xs text-sm opacity-90">{t('discover.exploreAreasBody')}</p>
+        <p className="max-w-xs text-sm text-cream/70">{t('discover.exploreAreasBody')}</p>
       </div>
-      <ol className="mt-8 grid gap-px border-2 border-on-ink/40 bg-on-ink/40 sm:grid-cols-2 lg:grid-cols-5">
-        {areas.map((area, index) => (
-          <li key={area.slug} className="bg-ink">
+      <ol className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+        {areas.map((area) => (
+          <li key={area.slug}>
             <Link
               href={`/${city}/area/${area.slug}`}
-              className="group flex h-full flex-col gap-6 p-5 transition-colors duration-(--dur-micro) hover:bg-haldi hover:text-on-haldi"
+              className="group flex h-full min-h-28 flex-col justify-between gap-6 rounded-panel border-2 border-cream bg-paper p-5 text-ink shadow-brutal-lime transition-colors duration-(--dur-instant) hover:bg-lime"
             >
-              <span className="flex items-center justify-between font-mono text-2xs tracking-widest uppercase opacity-80">
-                {t('discover.areaStop', { n: String(index + 1).padStart(2, '0') })}
-                {area.isLaunch ? <span>{t('discover.launchArea')}</span> : null}
+              <span className="text-[11px] text-inkMuted group-hover:text-ink">
+                {area.isLaunch ? t('discover.launchArea') : null}
               </span>
               <span className="flex items-end justify-between gap-2">
-                <span className="font-display text-4xl leading-none font-extrabold [font-stretch:75%]">
-                  {area.name}
-                </span>
-                <ArrowUpRight
-                  aria-hidden="true"
-                  className="size-6 transition-transform duration-(--dur-micro) group-hover:translate-x-1 group-hover:-translate-y-1"
-                />
+                <span className="type-title-m">{area.name}</span>
+                <ArrowUpRight aria-hidden="true" className="size-5 shrink-0" strokeWidth={2.5} />
               </span>
             </Link>
           </li>

@@ -1,16 +1,15 @@
 import type { Metadata } from 'next';
-import { FinalTicket } from '@/features/landing/components/final-ticket';
+import { ClosingCta } from '@/features/landing/components/closing-cta';
+import { Community } from '@/features/landing/components/community';
+import { Faq } from '@/features/landing/components/faq';
 import { Hero } from '@/features/landing/components/hero';
-import { HouseRules } from '@/features/landing/components/house-rules';
-import { HowStrip } from '@/features/landing/components/how-strip';
+import { HonestByDesign } from '@/features/landing/components/honest-by-design';
+import { HowItWorks } from '@/features/landing/components/how-it-works';
 import { LandingHeader } from '@/features/landing/components/landing-header';
-import { MenuBoard } from '@/features/landing/components/menu-board';
-import { NoticeBoard } from '@/features/landing/components/notice-board';
-import { RatingsSection } from '@/features/landing/components/ratings-section';
-import { ShuffleReceipt } from '@/features/landing/components/shuffle-receipt';
+import { SixApps } from '@/features/landing/components/six-apps';
+import { BottomNav } from '@/features/shell/components/bottom-nav.client';
 import { SiteFooter } from '@/features/shell/components/site-footer';
-import { t, type MessageKey } from '@/i18n';
-import { TokenBoard } from '@/shared/ui/token-board';
+import { t } from '@/i18n';
 
 export const metadata: Metadata = {
   title: { absolute: t('landing.metaTitle') },
@@ -18,30 +17,21 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
-const tickerKeys: MessageKey[] = [
-  'landing.ticker.t1',
-  'landing.ticker.t2',
-  'landing.ticker.t3',
-  'landing.ticker.t4',
-  'landing.ticker.t5',
-];
-
 export default function LandingPage() {
   return (
     <>
       <LandingHeader />
-      <TokenBoard label={t('shell.nowServing')} items={tickerKeys.map((key) => t(key))} />
       <main id="main" tabIndex={-1} className="flex-1">
         <Hero />
-        <ShuffleReceipt />
-        <HowStrip />
-        <RatingsSection />
-        <HouseRules />
-        <MenuBoard />
-        <NoticeBoard />
-        <FinalTicket />
+        <SixApps />
+        <HowItWorks />
+        <Community />
+        <HonestByDesign />
+        <Faq />
+        <ClosingCta />
       </main>
       <SiteFooter />
+      <BottomNav />
     </>
   );
 }

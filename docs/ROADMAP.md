@@ -31,7 +31,8 @@ Seven phases, each shippable to the beta environment. Story IDs from `docs/spec/
 ## P2 Search and Discover
 
 **Scope:** W1; E4-1…E4-5, E4-7; E9-1; §6.5; E16-1 (pipeline + discovery events).
-- Typeahead route handler, grouped results, typo tolerance, filters, context chips.
+- Typeahead route handler, grouped results, typo tolerance, filters, context chips (in-place toggles, DESIGN-SYSTEM §7.2; today they are links).
+- Landing previews (hero proof card, mode panels) read live queries instead of illustrative content (D28).
 - Discover sections with city-wide fallback ("Across Hyderabad").
 - `LocationBanner`, distance labels, Directions/Call/Share with events; guest device saves.
 - `analytics_events` table + beacon endpoint + device id cookie.

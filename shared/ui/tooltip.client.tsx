@@ -17,8 +17,8 @@ export function Tooltip({ content, children }: TooltipProps) {
     <BaseTooltip.Root>
       <BaseTooltip.Trigger render={children} />
       <BaseTooltip.Portal>
-        <BaseTooltip.Positioner sideOffset={8}>
-          <BaseTooltip.Popup className="max-w-64 rounded-tick border-2 border-ink bg-ink px-3 py-2 text-sm text-on-ink shadow-lift-sm transition-opacity duration-(--dur-micro) data-ending-style:opacity-0 data-starting-style:opacity-0">
+        <BaseTooltip.Positioner sideOffset={8} className="z-[65]">
+          <BaseTooltip.Popup className="max-w-64 rounded-row border-2 border-ink bg-ink px-3 py-2 text-sm text-cream shadow-brutal-sm transition-opacity duration-(--dur-instant) data-ending-style:opacity-0 data-starting-style:opacity-0">
             {content}
           </BaseTooltip.Popup>
         </BaseTooltip.Positioner>

@@ -3,13 +3,13 @@ import { notFound } from 'next/navigation';
 import { AreaBoard } from '@/features/discover/components/area-board';
 import { DiscoverIntro } from '@/features/discover/components/discover-intro';
 import { Shelf } from '@/features/discover/components/shelf';
-import { PlacedDishRow } from '@/features/dishes/components/placed-dish-row';
+import { LeaderboardList, PlacedDishRow } from '@/features/dishes/components/placed-dish-row';
 import { getCityShelves } from '@/features/dishes/queries/dishes';
 import { cityNameKey, citySlugs, parseCitySlug } from '@/features/geo/schemas/city';
 import { getCity, getLocalities } from '@/features/geo/queries/geo';
 import { t } from '@/i18n';
 import { formatRupees } from '@/shared/lib/money';
-import { TokenBoard } from '@/shared/ui/token-board';
+import { Ticker } from '@/shared/ui/ticker';
 
 export function generateStaticParams() {
   return citySlugs.map((city) => ({ city }));
@@ -35,34 +35,38 @@ export default async function CityDiscoverPage({ params }: PageProps<'/[city]'>)
     getLocalities(slug),
   ]);
 
-  const ticker = topOverall.map(
-    (dish, index) =>
-      `No. ${String(index + 1).padStart(2, '0')} · ${dish.canonicalName} · ${dish.localityName}${
-        dish.lovedPct !== null ? ` · ${t('rating.lovedPct', { pct: Math.round(dish.lovedPct) })}` : ''
-      }${dish.pricePaise !== null ? ` · ${formatRupees(dish.pricePaise)}` : ''}`,
+  const ticker = topOverall.map((dish, index) =>
+    [
+      `#${index + 1} ${dish.canonicalName}`,
+      dish.localityName,
+      dish.lovedPct !== null ? t('rating.lovedPct', { pct: Math.round(dish.lovedPct) }) : null,
+      dish.pricePaise !== null ? formatRupees(dish.pricePaise) : null,
+    ]
+      .filter(Boolean)
+      .join(' · '),
   );
 
   return (
     <div className="flex flex-col gap-16">
       <DiscoverIntro city={slug} />
       {ticker.length > 0 ? (
-        <TokenBoard label={t('shell.nowServing')} items={ticker} className="-mx-4 md:-mx-6" />
+        <Ticker label={t('discover.nowServing')} items={ticker} className="-mx-5 md:-mx-10" />
       ) : null}
 
-      <section aria-labelledby="top-tickets" className="flex flex-col gap-5">
+      <section aria-labelledby="top-dishes" className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <h2 id="top-tickets" className="text-5xl font-extrabold md:text-6xl">
-            {t('discover.topTickets')}
+          <h2 id="top-dishes" className="type-display-l">
+            {t('discover.topDishes')}
           </h2>
-          <p className="text-ink-soft">{t('discover.topTicketsBody')}</p>
+          <p className="text-inkMuted">{t('discover.topDishesBody')}</p>
         </div>
-        <ol className="grid gap-4 lg:grid-cols-2">
+        <LeaderboardList>
           {topOverall.map((dish, index) => (
             <li key={dish.id}>
               <PlacedDishRow dish={dish} rank={index + 1} minWeightForDisplay={minWeightForDisplay} />
             </li>
           ))}
-        </ol>
+        </LeaderboardList>
       </section>
 
       {shelves.slice(0, 3).map((shelf) => (

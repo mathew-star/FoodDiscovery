@@ -7,10 +7,16 @@ const levels = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'] as const;
 const configuredLevel = process.env.LOG_LEVEL;
 const level = levels.find((candidate) => candidate === configuredLevel) ?? 'info';
 
+/*
+  Same output as pino's isoTime, but from the high-resolution clock: logs can run while a page is
+  prerendering (onRequestError, cached-query fallbacks), where Next.js rejects Date.now().
+*/
+const isoTime = () => `,"time":"${new Date(performance.timeOrigin + performance.now()).toISOString()}"`;
+
 export const logger = pino({
   name: 'dish-app',
   level,
-  timestamp: pino.stdTimeFunctions.isoTime,
+  timestamp: isoTime,
   redact: {
     paths: [
       '*.password',

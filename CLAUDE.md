@@ -3,6 +3,7 @@
 ## Claude Code specifics
 
 - Plan before multi-file changes; state the spec story IDs the change covers.
+- UI work: read `docs/DESIGN-SYSTEM.md` §0 and the §7 component you touch, then compare the result with `docs/reference/fdn-landing-full.html` at 390 px and 1280 px.
 - Before touching a Next.js API, read the matching guide in `node_modules/next/dist/docs/` (install deps first if missing).
 - Verify with commands, not file dumps: `bunx next typegen && bunx tsc --noEmit`, `bun run lint`, tests. Report failures with their output.
 - Prefer `Edit` diffs over full rewrites; do not re-read files already in context.

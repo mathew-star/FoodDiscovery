@@ -1,14 +1,10 @@
 import Link from 'next/link';
-import type { CSSProperties } from 'react';
 import { ScoreBadge } from '@/features/ratings/components/score-badge';
 import { t } from '@/i18n';
-import { cn } from '@/shared/lib/cn';
 import { formatRupees } from '@/shared/lib/money';
 import { Badge } from '@/shared/ui/badge';
-import { Stamp } from '@/shared/ui/stamp';
 import type { BranchMenuDish } from '../queries/dishes';
 import { DietMark } from './diet-mark';
-import { DishTile } from './dish-tile';
 
 type DishRowProps = {
   dish: BranchMenuDish;
@@ -16,10 +12,11 @@ type DishRowProps = {
   minWeightForDisplay: number;
   knownFor?: boolean;
   rank?: number;
-  variant?: 'feature' | 'compact';
+  /** `xray`: ranked "What to order here" row (DESIGN-SYSTEM §7.9). `menu`: full dish list row. */
+  variant?: 'xray' | 'menu';
 };
 
-function seen(dish: BranchMenuDish): string | null {
+function lastSeen(dish: BranchMenuDish): string | null {
   if (dish.lastRatedDays === null) return null;
   return dish.lastRatedDays === 0
     ? t('rating.lastRatedToday')
@@ -32,91 +29,84 @@ export function DishRow({
   minWeightForDisplay,
   knownFor = false,
   rank,
-  variant = 'compact',
+  variant = 'menu',
 }: DishRowProps) {
   const rated = dish.weightSum >= minWeightForDisplay;
   const href = `/r/${branchSlug}/dish/${dish.slug}`;
-  const lastSeen = rated ? seen(dish) : null;
+  const seen = rated ? lastSeen(dish) : null;
+  const price = dish.pricePaise !== null ? formatRupees(dish.pricePaise) : null;
+  const name = (
+    <Link href={href} className="after:absolute after:inset-0 hover:underline hover:underline-offset-4">
+      {dish.name}
+    </Link>
+  );
 
-  if (variant === 'compact') {
+  if (variant === 'menu') {
     return (
-      <article className="group relative py-3">
+      <article data-diet={dish.diet} className="relative py-3">
         <div className="flex items-baseline gap-2">
           <DietMark diet={dish.diet} className="translate-y-0.5" />
-          <h4 className="font-sans text-lg leading-tight font-semibold">
-            <Link
-              href={href}
-              className="group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 after:absolute after:inset-0 after:content-['']"
-            >
-              {dish.name}
-            </Link>
-          </h4>
-          <span aria-hidden="true" className="leader" />
-          {dish.pricePaise !== null ? (
-            <span className="font-mono text-sm font-semibold tabular-nums">
-              {formatRupees(dish.pricePaise)}
-            </span>
-          ) : null}
+          <h4 className="grow text-base leading-snug">{name}</h4>
+          {price ? <span className="text-sm tabular-nums">{price}</span> : null}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 pl-6">
-          <ScoreBadge lovedPct={rated ? dish.lovedPct : null} ratingCount={dish.ratingCount} />
+          <ScoreBadge
+            variant="inline"
+            lovedPct={rated ? dish.lovedPct : null}
+            ratingCount={dish.ratingCount}
+          />
           {dish.isJain ? <Badge>{t('dish.jain')}</Badge> : null}
-          {lastSeen ? <span className="font-mono text-2xs text-ink-soft uppercase">{lastSeen}</span> : null}
+          {seen ? <span className="text-[11px] text-inkMuted">{seen}</span> : null}
         </div>
       </article>
     );
   }
 
+  const pct = rated && dish.lovedPct !== null ? Math.round(dish.lovedPct) : null;
   return (
     <article
-      style={{ '--i': rank ?? 0 } as CSSProperties}
-      className="group relative flex h-full press rise-in gap-3 border-2 border-ink bg-raised p-3 shadow-lift hover:-translate-y-0.5"
+      data-diet={dish.diet}
+      className="relative flex items-center gap-3 rounded-row border-[1.5px] border-ink bg-cream px-3 py-2.5 text-sm transition-colors duration-(--dur-instant) hover:bg-creamDark"
     >
-      <DishTile name={dish.name} size="md" />
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-2xl font-bold">
-            <Link href={href} className="after:absolute after:inset-0 after:content-['']">
-              {dish.name}
-            </Link>
-          </h3>
-          {rank !== undefined ? (
-            <span
-              className="font-display text-3xl leading-none font-extrabold text-ink-soft/50 [font-stretch:70%] tabular-nums"
-              aria-hidden="true"
-            >
-              {String(rank).padStart(2, '0')}
-            </span>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-2 font-mono text-sm">
-          {dish.pricePaise !== null ? (
-            <span className="font-semibold tabular-nums">{formatRupees(dish.pricePaise)}</span>
-          ) : null}
-          <DietMark diet={dish.diet} />
+      {rank !== undefined ? (
+        <span className="w-4 shrink-0 text-center tabular-nums">
+          <span aria-hidden="true">{rank}</span>
+          <span className="sr-only">{t('dish.rankLabel', { rank })}</span>
+        </span>
+      ) : null}
+      <div className="flex min-w-0 grow flex-col gap-0.5">
+        <h3 className="flex flex-wrap items-center gap-2 text-sm leading-snug">
+          {name}
+          {knownFor && !rated ? <Badge tone="lime">{t('rating.knownFor')}</Badge> : null}
           {dish.isJain ? <Badge>{t('dish.jain')}</Badge> : null}
-        </div>
-        <div className="mt-auto flex flex-wrap items-end justify-between gap-2">
-          {knownFor && !rated ? null : (
-            <ScoreBadge lovedPct={rated ? dish.lovedPct : null} ratingCount={dish.ratingCount} />
-          )}
-          {lastSeen ? <span className="font-mono text-2xs text-ink-soft uppercase">{lastSeen}</span> : null}
-        </div>
+        </h3>
+        <p className="flex flex-wrap items-center gap-x-2 text-[11px] text-inkMuted">
+          <DietMark diet={dish.diet} />
+          <span>
+            {dish.ratingCount === 1
+              ? t('rating.ratingsCountOne')
+              : t('rating.ratingsCount', { count: dish.ratingCount.toLocaleString('en-IN') })}
+          </span>
+          {seen ? <span>· {seen}</span> : null}
+        </p>
       </div>
-      {knownFor ? (
-        <Stamp size="xs" tilt={7} animate index={rank} className="absolute -top-3 right-3 bg-raised text-ink">
-          {t('rating.knownFor')}
-        </Stamp>
-      ) : rank === 1 && rated ? (
-        <Stamp
-          size="xs"
-          tilt={6}
-          animate
-          index={rank}
-          className={cn('absolute -top-3 right-3 bg-raised text-rate-loved')}
-        >
-          {t('rating.topPick')}
-        </Stamp>
+      {pct !== null ? (
+        <>
+          <span
+            aria-hidden="true"
+            className="h-2 w-20 shrink-0 overflow-hidden rounded-full border border-ink bg-paper max-[520px]:hidden"
+          >
+            <span style={{ width: `${pct}%` }} className="block h-full bg-olive" />
+          </span>
+          <span className="w-12 shrink-0 text-right text-xs font-bold tabular-nums">
+            {pct}%<span className="sr-only"> {t('rating.lovedWord')}</span>
+          </span>
+        </>
+      ) : (
+        <ScoreBadge lovedPct={null} ratingCount={dish.ratingCount} />
+      )}
+      {price ? (
+        <span className="w-12 shrink-0 text-right text-[11px] text-inkMuted tabular-nums">{price}</span>
       ) : null}
     </article>
   );

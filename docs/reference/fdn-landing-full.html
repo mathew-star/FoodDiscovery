@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>FDN — Know exactly what to order in Hyderabad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inder&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#ECEBC9', creamDark: '#E2E0B5', lime: '#C7EA76', limeBright: '#B8E94A',
+            olive: '#76A02B', oliveDeep: '#4F6E17', oliveBtn: '#97AE42', terracotta: '#C8524B',
+            saffron: '#F2B33D', ink: '#141612', inkMuted: '#4A4D43', paper: '#F8F7E8'
+          },
+          fontFamily: {
+            /* Headings: Bricolage Grotesque. Everything else: Inder. */
+            display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+            serif: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+            sans: ['Inder', 'system-ui', 'sans-serif'],
+            mono: ['Inder', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'brutal': '4px 4px 0px #141612',
+            'brutal-sm': '2px 2px 0px #141612',
+            'brutal-lg': '7px 7px 0px #141612',
+            'brutal-lime': '6px 6px 0px #C7EA76',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    h1,h2,h3,.font-display { font-family:'Bricolage Grotesque',system-ui,sans-serif; font-optical-sizing:auto; }
+    body { background:#ECEBC9; color:#141612; font-family:'Inder',system-ui,sans-serif; overflow-x:hidden; }
+    .grain-overlay { background-image: radial-gradient(rgba(20,22,18,.06) 1px, transparent 0); background-size:20px 20px; }
+
+    /* Torn receipt edges (bottom + top variants) */
+    .receipt-bottom { position:relative; }
+    .receipt-bottom::after {
+      content:""; position:absolute; left:0; right:0; bottom:-10px; height:10px;
+      background: linear-gradient(-45deg, transparent 6px, #F8F7E8 0), linear-gradient(45deg, transparent 6px, #F8F7E8 0);
+      background-size:12px 12px; background-repeat:repeat-x;
+    }
+
+    /* Image placeholder slots (swap for real <img>) */
+    .map-slot { background: repeating-linear-gradient(-45deg, #E2E0B5 0 10px, #ECEBC9 10px 20px); }
+
+    /* Live ticker */
+    @keyframes ticker { from { transform:translateX(0) } to { transform:translateX(-50%) } }
+    .ticker-track { animation: ticker 48s linear infinite; }
+    .ticker:hover .ticker-track, .ticker:focus-within .ticker-track { animation-play-state: paused; }
+    @keyframes pulse-dot { 0%,100% { transform:scale(1); opacity:1 } 50% { transform:scale(1.35); opacity:.65 } }
+    .live-dot { animation: pulse-dot 2s infinite ease-in-out; }
+
+    /* Score X-Ray rows: answer motion only */
+    .w-bar { transition: width .45s cubic-bezier(.2,.8,.2,1); }
+    .xr-row.is-held { background: repeating-linear-gradient(-45deg, rgba(200,82,75,.12) 0 8px, transparent 8px 16px); }
+    @keyframes flash { 0% { background:#C7EA76 } 100% { background:transparent } }
+    .flash { animation: flash .8s ease-out; }
+
+    /* FAQ */
+    details > summary { list-style:none; cursor:pointer; }
+    details > summary::-webkit-details-marker { display:none; }
+    details[open] .faq-chevron { transform: rotate(45deg); }
+    .faq-chevron { transition: transform .2s ease; }
+
+    /* Outlined giant wordmark */
+    .wordmark { -webkit-text-stroke: 2px #C7EA76; color: transparent; }
+
+    .no-scrollbar::-webkit-scrollbar { display:none } .no-scrollbar { scrollbar-width:none }
+    :focus-visible { outline: 3px solid #C8524B; outline-offset: 3px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track, .live-dot, .flash { animation: none !important; }
+      .w-bar, .faq-chevron { transition: none !important; }
+    }
+    /* keep content clear of the mobile bottom bar */
+    @media (max-width: 1023px) { body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); } }
+
+    /* ---------- Header / hero ---------- */
+    html { scroll-padding-top: 88px; }
+    .nav-pill:hover { background:#ECEBC9; }
+    .nav-pill.is-active { background:#76A02B; color:#F8F7E8; border-color:#141612; }
+    .hero-chip { font-family:'Inder',system-ui,sans-serif; font-size:12px; font-weight:600; white-space:nowrap;
+      padding:6px 12px; border-radius:999px; border:1.5px solid #141612; background:#F8F7E8; transition: background .15s, box-shadow .15s, transform .15s; }
+    .hero-chip:hover { background:#ECEBC9; }
+    .hero-chip[aria-pressed="true"] { background:#C7EA76; box-shadow:2px 2px 0 #141612; transform: translate(-1px,-1px); }
+    #proofCard.is-swapping { opacity:.15; }
+
+    /* ---------- Section 2A: six apps ---------- */
+    .app-tab { display:flex; flex-direction:column; gap:4px; padding:16px; min-height:128px;
+      background:#F8F7E8; border:2px solid #141612; border-radius:18px; box-shadow:4px 4px 0 #141612;
+      transform: rotate(var(--r)); transition: transform .6s cubic-bezier(.6,0,.2,1), opacity .45s ease .1s; }
+    .app-tab b { font-family:'Bricolage Grotesque',system-ui,sans-serif; font-size:17px; }
+    .app-tab span:last-child { font-size:14px; color:#4A4D43; line-height:1.4; }
+    .app-ico { width:34px; height:34px; border-radius:10px; border:1.5px solid #141612; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:4px; }
+    .one-answer { opacity:0; transform: translateY(-50%) scale(.85); pointer-events:none; transition: opacity .35s ease .35s, transform .45s cubic-bezier(.2,1.4,.4,1) .35s; }
+    #sixStage.collapsed .app-tab { transform: translate(var(--tx), var(--ty)) rotate(0) scale(.7); opacity:0; }
+    #sixStage.collapsed .one-answer { opacity:1; transform: translateY(-50%) scale(1); pointer-events:auto; }
+
+    /* ---------- Section 2B: modes ---------- */
+    .mode-tab { text-align:left; display:flex; flex-direction:column; gap:2px; min-width:220px; padding:14px 16px;
+      border:2px solid #141612; border-radius:16px; background:#F8F7E8; transition: background .15s, box-shadow .15s, transform .15s; }
+    .mode-tab b { font-family:'Bricolage Grotesque',system-ui,sans-serif; font-size:18px; }
+    .mode-tab span { font-size:13px; color:#4A4D43; }
+    .mode-tab:hover { background:#E2E0B5; }
+    .mode-tab[aria-selected="true"] { background:#141612; color:#ECEBC9; box-shadow:4px 4px 0 #C8524B; transform: translate(-2px,-2px); }
+    .mode-tab[aria-selected="true"] span { color:rgba(236,235,201,.7); }
+    .mode-panel:not([hidden]) { animation: panelIn .25s ease-out; }
+    @keyframes panelIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+
+    .xray-row { display:flex; align-items:center; gap:12px; padding:10px 12px; border:1.5px solid #141612; border-radius:12px; background:#ECEBC9; font-size:14px; }
+    .xray-row > b { font-family:'Inder',system-ui,sans-serif; width:16px; }
+    .xray-row .bar { width:80px; height:8px; border-radius:99px; background:#F8F7E8; border:1px solid #141612; overflow:hidden; flex-shrink:0; }
+    .xray-row .bar i { display:block; height:100%; background:#76A02B; }
+    .xray-row em { font-style:normal; font-family:'Inder',system-ui,sans-serif; font-weight:700; font-size:12px; width:34px; text-align:right; }
+    .xray-row > small { font-family:'Inder',system-ui,sans-serif; font-size:11px; color:#4A4D43; width:40px; text-align:right; }
+    @media (max-width:520px) { .xray-row .bar { display:none; } }
+
+    .lb-row { display:flex; align-items:center; gap:14px; padding:12px 4px; }
+    .lb-row > b { font-family:'Bricolage Grotesque',system-ui,sans-serif; font-weight:800; font-size:24px; width:28px; }
+    .lb-row em { font-style:normal; font-family:'Inder',system-ui,sans-serif; font-weight:700; background:#C7EA76; border:1.5px solid #141612; border-radius:8px; padding:2px 8px; font-size:13px; }
+    .trend { font-family:'Inder',system-ui,sans-serif; font-size:11px; width:28px; text-align:right; color:#4A4D43; }
+    .trend.up { color:#4F6E17; font-weight:700; } .trend.down { color:#C8524B; font-weight:700; }
+
+    .mood-card { border:2px solid #141612; border-radius:16px; background:#ECEBC9; padding:14px; display:flex; flex-direction:column; gap:6px; }
+
+    /* ---------- Veg-only mode ---------- */
+    .veg-only [data-diet="nv"] { display:none !important; }
+    .hidden-veg { display:none; }
+    .veg-only .hidden-veg { display:block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .app-tab, .one-answer, .hero-chip, .mode-tab { transition:none !important; }
+      .mode-panel:not([hidden]) { animation:none; }
+    }
+  </style>
+</head>
+<body class="grain-overlay antialiased selection:bg-terracotta selection:text-paper">
+
+
+<!-- ===================================================================== -->
+<!-- HEADER                                                                -->
+<!-- ===================================================================== -->
+<header class="sticky top-0 z-50 border-b-2 border-ink bg-cream/95 backdrop-blur-md">
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10 h-[72px] flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <a href="#" class="font-display font-extrabold text-2xl tracking-tighter bg-ink text-cream px-3 py-1 border-2 border-ink shadow-brutal-sm">FDN</a>
+      <button class="hidden sm:flex items-center gap-2 font-mono text-xs px-3 py-1.5 rounded-full border-[1.5px] border-ink bg-paper hover:bg-creamDark" aria-label="City: Hyderabad. Change city">
+        <span class="w-2 h-2 rounded-full bg-olive live-dot"></span>
+        <span class="font-semibold">Hyderabad</span><span class="text-inkMuted">beta</span>
+        <svg class="w-3 h-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg>
+      </button>
+    </div>
+
+    <nav class="hidden lg:flex items-center p-1.5 rounded-full border-[1.5px] border-ink bg-paper shadow-brutal-sm gap-1" aria-label="Sections">
+      <a href="#six-apps"     data-nav="six-apps"     class="nav-pill font-mono text-xs font-semibold px-4 py-1.5 rounded-full border border-transparent">The problem</a>
+      <a href="#how-it-works" data-nav="how-it-works" class="nav-pill font-mono text-xs font-semibold px-4 py-1.5 rounded-full border border-transparent">How it works</a>
+      <a href="#community"    data-nav="community"    class="nav-pill font-mono text-xs font-semibold px-4 py-1.5 rounded-full border border-transparent">Community</a>
+      <a href="#rules"        data-nav="rules"        class="nav-pill font-mono text-xs font-semibold px-4 py-1.5 rounded-full border border-transparent">House rules</a>
+      <a href="#faq"          data-nav="faq"          class="nav-pill font-mono text-xs font-semibold px-4 py-1.5 rounded-full border border-transparent">FAQ</a>
+    </nav>
+
+    <div class="flex items-center gap-2.5">
+      <button id="dietToggle" aria-pressed="false" class="flex items-center gap-2 px-3 py-1.5 rounded-full border-[1.5px] border-ink bg-paper font-mono text-xs font-semibold hover:bg-creamDark">
+        <span class="w-4 h-4 border-[1.5px] border-olive rounded-[3px] flex items-center justify-center bg-paper" aria-hidden="true"><span id="dietDot" class="w-2 h-2 rounded-full bg-inkMuted"></span></span>
+        <span id="dietLabel">All diets</span>
+      </button>
+      <a href="#how-it-works" class="hidden sm:inline-block font-mono text-xs font-bold px-5 py-2.5 bg-terracotta text-paper border-2 border-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all">Explore Hyderabad</a>
+    </div>
+  </div>
+</header>
+
+
+<!-- ===================================================================== -->
+<!-- SECTION 1: HERO — a live demo, not a promise                          -->
+<!-- Chips and search drive the proof card on the right, so the very first -->
+<!-- interaction already shows an answer.                                  -->
+<!-- ===================================================================== -->
+<section class="relative border-b-4 border-ink pt-8 pb-14 md:py-16 lg:py-20" aria-labelledby="hero-title">
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10">
+
+    <ul class="inline-flex flex-wrap items-center gap-x-4 gap-y-1 mb-7 px-3.5 py-1.5 bg-paper border-[1.5px] border-ink shadow-brutal-sm font-mono text-xs" aria-label="Our promises">
+      <li class="font-bold text-terracotta">No star ratings</li>
+      <li>No sign-up to browse</li>
+      <li class="hidden sm:list-item font-semibold">Nobody pays to rank</li>
+    </ul>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+
+      <!-- LEFT -->
+      <div class="lg:col-span-7 space-y-7">
+        <h1 id="hero-title" class="font-display font-extrabold text-[40px] sm:text-6xl xl:text-[76px] leading-[0.95] tracking-tight">
+          Know exactly what<br/>to order,
+          <span class="font-display font-semibold underline decoration-terracotta decoration-4 underline-offset-8">before you go.</span>
+        </h1>
+
+        <form id="heroSearch" role="search" action="/hyderabad/search" class="max-w-2xl">
+          <label for="heroSearchInput" class="sr-only">Search a dish, restaurant or area in Hyderabad</label>
+          <div class="flex items-center bg-paper border-2 border-ink rounded-2xl p-2 shadow-brutal-lg focus-within:ring-4 focus-within:ring-lime transition">
+            <svg class="w-6 h-6 ml-2 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>
+            <input id="heroSearchInput" name="q" type="search" autocomplete="off" placeholder="mutton haleem near Tolichowki"
+              class="w-full min-w-0 bg-transparent font-mono text-sm sm:text-base focus:outline-none px-3 py-2.5" />
+            <button type="submit" class="shrink-0 bg-ink text-cream font-mono text-xs font-bold px-4 sm:px-5 py-3.5 rounded-xl hover:bg-terracotta transition">Find dish</button>
+          </div>
+
+          <!-- Context chips: each one swaps the live answer on the right -->
+          <div class="mt-4 flex gap-2 overflow-x-auto no-scrollbar sm:flex-wrap -mx-5 px-5 sm:mx-0 sm:px-0" role="group" aria-label="Quick filters">
+            <button type="button" data-set="open"     aria-pressed="true"  class="hero-chip">Open now</button>
+            <button type="button" data-set="under300" aria-pressed="false" class="hero-chip">Under ₹300</button>
+            <button type="button" data-set="late"     aria-pressed="false" class="hero-chip">After 11 pm</button>
+            <button type="button" data-set="biryani"  aria-pressed="false" class="hero-chip">Biryani leaderboard</button>
+            <button type="button" data-set="veg"      aria-pressed="false" class="hero-chip">Pure veg</button>
+          </div>
+        </form>
+
+        <div class="pt-5 border-t-2 border-ink/15 grid sm:grid-cols-12 gap-6 items-end">
+          <p class="sm:col-span-7 text-base leading-relaxed text-inkMuted">
+            Every dish in Hyderabad, ranked by locals who actually ate it. Open now, exact distance, a checked price and what to skip, on one fast page.
+          </p>
+          <div class="sm:col-span-5 flex flex-wrap sm:justify-end items-center gap-4">
+            <a href="#how-it-works" class="font-mono text-xs font-bold px-5 py-3.5 bg-oliveBtn text-ink border-2 border-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all">Explore Hyderabad</a>
+            <a href="#six-apps" class="font-mono text-xs font-bold underline underline-offset-4 hover:text-terracotta">Why we built this</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: live proof -->
+      <div class="lg:col-span-5 space-y-5">
+        <article id="proofCard" class="bg-paper border-2 border-ink rounded-[22px] p-5 shadow-brutal-lg transition-opacity duration-200" aria-live="polite">
+          <div class="flex items-center justify-between gap-2 border-b-2 border-ink pb-3 mb-4">
+            <div class="flex items-center gap-2 min-w-0">
+              <span id="pcRank" class="bg-ink text-cream font-mono text-[11px] font-bold px-2.5 py-0.5 rounded whitespace-nowrap">#1 in Tolichowki</span>
+              <span id="pcDist" class="font-mono text-xs text-inkMuted whitespace-nowrap">1.8 km</span>
+            </div>
+            <span id="pcOpen" class="font-mono text-[11px] font-bold bg-lime border border-ink px-2 py-0.5 rounded whitespace-nowrap">Open till 01:30</span>
+          </div>
+
+          <div class="flex justify-between items-start gap-4">
+            <div class="min-w-0">
+              <div>
+                <div id="pcBranch" class="font-mono text-xs text-inkMuted truncate">Shah Ghouse, Tolichowki</div>
+                <h2 id="pcDish" class="font-display font-extrabold text-xl sm:text-2xl leading-tight mt-0.5">Special mutton fry piece biryani</h2>
+              </div>
+            </div>
+            <div class="text-right shrink-0 bg-lime border-2 border-ink px-3 py-1.5 rounded-xl shadow-brutal-sm">
+              <div id="pcLoved" class="font-display font-extrabold text-2xl leading-none">78%</div>
+              <div id="pcCount" class="font-mono text-[10px] font-bold">loved · 318</div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <div class="flex justify-between font-mono text-[11px] mb-1.5">
+              <span class="font-semibold">What locals said</span><span class="text-inkMuted">trust-weighted</span>
+            </div>
+            <div class="h-3 w-full rounded-full border-[1.5px] border-ink overflow-hidden flex bg-cream" aria-hidden="true">
+              <div id="pbL" class="w-bar bg-olive h-full"></div>
+              <div id="pbG" class="w-bar bg-limeBright h-full border-l border-ink"></div>
+              <div id="pbO" class="w-bar bg-saffron h-full border-l border-ink"></div>
+              <div id="pbS" class="w-bar bg-terracotta h-full border-l border-ink"></div>
+            </div>
+            <div id="pcLegend" class="flex justify-between font-mono text-[10px] text-inkMuted mt-1.5"></div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t-2 border-dashed border-ink/30 flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
+            <div><b id="pcPrice" class="text-ink">₹360</b> <span id="pcConfirmed" class="text-inkMuted">checked 14 h ago by @arjun_hyd</span></div>
+            <button id="pcStill" class="px-2.5 py-1 bg-cream border border-ink rounded font-semibold hover:bg-lime text-[11px]">Still true?</button>
+          </div>
+          <a id="pcLink" href="#" class="mt-4 flex items-center justify-between font-mono text-xs font-bold border-[1.5px] border-ink rounded-xl px-3.5 py-2.5 hover:bg-cream">
+            <span>What else to order here</span><span id="pcRoute" class="text-inkMuted font-normal truncate ml-3">/r/shah-ghouse-tolichowki</span>
+          </a>
+        </article>
+
+        <article id="battles" class="bg-ink text-cream border-2 border-ink rounded-[22px] p-5 shadow-brutal-lg">
+          <div class="flex items-center justify-between mb-3 font-mono text-[11px]">
+            <span class="text-lime font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-terracotta live-dot"></span>Live dish battle, ends in 14 h</span>
+            <span class="text-cream/70">1,420 votes</span>
+          </div>
+          <p class="font-display font-bold text-lg mb-3 leading-snug">Better zafrani mutton dum biryani tonight?</p>
+          <div class="grid grid-cols-2 gap-3">
+            <button data-side="A" class="battle-btn text-left p-3 rounded-xl border-[1.5px] border-cream/30 bg-white/5 hover:border-lime transition" aria-pressed="false">
+              <div class="font-mono text-[10px] text-lime">Lakdikapul</div>
+              <div class="font-bold text-sm mt-0.5">Cafe Bahar</div>
+              <div class="battle-meta font-mono text-[11px] text-cream/60 mt-2">Tap to vote</div>
+            </button>
+            <button data-side="B" class="battle-btn text-left p-3 rounded-xl border-[1.5px] border-cream/30 bg-white/5 hover:border-lime transition" aria-pressed="false">
+              <div class="font-mono text-[10px] text-saffron">RTC X Roads</div>
+              <div class="font-bold text-sm mt-0.5">Bawarchi</div>
+              <div class="battle-meta font-mono text-[11px] text-cream/60 mt-2">Tap to vote</div>
+            </button>
+          </div>
+          <p class="font-mono text-[11px] text-cream/50 mt-3">The split stays hidden until you vote, so early votes don’t sway you.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================================== -->
+<!-- SECTION 2A: THE PROBLEM — one dinner, six apps                        -->
+<!-- One action-driven animation: six scattered tabs collapse into one     -->
+<!-- FDN answer.                                                           -->
+<!-- ===================================================================== -->
+<section id="six-apps" class="relative border-b-4 border-ink py-16 md:py-24 bg-paper" aria-labelledby="six-title">
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+    <div class="lg:col-span-5 space-y-6">
+      <h2 id="six-title" class="font-display font-extrabold text-4xl sm:text-5xl xl:text-6xl leading-[0.98] tracking-tight">One dinner.<br/>Six apps.</h2>
+      <p class="text-lg leading-relaxed text-inkMuted max-w-md">
+        Picking a place to eat shouldn’t take 25 minutes of tab-switching, a WhatsApp poll and a phone call nobody answers. FDN puts the answer to every one of those questions on a single page.
+      </p>
+      <div class="flex flex-wrap items-center gap-4">
+        <button id="collapseBtn" aria-pressed="false" class="font-mono text-xs font-bold px-5 py-3.5 bg-ink text-cream border-2 border-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all">Do it in one page</button>
+        <span id="collapseHint" class="font-mono text-xs text-inkMuted">Average decision today: 25 min</span>
+      </div>
+    </div>
+
+    <div class="lg:col-span-7">
+      <div id="sixStage" class="relative">
+        <ul class="grid grid-cols-2 gap-3 sm:gap-4" aria-label="Apps people juggle today">
+          <li class="app-tab" style="--tx:52%;--ty:108%;--r:-3deg">
+            <span class="app-ico bg-[#DCEBF7]">📍</span><b>Maps</b><span>Is it 2 km or 6? Is it even open?</span>
+          </li>
+          <li class="app-tab" style="--tx:-52%;--ty:108%;--r:2deg">
+            <span class="app-ico bg-[#FBE3DF]">⭐</span><b>Delivery app</b><span>4.1 stars. For which dish, though?</span>
+          </li>
+          <li class="app-tab" style="--tx:52%;--ty:0%;--r:2.5deg">
+            <span class="app-ico bg-[#F3E2F3]">📸</span><b>Instagram</b><span>Great reels. No price, no address.</span>
+          </li>
+          <li class="app-tab" style="--tx:-52%;--ty:0%;--r:-2deg">
+            <span class="app-ico bg-[#DDF3DE]">💬</span><b>Friends group</b><span>“Bro just go to Paradise.”</span>
+          </li>
+          <li class="app-tab" style="--tx:52%;--ty:-108%;--r:-1.5deg">
+            <span class="app-ico bg-[#F6EFD2]">📄</span><b>Restaurant site</b><span>Menu from 2022, PDF, 14 MB.</span>
+          </li>
+          <li class="app-tab" style="--tx:-52%;--ty:-108%;--r:3deg">
+            <span class="app-ico bg-[#E7E7E2]">📞</span><b>Phone call</b><span>Rings out. Are they closed today?</span>
+          </li>
+        </ul>
+
+        <!-- the single answer -->
+        <div id="oneAnswer" class="one-answer absolute inset-x-0 top-1/2 mx-auto w-[92%] max-w-md bg-lime border-2 border-ink rounded-[22px] shadow-brutal-lg p-5" aria-hidden="true">
+          <div class="font-mono text-[11px] font-bold mb-1">FDN, one page</div>
+          <div class="font-display font-extrabold text-xl leading-tight">Shah Ghouse, Tolichowki</div>
+          <ul class="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-xs">
+            <li>✓ Open till 01:30</li><li>✓ 1.8 km away</li>
+            <li>✓ ₹360, checked today</li><li>✓ 78% loved the biryani</li>
+            <li>✓ 6 photos this week</li><li class="text-terracotta font-bold">✗ Skip the roti</li>
+          </ul>
+          <div class="mt-4 flex gap-2 font-mono text-[11px] font-bold">
+            <span class="px-3 py-1.5 bg-ink text-cream rounded-full">Directions</span>
+            <span class="px-3 py-1.5 bg-paper border border-ink rounded-full">Call</span>
+            <span class="px-3 py-1.5 bg-paper border border-ink rounded-full">Save</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================================== -->
+<!-- SECTION 2B: HOW IT WORKS — four ways in                               -->
+<!-- Each mode previews a real product page; the URL bar shows the route   -->
+<!-- the user will land on.                                                -->
+<!-- ===================================================================== -->
+<section id="how-it-works" class="relative border-b-4 border-ink py-16 md:py-24" aria-labelledby="modes-title">
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10">
+    <div class="grid lg:grid-cols-12 gap-6 items-end mb-10">
+      <h2 id="modes-title" class="lg:col-span-7 font-display font-extrabold text-4xl sm:text-5xl xl:text-6xl leading-[0.98] tracking-tight">Four ways in.<br/>One confident order.</h2>
+      <p class="lg:col-span-5 text-lg leading-relaxed text-inkMuted">Start from a restaurant, a dish, a mood or a neighbourhood. Every path ends at the same thing: what to eat, where, and how far.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <!-- Mode tabs -->
+      <div role="tablist" aria-label="Ways to explore" aria-orientation="vertical" class="lg:col-span-4 flex lg:flex-col gap-2 overflow-x-auto no-scrollbar -mx-5 px-5 lg:mx-0 lg:px-0 pb-1">
+        <button role="tab" id="tab-xray"  aria-controls="panel-xray"  aria-selected="true"  class="mode-tab"><b>At a restaurant</b><span>What to order here, what to skip</span></button>
+        <button role="tab" id="tab-board" aria-controls="panel-board" aria-selected="false" class="mode-tab"><b>Craving one dish</b><span>Every haleem in the city, ranked</span></button>
+        <button role="tab" id="tab-mood"  aria-controls="panel-mood"  aria-selected="false" class="mode-tab"><b>Going by mood</b><span>Rainy day, date night, family Sunday</span></button>
+        <button role="tab" id="tab-area"  aria-controls="panel-area"  aria-selected="false" class="mode-tab"><b>Exploring an area</b><span>Tolichowki tonight, in one screen</span></button>
+      </div>
+
+      <!-- Preview frame -->
+      <div class="lg:col-span-8 bg-paper border-2 border-ink rounded-[22px] shadow-brutal-lg overflow-hidden">
+        <div class="flex items-center gap-3 px-4 py-2.5 border-b-2 border-ink bg-creamDark">
+          <span class="flex gap-1.5" aria-hidden="true"><i class="w-2.5 h-2.5 rounded-full bg-terracotta"></i><i class="w-2.5 h-2.5 rounded-full bg-saffron"></i><i class="w-2.5 h-2.5 rounded-full bg-olive"></i></span>
+          <span class="grow font-mono text-xs bg-paper border border-ink/40 rounded-full px-3 py-1 truncate">fdn.app<span id="urlPath">/r/shah-ghouse-tolichowki</span></span>
+        </div>
+
+        <!-- Panel 1: Restaurant X-Ray -->
+        <div role="tabpanel" id="panel-xray" aria-labelledby="tab-xray" class="mode-panel p-5 sm:p-7" data-route="/r/shah-ghouse-tolichowki">
+          <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+            <div>
+              <h3 class="font-display font-extrabold text-2xl sm:text-3xl leading-tight">Shah Ghouse, Tolichowki</h3>
+              <div class="font-mono text-xs text-inkMuted mt-1">Hyderabadi, Mughlai · ₹₹ · 1.8 km · <span class="text-ink font-bold">open till 01:30</span></div>
+            </div>
+            <div class="flex gap-2 font-mono text-[11px] font-bold">
+              <span class="px-3 py-1.5 bg-ink text-cream rounded-full">Directions</span>
+              <span class="px-3 py-1.5 border border-ink rounded-full">Call</span>
+              <span class="px-3 py-1.5 border border-ink rounded-full">Rate</span>
+            </div>
+          </div>
+          <div class="font-mono text-xs font-bold mb-2">What to order here</div>
+          <ol class="space-y-2">
+            <li class="xray-row" data-diet="nv"><b>1</b><span class="grow">Special mutton fry piece biryani</span><span class="bar"><i style="width:78%"></i></span><em>78%</em><small>₹360</small></li>
+            <li class="xray-row" data-diet="nv"><b>2</b><span class="grow">Mutton haleem <small class="text-inkMuted">(Ramzan)</small></span><span class="bar"><i style="width:74%"></i></span><em>74%</em><small>₹280</small></li>
+            <li class="xray-row" data-diet="nv"><b>3</b><span class="grow">Chicken 65</span><span class="bar"><i style="width:66%"></i></span><em>66%</em><small>₹290</small></li>
+            <li class="xray-row" data-diet="v"><b>4</b><span class="grow">Khubani ka meetha</span><span class="bar"><i style="width:61%"></i></span><em>61%</em><small>₹120</small></li>
+            <li class="xray-row" data-diet="v"><b>5</b><span class="grow">Irani chai</span><span class="bar"><i style="width:58%"></i></span><em>58%</em><small>₹30</small></li>
+          </ol>
+          <div class="mt-3 flex items-center justify-between gap-3 border-[1.5px] border-terracotta rounded-xl px-3.5 py-2.5 bg-terracotta/10">
+            <span class="text-sm"><b class="text-terracotta">Skip:</b> tandoori roti, 41% of locals said skip</span>
+            <span class="font-mono text-[11px] text-inkMuted shrink-0">212 ratings</span>
+          </div>
+        </div>
+
+        <!-- Panel 2: City dish leaderboard -->
+        <div role="tabpanel" id="panel-board" aria-labelledby="tab-board" class="mode-panel p-5 sm:p-7" data-route="/hyderabad/dish/haleem" hidden>
+          <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+            <h3 class="font-display font-extrabold text-2xl sm:text-3xl leading-tight">Best haleem in Hyderabad</h3>
+            <span class="font-mono text-[11px] text-inkMuted">Updated hourly · min. 5 ratings</span>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-4" role="group" aria-label="Filter leaderboard">
+            <button class="lb-filter hero-chip" data-f="open" aria-pressed="false">Open now</button>
+            <button class="lb-filter hero-chip" data-f="cheap" aria-pressed="false">Under ₹300</button>
+            <button class="lb-filter hero-chip" data-f="near" aria-pressed="false">Within 3 km</button>
+          </div>
+          <ol id="lbList" class="divide-y-2 divide-dashed divide-ink/15 border-y-2 border-ink">
+            <li class="lb-row" data-diet="nv" data-open="1" data-cheap="1" data-near="0"><b>1</b><div class="grow"><div class="font-semibold">Pista House, Shalibanda</div><div class="font-mono text-[11px] text-inkMuted">₹280 · 6.2 km · open</div></div><em>84%</em><span class="trend up">▲1</span></li>
+            <li class="lb-row" data-diet="nv" data-open="1" data-cheap="1" data-near="1"><b>2</b><div class="grow"><div class="font-semibold">Shah Ghouse, Tolichowki</div><div class="font-mono text-[11px] text-inkMuted">₹280 · 1.8 km · open</div></div><em>81%</em><span class="trend down">▼1</span></li>
+            <li class="lb-row" data-diet="nv" data-open="0" data-cheap="0" data-near="0"><b>3</b><div class="grow"><div class="font-semibold">Sarvi, Banjara Hills</div><div class="font-mono text-[11px] text-inkMuted">₹320 · 4.0 km · opens 18:00</div></div><em>72%</em><span class="trend">–</span></li>
+            <li class="lb-row" data-diet="nv" data-open="1" data-cheap="1" data-near="1"><b>4</b><div class="grow"><div class="font-semibold">Hotel Nayaab, Tolichowki</div><div class="font-mono text-[11px] text-inkMuted">₹240 · 2.3 km · open</div></div><em>69%</em><span class="trend up">▲3</span></li>
+            <li class="lb-row" data-diet="nv" data-open="1" data-cheap="0" data-near="0"><b>5</b><div class="grow"><div class="font-semibold">Cafe 555, Masab Tank</div><div class="font-mono text-[11px] text-inkMuted">₹310 · 3.6 km · open</div></div><em>63%</em><span class="trend">–</span></li>
+          </ol>
+          <p id="lbEmpty" class="hidden py-6 text-center text-sm text-inkMuted">Nothing matches all those filters. Remove one to see more.</p>
+          <p id="lbVeg" class="hidden-veg py-6 text-center text-sm text-inkMuted">Haleem isn’t vegetarian. Try the pesarattu leaderboard instead.</p>
+        </div>
+
+        <!-- Panel 3: Mood trails -->
+        <div role="tabpanel" id="panel-mood" aria-labelledby="tab-mood" class="mode-panel p-5 sm:p-7" data-route="/hyderabad/search?mood=rainy-day" hidden>
+          <h3 class="font-display font-extrabold text-2xl sm:text-3xl leading-tight mb-4">What are you in the mood for?</h3>
+          <div class="flex gap-2 overflow-x-auto no-scrollbar mb-5" role="group" aria-label="Moods">
+            <button class="mood-chip hero-chip" data-mood="rainy" aria-pressed="true">Rainy day</button>
+            <button class="mood-chip hero-chip" data-mood="date" aria-pressed="false">Date night</button>
+            <button class="mood-chip hero-chip" data-mood="family" aria-pressed="false">Family Sunday</button>
+            <button class="mood-chip hero-chip" data-mood="late" aria-pressed="false">After 11 pm</button>
+            <button class="mood-chip hero-chip" data-mood="cheap" aria-pressed="false">Under ₹300</button>
+          </div>
+          <ul id="moodList" class="grid sm:grid-cols-3 gap-3"></ul>
+        </div>
+
+        <!-- Panel 4: Area guide -->
+        <div role="tabpanel" id="panel-area" aria-labelledby="tab-area" class="mode-panel p-5 sm:p-7" data-route="/hyderabad/area/tolichowki" hidden>
+          <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+            <h3 class="font-display font-extrabold text-2xl sm:text-3xl leading-tight">Tolichowki tonight</h3>
+            <a href="#community" class="font-mono text-xs font-bold underline underline-offset-4">Join the Tolichowki community</a>
+          </div>
+          <dl class="grid grid-cols-3 gap-3 mb-5">
+            <div class="border-2 border-ink rounded-xl p-3 bg-cream"><dt class="font-mono text-[11px] text-inkMuted">Places open</dt><dd class="font-display font-extrabold text-2xl">31</dd></div>
+            <div class="border-2 border-ink rounded-xl p-3 bg-cream"><dt class="font-mono text-[11px] text-inkMuted">Dishes rated</dt><dd class="font-display font-extrabold text-2xl">214</dd></div>
+            <div class="border-2 border-ink rounded-xl p-3 bg-cream"><dt class="font-mono text-[11px] text-inkMuted">Busiest at</dt><dd class="font-display font-extrabold text-2xl">21:00</dd></div>
+          </dl>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <div class="font-mono text-xs font-bold mb-2">Top dishes in the area</div>
+              <ol class="space-y-1.5 text-sm">
+                <li data-diet="nv" class="flex justify-between gap-2"><span>Mutton haleem · Shah Ghouse</span><b class="font-mono">81%</b></li>
+                <li data-diet="nv" class="flex justify-between gap-2"><span>Chicken mandi · Mandi King</span><b class="font-mono">77%</b></li>
+                <li data-diet="v" class="flex justify-between gap-2"><span>Double ka meetha · Nayaab</span><b class="font-mono">73%</b></li>
+                <li data-diet="v" class="flex justify-between gap-2"><span>Osmania biscuits · Irani cafe row</span><b class="font-mono">70%</b></li>
+              </ol>
+            </div>
+            <div class="bg-lime border-2 border-ink rounded-xl p-3.5">
+              <div class="font-mono text-[11px] font-bold mb-1">Asked 20 min ago</div>
+              <p class="text-sm font-semibold leading-snug">Which mandi place here has proper seating for 8?</p>
+              <p class="font-mono text-[11px] mt-2">4 answers · 1 accepted</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer of frame: the deep link -->
+        <div class="flex items-center justify-between gap-3 px-5 sm:px-7 py-4 border-t-2 border-ink bg-cream">
+          <span id="modeNote" class="text-sm text-inkMuted">Works without an account.</span>
+          <a id="modeLink" href="#" class="shrink-0 font-mono text-xs font-bold px-4 py-2.5 bg-terracotta text-paper border-2 border-ink shadow-brutal-sm hover:bg-ink">Open this page</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================================== -->
+<!-- SECTION 3: COMMUNITY PULSE — "Hyderabad, eating out loud"             -->
+<!-- Real member posts in the same shapes the product uses, so the landing -->
+<!-- page teaches the post / question / list / battle UI before signup.    -->
+<!-- ===================================================================== -->
+<section id="community" class="relative border-b-4 border-ink py-16 md:py-24" aria-labelledby="community-title">
+
+  <!-- Live activity ticker -->
+  <div class="ticker border-y-2 border-ink bg-ink text-cream overflow-hidden mb-14" aria-label="Recent community activity">
+    <div class="ticker-track flex w-max gap-10 py-2.5 font-mono text-xs whitespace-nowrap">
+      <!-- duplicated once for a seamless loop -->
+      <div class="flex gap-10" aria-hidden="false">
+        <span><span class="text-lime">@priya.k</span> rated Mutton Haleem <b class="text-lime">Loved</b> at Pista House, Shalibanda · 2m</span>
+        <span><span class="text-lime">@arjun_hyd</span> confirmed Shah Ghouse closes at 01:30 · 6m</span>
+        <span><span class="text-lime">@fz_khan</span> answered “late night dosa near Madhapur?” · 9m</span>
+        <span><span class="text-lime">@meher</span> rated Osmania Biscuits <b class="text-saffron">Good</b> at Nimrah Cafe · 11m</span>
+        <span><span class="text-lime">@sana.eats</span> started a battle: Paradise vs Shadab · 14m</span>
+        <span><span class="text-lime">@kiran.r</span> saved “Top 10 Irani chai stops” · 17m</span>
+      </div>
+      <div class="flex gap-10" aria-hidden="true">
+        <span><span class="text-lime">@priya.k</span> rated Mutton Haleem <b class="text-lime">Loved</b> at Pista House, Shalibanda · 2m</span>
+        <span><span class="text-lime">@arjun_hyd</span> confirmed Shah Ghouse closes at 01:30 · 6m</span>
+        <span><span class="text-lime">@fz_khan</span> answered “late night dosa near Madhapur?” · 9m</span>
+        <span><span class="text-lime">@meher</span> rated Osmania Biscuits <b class="text-saffron">Good</b> at Nimrah Cafe · 11m</span>
+        <span><span class="text-lime">@sana.eats</span> started a battle: Paradise vs Shadab · 14m</span>
+        <span><span class="text-lime">@kiran.r</span> saved “Top 10 Irani chai stops” · 17m</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10">
+
+    <!-- Heading row -->
+    <div class="grid lg:grid-cols-12 gap-8 items-end mb-10">
+      <div class="lg:col-span-7">
+        <h2 id="community-title" class="font-display font-extrabold text-4xl sm:text-5xl xl:text-6xl leading-[0.98] tracking-tight">
+          Hyderabad,<br/>eating out loud.
+        </h2>
+        <p class="mt-5 max-w-xl text-base sm:text-lg leading-relaxed text-inkMuted">
+          Photo posts, honest dish verdicts and questions answered by people who live two streets away. Read all of it now. Join only when you want to add your own.
+        </p>
+      </div>
+      <!-- Feed tabs: same sorting vocabulary as the product -->
+      <div class="lg:col-span-5 lg:justify-self-end">
+        <div role="tablist" aria-label="Filter community posts" class="inline-flex p-1.5 rounded-full border-[1.5px] border-ink bg-paper shadow-brutal-sm gap-1 overflow-x-auto no-scrollbar max-w-full">
+          <button role="tab" aria-selected="true"  data-filter="all"      class="feed-tab font-mono text-xs font-semibold px-4 py-2 rounded-full whitespace-nowrap">Hot today</button>
+          <button role="tab" aria-selected="false" data-filter="photo"    class="feed-tab font-mono text-xs font-semibold px-4 py-2 rounded-full whitespace-nowrap">Photo posts</button>
+          <button role="tab" aria-selected="false" data-filter="question" class="feed-tab font-mono text-xs font-semibold px-4 py-2 rounded-full whitespace-nowrap">Questions</button>
+          <button role="tab" aria-selected="false" data-filter="list"     class="feed-tab font-mono text-xs font-semibold px-4 py-2 rounded-full whitespace-nowrap">Lists &amp; battles</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bento grid -->
+    <div id="bento" class="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-5 [grid-auto-flow:dense]">
+
+      <!-- A. Flagship experience post -->
+      <article data-kind="photo" class="bento-card md:col-span-6 lg:col-span-7 lg:row-span-2 bg-paper border-2 border-ink rounded-[22px] shadow-brutal-lg overflow-hidden flex flex-col">
+        <!-- top strip: on-site badge (add a photo row here later if needed) -->
+        <div class="flex justify-end bg-creamDark border-b-2 border-ink px-4 py-2.5">
+          <span class="font-mono text-[11px] bg-paper border-[1.5px] border-ink rounded-full px-2.5 py-1 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+            Posted on-site
+          </span>
+        </div>
+
+        <div class="p-5 sm:p-6 flex flex-col gap-4 grow">
+          <!-- author -->
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full border-2 border-ink bg-saffron flex items-center justify-center font-display font-extrabold">S</div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-semibold">@sana.eats</span>
+                <span class="font-mono text-[10px] font-bold bg-lime border border-ink rounded px-1.5 py-0.5">Founding</span>
+              </div>
+              <div class="font-mono text-[11px] text-inkMuted">in Haleem &amp; Ramzan · 5 h ago</div>
+            </div>
+          </div>
+
+          <h3 class="font-display font-extrabold text-2xl sm:text-[28px] leading-tight">
+            I ate 6 haleems in one Ramzan week so you don’t have to. Here’s where to queue.
+          </h3>
+          <p class="text-inkMuted leading-relaxed max-w-prose">
+            Went Monday to Saturday, same time each night, ordered the mutton every time. Pista House still wins on texture, but Shah Ghouse’s ghee is the one I’d drive back for.
+          </p>
+
+          <!-- dish verdicts attached to the post -->
+          <ul class="grid sm:grid-cols-2 gap-2" aria-label="Dish ratings in this post">
+            <li class="flex items-center justify-between gap-3 border-[1.5px] border-ink rounded-xl px-3 py-2 bg-cream">
+              <span class="text-sm font-semibold truncate">Pista House, Shalibanda</span>
+              <span class="font-mono text-[11px] font-bold bg-olive text-paper border border-ink rounded-full px-2 py-0.5 shrink-0">Loved</span>
+            </li>
+            <li class="flex items-center justify-between gap-3 border-[1.5px] border-ink rounded-xl px-3 py-2 bg-cream">
+              <span class="text-sm font-semibold truncate">Shah Ghouse, Tolichowki</span>
+              <span class="font-mono text-[11px] font-bold bg-olive text-paper border border-ink rounded-full px-2 py-0.5 shrink-0">Loved</span>
+            </li>
+            <li class="flex items-center justify-between gap-3 border-[1.5px] border-ink rounded-xl px-3 py-2 bg-cream">
+              <span class="text-sm font-semibold truncate">Sarvi, Banjara Hills</span>
+              <span class="font-mono text-[11px] font-bold bg-lime border border-ink rounded-full px-2 py-0.5 shrink-0">Good</span>
+            </li>
+            <li class="flex items-center justify-between gap-3 border-[1.5px] border-ink rounded-xl px-3 py-2 bg-cream">
+              <span class="text-sm font-semibold truncate">Cafe 555, Masab Tank</span>
+              <span class="font-mono text-[11px] font-bold bg-saffron border border-ink rounded-full px-2 py-0.5 shrink-0">Okay</span>
+            </li>
+          </ul>
+
+          <!-- action bar -->
+          <div class="mt-auto pt-4 border-t-2 border-dashed border-ink/25 flex items-center gap-2 flex-wrap font-mono text-xs">
+            <div class="flex items-center border-[1.5px] border-ink rounded-full bg-paper overflow-hidden">
+              <button class="vote-btn px-3 py-1.5 hover:bg-lime" aria-label="Upvote">▲</button>
+              <span class="px-1 font-bold">412</span>
+              <button class="vote-btn px-3 py-1.5 hover:bg-cream" aria-label="Downvote">▼</button>
+            </div>
+            <a href="#" class="px-3 py-1.5 border-[1.5px] border-ink rounded-full hover:bg-cream">86 comments</a>
+            <button class="share-btn px-3 py-1.5 border-[1.5px] border-ink rounded-full hover:bg-cream">Share</button>
+            <button class="save-btn ml-auto px-3 py-1.5 border-[1.5px] border-ink rounded-full bg-ink text-cream hover:bg-terracotta">Save list of 6</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- B. Ask Hyderabad (question with accepted answer) -->
+      <article data-kind="question" class="bento-card md:col-span-3 lg:col-span-5 bg-lime border-2 border-ink rounded-[22px] shadow-brutal p-5 sm:p-6 flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-[11px] font-bold border-[1.5px] border-ink bg-paper rounded-full px-2.5 py-1">Question in Madhapur</span>
+          <span class="font-mono text-[11px]">23 answers</span>
+        </div>
+        <h3 class="font-display font-extrabold text-xl sm:text-2xl leading-tight">
+          Anywhere decent for a dosa after midnight near Madhapur? Not a cloud kitchen.
+        </h3>
+        <!-- accepted answer -->
+        <div class="bg-paper border-[1.5px] border-ink rounded-2xl p-3.5">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Accepted</span>
+            <span class="font-mono text-[11px] text-inkMuted">@fz_khan · T2 local</span>
+          </div>
+          <p class="text-sm leading-relaxed">The cart outside Cyber Towers runs till 2. Ghee karam dosa, ask for it crisp.</p>
+          <a href="#" class="mt-2.5 flex items-center justify-between gap-3 border border-ink rounded-xl px-3 py-2 bg-cream hover:bg-creamDark">
+            <span class="text-sm font-semibold">Ghee Karam Dosa · Cyber Towers cart</span>
+            <span class="font-mono text-[11px] shrink-0">0.9 km</span>
+          </a>
+        </div>
+        <button class="answer-btn mt-auto self-start font-mono text-xs font-bold px-4 py-2.5 bg-ink text-cream border-2 border-ink rounded-full hover:bg-terracotta">Add your answer</button>
+      </article>
+
+      <!-- C. Public list with mini map -->
+      <article data-kind="list" class="bento-card md:col-span-3 lg:col-span-5 bg-paper border-2 border-ink rounded-[22px] shadow-brutal overflow-hidden flex flex-col">
+        <!-- MAP IMAGE SLOT: replace the placeholder div with
+             <img src="/images/lists/irani-chai-map.webp" alt="Map of the 10 Irani chai stops" class="w-full h-full object-cover" loading="lazy" width="800" height="300">
+             Recommended export: 800×300 (2× = 1600×600), WebP. -->
+        <div class="map-slot relative h-36 border-b-2 border-ink overflow-hidden">
+          <div class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-inkMuted">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+            <span class="font-mono text-xs">Map image · 800 × 300</span>
+          </div>
+        </div>
+        <div class="p-5 flex flex-col gap-3 grow">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="font-display font-extrabold text-xl leading-tight">Top 10 Irani chai stops</h3>
+            <span class="font-mono text-[11px] shrink-0">by @meher</span>
+          </div>
+          <ol class="text-sm space-y-1.5">
+            <li class="flex justify-between gap-2"><span><b class="font-mono mr-2">1</b>Nimrah Cafe, Charminar</span><span class="font-mono text-xs text-inkMuted">₹30</span></li>
+            <li class="flex justify-between gap-2"><span><b class="font-mono mr-2">2</b>Cafe Niloufer, Red Hills</span><span class="font-mono text-xs text-inkMuted">₹40</span></li>
+            <li class="flex justify-between gap-2"><span><b class="font-mono mr-2">3</b>Grand Hotel, Abids</span><span class="font-mono text-xs text-inkMuted">₹25</span></li>
+          </ol>
+          <div class="mt-auto flex items-center justify-between font-mono text-xs pt-2">
+            <span class="text-inkMuted">Saved by 1,204 people</span>
+            <a href="#" class="font-bold underline underline-offset-4 hover:text-terracotta">Open list and map</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- D. Receipt: what one person actually ordered -->
+      <article data-kind="photo" class="bento-card md:col-span-3 lg:col-span-4 lg:rotate-[-1.2deg]">
+        <div class="receipt-bottom bg-paper border-2 border-b-0 border-ink rounded-t-[18px] p-5 font-mono text-[13px]">
+          <div class="text-center border-b-2 border-dashed border-ink/40 pb-3 mb-3">
+            <div class="font-display font-extrabold text-lg tracking-tight">Mehfil, Narayanguda</div>
+            <div class="text-[11px] text-inkMuted">Ordered by @rahul_k · Sat 21:40 · table of 3</div>
+          </div>
+          <ul class="space-y-2">
+            <li class="flex justify-between gap-3"><span>Chicken dum biryani</span><span class="font-bold text-oliveDeep">LOVED</span></li>
+            <li class="flex justify-between gap-3"><span>Mutton marag</span><span class="font-bold text-oliveDeep">LOVED</span></li>
+            <li class="flex justify-between gap-3"><span>Apricot delight</span><span class="font-bold">GOOD</span></li>
+            <li class="flex justify-between gap-3"><span>Tandoori roti</span><span class="font-bold text-terracotta">SKIP</span></li>
+          </ul>
+          <div class="mt-3 pt-3 border-t-2 border-dashed border-ink/40 flex justify-between font-bold">
+            <span>Paid</span><span>₹1,140</span>
+          </div>
+          <p class="mt-3 text-[11px] leading-relaxed text-inkMuted">“Skip the roti, double the marag. Service slow on weekends.”</p>
+        </div>
+      </article>
+
+      <!-- E. Closed battle result -->
+      <article data-kind="list" class="bento-card md:col-span-3 lg:col-span-4 bg-ink text-cream border-2 border-ink rounded-[22px] shadow-brutal p-5 flex flex-col gap-4">
+        <div class="flex items-center justify-between font-mono text-[11px]">
+          <span class="text-lime font-bold">Battle closed Sunday</span>
+          <span class="text-cream/70">2,318 votes</span>
+        </div>
+        <h3 class="font-display font-bold text-lg leading-snug">Chicken 65: who does it properly?</h3>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="font-semibold">Bawarchi, RTC X Roads</span><span class="font-mono font-bold text-lime">61%</span></div>
+            <div class="h-2.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-lime rounded-full" style="width:61%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1"><span class="font-semibold text-cream/80">Paradise, Secunderabad</span><span class="font-mono text-cream/70">39%</span></div>
+            <div class="h-2.5 rounded-full bg-white/10 overflow-hidden"><div class="h-full bg-terracotta rounded-full" style="width:39%"></div></div>
+          </div>
+        </div>
+        <p class="font-mono text-[11px] text-cream/60 leading-relaxed">Battles are for fun. They never change dish scores or leaderboards.</p>
+        <a href="#" class="mt-auto font-mono text-xs font-bold text-lime underline underline-offset-4">See the live battle</a>
+      </article>
+
+      <!-- F. Living facts confirmed today -->
+      <article data-kind="question" class="bento-card md:col-span-6 lg:col-span-4 bg-paper border-2 border-ink rounded-[22px] shadow-brutal p-5 flex flex-col gap-4">
+        <div class="flex items-baseline justify-between gap-2">
+          <h3 class="font-display font-extrabold text-xl leading-tight">Facts checked today</h3>
+          <span class="font-display font-extrabold text-3xl">142</span>
+        </div>
+        <div class="border-[1.5px] border-ink rounded-2xl p-3.5 bg-cream">
+          <div class="text-sm font-semibold">Nimrah Cafe now closes at 23:00</div>
+          <div class="font-mono text-[11px] text-inkMuted mt-0.5">was 22:30 · 4 locals agreed · updated 3 h ago</div>
+          <div class="mt-3 flex -space-x-2" aria-label="Confirmed by 4 members">
+            <span class="w-7 h-7 rounded-full border-2 border-paper bg-olive"></span>
+            <span class="w-7 h-7 rounded-full border-2 border-paper bg-saffron"></span>
+            <span class="w-7 h-7 rounded-full border-2 border-paper bg-terracotta"></span>
+            <span class="w-7 h-7 rounded-full border-2 border-paper bg-ink"></span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between gap-3 border-t-2 border-dashed border-ink/25 pt-3">
+          <span class="text-sm">Cafe Bahar biryani still ₹320?</span>
+          <div class="flex gap-1.5 font-mono text-[11px] font-bold">
+            <button class="fact-btn px-2.5 py-1 border border-ink rounded bg-lime hover:bg-limeBright">Yes</button>
+            <button class="fact-btn px-2.5 py-1 border border-ink rounded bg-paper hover:bg-creamDark">No</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Communities strip + conversion line -->
+    <div class="mt-12 flex flex-col lg:flex-row lg:items-center gap-6 justify-between border-2 border-ink rounded-[22px] bg-paper px-5 py-5 sm:px-6">
+      <div class="flex flex-wrap gap-2" aria-label="Popular communities">
+        <a href="#" class="font-mono text-xs px-3 py-1.5 rounded-full border-[1.5px] border-ink bg-cream hover:bg-lime">Biryani <span class="text-inkMuted">12.4k</span></a>
+        <a href="#" class="font-mono text-xs px-3 py-1.5 rounded-full border-[1.5px] border-ink bg-cream hover:bg-lime">Haleem &amp; Ramzan <span class="text-inkMuted">8.1k</span></a>
+        <a href="#" class="font-mono text-xs px-3 py-1.5 rounded-full border-[1.5px] border-ink bg-cream hover:bg-lime">Budget Eats <span class="text-inkMuted">6.7k</span></a>
+        <a href="#" class="font-mono text-xs px-3 py-1.5 rounded-full border-[1.5px] border-ink bg-cream hover:bg-lime">Veg Hyderabad <span class="text-inkMuted">5.2k</span></a>
+        <a href="#" class="font-mono text-xs px-3 py-1.5 rounded-full border-[1.5px] border-ink bg-cream hover:bg-lime">Street Food <span class="text-inkMuted">4.9k</span></a>
+      </div>
+      <div class="flex items-center gap-4 shrink-0">
+        <span class="text-sm text-inkMuted hidden sm:inline">Reading is free. Voting takes one sign-in.</span>
+        <a href="#" class="font-mono text-xs font-bold px-5 py-3 bg-terracotta text-paper border-2 border-ink shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all">Browse communities</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================================== -->
+<!-- SECTION 4: HONEST BY DESIGN — Score X-Ray                              -->
+<!-- Instead of three claim cards, an interactive ledger: change a verdict, -->
+<!-- watch weights move, then try to cheat it with a fake-review burst.     -->
+<!-- ===================================================================== -->
+<section id="rules" class="relative bg-ink text-cream border-b-4 border-ink py-16 md:py-24 overflow-hidden" aria-labelledby="trust-title">
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10 grid lg:grid-cols-12 gap-12 items-start">
+
+    <!-- Left: the promise -->
+    <div class="lg:col-span-5 lg:sticky lg:top-28 space-y-8">
+      <h2 id="trust-title" class="font-display font-extrabold text-4xl sm:text-5xl xl:text-6xl leading-[0.98] tracking-tight">
+        A score you can take apart.
+      </h2>
+      <p class="text-lg leading-relaxed text-cream/75 max-w-md">
+        Every dish score here is built from ratings you can inspect. Change a verdict on the right and see exactly what it’s worth.
+      </p>
+
+      <dl class="space-y-5">
+        <div class="flex gap-4">
+          <dt class="shrink-0 w-11 h-11 rounded-xl bg-lime text-ink border-2 border-cream/20 flex items-center justify-center font-display font-extrabold">4</dt>
+          <dd><b class="block text-cream">Four words instead of five stars.</b><span class="text-sm text-cream/65">Loved, Good, Okay, Skip. Nobody agrees on what 3.8 means.</span></dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="shrink-0 w-11 h-11 rounded-xl bg-saffron text-ink border-2 border-cream/20 flex items-center justify-center" aria-label="Clock"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></dt>
+          <dd><b class="block text-cream">Every fact shows when it was last checked.</b><span class="text-sm text-cream/65">Prices, hours and phone numbers carry a date and a “still true?” button.</span></dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="shrink-0 w-11 h-11 rounded-xl bg-terracotta text-paper border-2 border-cream/20 flex items-center justify-center font-display font-extrabold">₹0</dt>
+          <dd><b class="block text-cream">Ranking can’t be bought.</b><span class="text-sm text-cream/65">Hosted or paid posts are labelled and count for nothing in scores.</span></dd>
+        </div>
+      </dl>
+
+      <!-- What money can't buy -->
+      <div class="border-2 border-cream/25 rounded-2xl p-5">
+        <div class="font-mono text-xs text-cream/60 mb-3">Things a restaurant can’t pay for here</div>
+        <ul class="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-sm">
+          <li class="line-through decoration-terracotta decoration-2">Top placement</li>
+          <li class="line-through decoration-terracotta decoration-2">A higher score</li>
+          <li class="line-through decoration-terracotta decoration-2">Hidden bad reviews</li>
+          <li class="line-through decoration-terracotta decoration-2">A battle win</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right: Score X-Ray -->
+    <div class="lg:col-span-7">
+      <div class="bg-paper text-ink border-2 border-cream rounded-[24px] shadow-brutal-lime overflow-hidden">
+
+        <!-- dish header -->
+        <div class="flex items-center gap-4 p-5 sm:p-6 border-b-2 border-ink">
+          <div class="min-w-0">
+            <div class="font-mono text-[11px] text-inkMuted">Score X-Ray, try it</div>
+            <h3 class="font-display font-extrabold text-xl sm:text-2xl leading-tight truncate">Mutton Haleem · Pista House</h3>
+          </div>
+        </div>
+
+        <!-- column header -->
+        <div class="hidden sm:grid grid-cols-[1.3fr_1.6fr_1fr] gap-4 px-6 py-2.5 bg-cream border-b-2 border-ink font-mono text-[11px] text-inkMuted">
+          <span>Who rated</span><span>Verdict (tap to change)</span><span class="text-right">Counts as</span>
+        </div>
+
+        <ul id="xrayRows" class="max-h-[440px] overflow-y-auto divide-y divide-ink/15" aria-live="polite"></ul>
+
+        <!-- burst alert -->
+        <div id="burstAlert" class="hidden border-t-2 border-ink bg-terracotta text-paper px-5 sm:px-6 py-3 font-mono text-xs leading-relaxed" role="status">
+          <b>Burst detected.</b> 8 Loved ratings from accounts under a day old landed within minutes. They’re held for review and count as 0 until a moderator clears them.
+        </div>
+
+        <!-- result -->
+        <div class="grid sm:grid-cols-2 border-t-2 border-ink">
+          <div class="p-5 sm:p-6 border-b-2 sm:border-b-0 sm:border-r-2 border-ink">
+            <div class="font-mono text-[11px] text-inkMuted">A plain average would say</div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="plainScore" class="font-display font-extrabold text-4xl text-inkMuted">0</span>
+              <span class="font-mono text-xs text-inkMuted">/ 100</span>
+            </div>
+            <p class="mt-2 text-xs text-inkMuted leading-relaxed">Counts paid posts, brand-new accounts and five-year-old visits the same.</p>
+          </div>
+          <div class="p-5 sm:p-6 bg-lime">
+            <div class="font-mono text-[11px]">FDN dish score</div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="fdnScore" class="font-display font-extrabold text-4xl">0</span>
+              <span class="font-mono text-xs">/ 100</span>
+              <span id="lovedPct" class="ml-auto font-mono text-xs font-bold bg-paper border border-ink rounded-full px-2 py-0.5">0% loved</span>
+            </div>
+            <div class="mt-3 h-3 w-full rounded-full border-[1.5px] border-ink overflow-hidden flex bg-paper" aria-hidden="true">
+              <div id="barL" class="w-bar bg-olive h-full"></div>
+              <div id="barG" class="w-bar bg-limeBright h-full border-l border-ink"></div>
+              <div id="barO" class="w-bar bg-saffron h-full border-l border-ink"></div>
+              <div id="barS" class="w-bar bg-terracotta h-full border-l border-ink"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- controls -->
+        <div class="flex flex-wrap items-center gap-3 p-5 sm:px-6 border-t-2 border-ink bg-cream">
+          <button id="burstBtn" class="font-mono text-xs font-bold px-4 py-2.5 bg-ink text-cream border-2 border-ink rounded-full hover:bg-terracotta">Try a fake-review burst</button>
+          <button id="resetBtn" class="font-mono text-xs font-bold px-4 py-2.5 bg-paper border-2 border-ink rounded-full hover:bg-creamDark">Reset</button>
+          <details class="ml-auto font-mono text-[11px] text-inkMuted max-w-full">
+            <summary class="underline underline-offset-4">How the weight is set</summary>
+            <p class="mt-2 leading-relaxed max-w-sm">Weight = trust (new 0.5, regular 1.0, trusted 1.2) × age (halves every 270 days) × disclosure (0 for hosted or paid). The score is pulled toward the city average for haleem until enough ratings exist.</p>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================================== -->
+<!-- SECTION 5: FAQ — styled as an "Ask Hyderabad" thread                   -->
+<!-- ===================================================================== -->
+<section id="faq" class="relative border-b-4 border-ink py-16 md:py-24" aria-labelledby="faq-title">
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10 grid lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+
+    <div class="lg:col-span-4 lg:sticky lg:top-28 space-y-6">
+      <h2 id="faq-title" class="font-display font-extrabold text-4xl sm:text-5xl leading-[0.98] tracking-tight">
+        Fair questions before you trust us.
+      </h2>
+      <label class="block">
+        <span class="sr-only">Search questions</span>
+        <div class="flex items-center bg-paper border-2 border-ink rounded-2xl px-3 shadow-brutal-sm focus-within:ring-4 focus-within:ring-lime">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>
+          <input id="faqSearch" type="search" placeholder="Search, e.g. fake, location, delete" class="w-full bg-transparent font-mono text-sm px-2 py-3 focus:outline-none" />
+        </div>
+      </label>
+      <p id="faqEmpty" class="hidden font-mono text-sm">No answer matches that yet. Ask it in Hyderabad Food and someone will.</p>
+
+      <div class="bg-ink text-cream rounded-[22px] border-2 border-ink p-5 shadow-brutal">
+        <b class="block font-display text-lg">Didn’t see your question?</b>
+        <p class="text-sm text-cream/70 mt-1 mb-4">Ask in the Hyderabad Food community. Locals and the FDN team both answer there.</p>
+        <a href="#" class="inline-block font-mono text-xs font-bold px-4 py-2.5 bg-lime text-ink border-2 border-ink rounded-full hover:bg-limeBright">Ask Hyderabad</a>
+      </div>
+    </div>
+
+    <div id="faqList" class="lg:col-span-8 space-y-3">
+      <!-- each item: vote column + question + answer flagged as accepted -->
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal" open>
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>318</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">Do I need an account to use FDN?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">No. Search, dish rankings, restaurant pages, posts and lists are all open without signing in, forever. You can even save up to 20 places on your phone. You only sign in, with Google or your phone number, when you want to rate, post, comment or vote.</p>
+        </div>
+      </details>
+
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal">
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>276</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">Why Loved, Good, Okay and Skip instead of stars?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">Because you rate a dish, not a restaurant, and four plain words are faster and more honest than guessing between 3 and 4 stars. A restaurant’s place in rankings comes from how its best dishes are rated, plus quick notes on value, service and ambience.</p>
+        </div>
+      </details>
+
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal">
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>241</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">How do you stop fake ratings and restaurant spam?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">New accounts count for half until they’ve contributed for a few days. Sudden rating bursts, clusters of new accounts and many accounts from one device are held automatically. Every post is checked before it goes live, and moderators review reports, usually within a day.</p>
+        </div>
+      </details>
+
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal">
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>198</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">Can a restaurant pay to rank higher?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">No, and there are no ads. Creators who got a free or paid meal must label the post; those ratings are shown but never counted. Staff and owners who declare where they work have their ratings for that brand set to zero.</p>
+        </div>
+      </details>
+
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal">
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>164</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">What’s a Dish Battle?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">Two places, one dish, a 3 to 7 day public vote. You see the split only after you vote, so early results don’t sway you. Battles are for fun and never change dish scores.</p>
+        </div>
+      </details>
+
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal">
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>129</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">Do you track or store my location?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">We only ask when you choose “show food near you”, and you can pick a locality instead. When you post from a restaurant, your location is checked once to add the “posted on-site” mark, then discarded. We never store your coordinates.</p>
+        </div>
+      </details>
+
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal">
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>97</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">A price or timing is wrong. How do I fix it?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">Tap “Still true?” next to it and choose No, then enter the new value. When enough locals agree, it updates on its own. “Permanently closed” is always checked by our team first.</p>
+        </div>
+      </details>
+
+      <details name="faq" class="faq-item group bg-paper border-2 border-ink rounded-[18px] open:shadow-brutal">
+        <summary class="flex items-center gap-4 p-4 sm:p-5">
+          <span class="hidden sm:flex flex-col items-center w-12 shrink-0 font-mono text-xs"><span aria-hidden="true">▲</span><b>71</b></span>
+          <span class="font-display font-bold text-lg sm:text-xl leading-snug grow">Can I delete my account and my data?</span>
+          <span class="faq-chevron w-9 h-9 shrink-0 rounded-full border-2 border-ink flex items-center justify-center font-bold text-lg" aria-hidden="true">+</span>
+        </summary>
+        <div class="px-4 sm:px-5 pb-5 sm:pl-[88px]">
+          <span class="font-mono text-[10px] font-bold bg-olive text-paper rounded px-1.5 py-0.5">✓ Answered by FDN</span>
+          <p class="mt-2 leading-relaxed text-inkMuted max-w-prose">Yes, from Settings. You can download everything you’ve posted, and deleting your account removes your personal data within 30 days. Your posts stay readable as “deleted user” so threads still make sense.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+
+<!-- ===================================================================== -->
+<!-- CLOSING CTA — one more chance to search, before the footer            -->
+<!-- ===================================================================== -->
+<section class="bg-lime border-b-4 border-ink py-14 md:py-20" aria-labelledby="cta-title">
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10 grid lg:grid-cols-12 gap-8 items-center">
+    <h2 id="cta-title" class="lg:col-span-6 font-display font-extrabold text-4xl sm:text-5xl xl:text-6xl leading-[0.98] tracking-tight">
+      Tonight’s dinner, decided in 30 seconds.
+    </h2>
+    <form id="ctaSearch" class="lg:col-span-6 space-y-4" role="search" action="/hyderabad/search">
+      <label for="ctaInput" class="sr-only">Search a dish or place in Hyderabad</label>
+      <div class="flex items-center bg-paper border-2 border-ink rounded-2xl p-2 shadow-brutal-lg">
+        <input id="ctaInput" name="q" type="search" placeholder="Search a dish, e.g. paya, haleem, khubani" class="w-full bg-transparent font-mono text-sm sm:text-base px-3 py-2.5 focus:outline-none" />
+        <button type="submit" class="shrink-0 bg-ink text-cream font-mono text-xs font-bold px-5 py-3.5 rounded-xl hover:bg-terracotta">Find dish</button>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 font-mono text-xs">
+        <button type="button" id="installBtn" class="flex items-center gap-2 px-4 py-2 border-[1.5px] border-ink rounded-full bg-paper hover:bg-cream font-semibold">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 8v6m-3-3l3 3 3-3"/></svg>
+          Add FDN to home screen
+        </button>
+        <span>No app store, works on any phone.</span>
+      </div>
+    </form>
+  </div>
+</section>
+
+
+<!-- ===================================================================== -->
+<!-- FOOTER                                                                -->
+<!-- ===================================================================== -->
+<footer class="bg-ink text-cream pt-16 md:pt-20 overflow-hidden" aria-labelledby="footer-title">
+  <h2 id="footer-title" class="sr-only">FDN site footer</h2>
+  <div class="max-w-[1360px] mx-auto px-5 md:px-10 grid lg:grid-cols-12 gap-12">
+
+    <!-- Brand -->
+    <div class="lg:col-span-4 space-y-4 max-w-sm">
+      <div class="font-display font-extrabold text-3xl tracking-tight text-cream">FDN</div>
+      <p class="text-cream/70 leading-relaxed">Every dish in Hyderabad, ranked by the locals who actually ate it.</p>
+      <p class="font-mono text-xs text-lime">No ads. No paid ranks. Ever.</p>
+    </div>
+
+    <!-- Link columns -->
+    <nav class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8 text-sm" aria-label="Footer">
+      <div>
+        <h3 class="font-mono text-xs text-lime mb-4">Eat by area</h3>
+        <ul class="space-y-2.5">
+          <li><a href="#" class="hover:text-lime">Tolichowki</a></li>
+          <li><a href="#" class="hover:text-lime">Banjara Hills</a></li>
+          <li><a href="#" class="hover:text-lime">Gachibowli</a></li>
+          <li class="text-cream/45">Old City <span class="font-mono text-[10px]">soon</span></li>
+          <li class="text-cream/45">Secunderabad <span class="font-mono text-[10px]">soon</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-mono text-xs text-lime mb-4">Best in the city</h3>
+        <ul class="space-y-2.5">
+          <li><a href="#" class="hover:text-lime">Biryani</a></li>
+          <li><a href="#" class="hover:text-lime">Haleem</a></li>
+          <li><a href="#" class="hover:text-lime">Irani chai</a></li>
+          <li><a href="#" class="hover:text-lime">Mandi</a></li>
+          <li><a href="#" class="hover:text-lime">Breakfast tiffins</a></li>
+          <li><a href="#" class="hover:text-lime">Double ka meetha</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-mono text-xs text-lime mb-4">Community</h3>
+        <ul class="space-y-2.5">
+          <li><a href="#" class="hover:text-lime">Communities</a></li>
+          <li><a href="#" class="hover:text-lime">Dish Battles</a></li>
+          <li><a href="#" class="hover:text-lime">Community guidelines</a></li>
+          <li><a href="#" class="hover:text-lime">How scores work</a></li>
+          <li><a href="#" class="hover:text-lime">Disclosure rules</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-mono text-xs text-lime mb-4">FDN</h3>
+        <ul class="space-y-2.5">
+          <li><a href="#" class="hover:text-lime">About</a></li>
+          <li><a href="#" class="hover:text-lime">Privacy</a></li>
+          <li><a href="#" class="hover:text-lime">Terms</a></li>
+          <li><a href="#" class="hover:text-lime">Grievances</a></li>
+        </ul>
+      </div>
+
+      <!-- Grievance officer + language (required + i18n-ready) -->
+      <div class="col-span-2 sm:col-span-4 grid sm:grid-cols-2 gap-6 pt-8 border-t border-cream/15">
+        <div class="text-sm text-cream/70 leading-relaxed">
+          <b class="text-cream">Grievance officer:</b> [Name], <a href="mailto:grievance@fdn.app" class="underline underline-offset-4 hover:text-lime">grievance@fdn.app</a><br/>
+          We acknowledge within 24 hours and resolve within 15 days.
+        </div>
+        <div class="sm:justify-self-end">
+          <div class="inline-flex p-1 rounded-full border-[1.5px] border-cream/30 gap-1 font-mono text-xs" role="group" aria-label="Language">
+            <button class="px-3 py-1.5 rounded-full bg-lime text-ink font-bold" aria-pressed="true">English</button>
+            <button class="px-3 py-1.5 rounded-full text-cream/50" aria-pressed="false" disabled title="Coming soon">తెలుగు</button>
+            <button class="px-3 py-1.5 rounded-full text-cream/50" aria-pressed="false" disabled title="Coming soon">हिन्दी</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Giant wordmark -->
+  <div class="mt-16 select-none" aria-hidden="true">
+    <div class="wordmark font-display font-extrabold leading-[0.78] tracking-tighter text-center text-[34vw] lg:text-[26vw] translate-y-[8%]">FDN</div>
+  </div>
+  <div class="border-t border-cream/15">
+    <div class="max-w-[1360px] mx-auto px-5 md:px-10 py-5 flex flex-col sm:flex-row gap-2 justify-between font-mono text-xs text-cream/60">
+      <span>© 2026 Food Discovery Network. Made in Hyderabad.</span>
+      <span>No ads. No paid ranks. Ever.</span>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ===================================================================== -->
+<!-- MOBILE BOTTOM BAR (spec 3.1) — hidden on desktop                      -->
+<!-- ===================================================================== -->
+<nav class="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-paper border-t-2 border-ink" style="padding-bottom: env(safe-area-inset-bottom, 0px)" aria-label="Primary">
+  <ul class="grid grid-cols-5 items-end font-mono text-[10px] font-semibold">
+    <li><a href="#" class="flex flex-col items-center gap-1 py-2.5 text-ink" aria-current="page">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>Discover</a></li>
+    <li><a href="#" class="flex flex-col items-center gap-1 py-2.5 text-inkMuted">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>Search</a></li>
+    <li class="flex justify-center"><button class="post-btn -mt-5 w-14 h-14 rounded-2xl bg-terracotta text-paper border-2 border-ink shadow-brutal flex items-center justify-center" aria-label="Create post">
+      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></li>
+    <li><a href="#community" class="flex flex-col items-center gap-1 py-2.5 text-inkMuted">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.8a3.5 3.5 0 010 6.4M18 14.8c1.9.7 3 2.5 3.5 5.2"/></svg>Communities</a></li>
+    <li><a href="#" class="flex flex-col items-center gap-1 py-2.5 text-inkMuted">
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>You</a></li>
+  </ul>
+</nav>
+
+<!-- Sign-in-at-intent sheet / toast (W2) -->
+<div id="toast" class="fixed z-[60] left-1/2 -translate-x-1/2 bottom-[96px] lg:bottom-8 w-[calc(100%-2rem)] max-w-md bg-ink text-cream border-2 border-ink rounded-2xl shadow-brutal-lime p-4 flex items-center gap-3 opacity-0 pointer-events-none translate-y-3 transition-all duration-200" role="status" aria-live="polite">
+  <p id="toastText" class="text-sm grow"></p>
+  <button id="toastAction" class="shrink-0 font-mono text-xs font-bold px-3.5 py-2 bg-lime text-ink rounded-full border-2 border-ink">Sign in</button>
+</div>
+
+<!-- FAQ structured data for search -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+ {"@type":"Question","name":"Do I need an account to use FDN?","acceptedAnswer":{"@type":"Answer","text":"No. Search, dish rankings, restaurant pages, posts and lists are open without signing in. Sign in only to rate, post, comment or vote."}},
+ {"@type":"Question","name":"Can a restaurant pay to rank higher?","acceptedAnswer":{"@type":"Answer","text":"No. There are no ads or paid placements. Hosted or paid posts are labelled and never count in scores."}},
+ {"@type":"Question","name":"How do you stop fake ratings?","acceptedAnswer":{"@type":"Answer","text":"New accounts count for half, rating bursts and account clusters are held automatically, and every post is screened before it goes live."}}
+]}
+</script>
+
+<script>
+/* ---------- Toast: sign in at the moment of intent ---------- */
+const toast = document.getElementById('toast');
+const toastText = document.getElementById('toastText');
+const toastAction = document.getElementById('toastAction');
+let toastTimer;
+function showToast(msg, action = 'Sign in') {
+  toastText.textContent = msg;
+  toastAction.textContent = action;
+  toastAction.style.display = action ? '' : 'none';
+  toast.classList.remove('opacity-0','pointer-events-none','translate-y-3');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add('opacity-0','pointer-events-none','translate-y-3'), 3800);
+}
+document.querySelectorAll('.vote-btn').forEach(b => b.addEventListener('click', () => showToast('Reading stays free. Sign in to vote, it takes 10 seconds.')));
+document.querySelectorAll('.answer-btn').forEach(b => b.addEventListener('click', () => showToast('Sign in to answer. Your answer goes straight to the asker.')));
+document.querySelectorAll('.post-btn').forEach(b => b.addEventListener('click', () => showToast('Sign in to share what you ate.')));
+document.querySelectorAll('.save-btn').forEach(b => b.addEventListener('click', () => { b.textContent = 'Saved on this phone'; showToast('Saved on this phone. Sign in to keep it everywhere.'); }));
+document.querySelectorAll('.share-btn').forEach(b => b.addEventListener('click', async () => {
+  if (navigator.share) { try { await navigator.share({ title: 'FDN', url: location.href }); } catch (e) {} }
+  else showToast('Link copied.', '');
+}));
+document.querySelectorAll('.fact-btn').forEach(b => b.addEventListener('click', () => showToast('Thanks. Sign in so your check counts toward the update.')));
+document.getElementById('installBtn').addEventListener('click', () => showToast('Open your browser menu and choose “Add to home screen”.', ''));
+document.getElementById('ctaSearch').addEventListener('submit', e => {
+  e.preventDefault();
+  const q = document.getElementById('ctaInput').value.trim();
+  showToast(q ? `Opens /hyderabad/search?q=${encodeURIComponent(q)}` : 'Type a dish first, like “haleem”.', '');
+});
+
+/* ---------- Section 3: feed tabs ---------- */
+const tabs = document.querySelectorAll('.feed-tab');
+function paintTabs() {
+  tabs.forEach(t => {
+    const on = t.getAttribute('aria-selected') === 'true';
+    t.className = 'feed-tab font-mono text-xs font-semibold px-4 py-2 rounded-full whitespace-nowrap transition ' +
+      (on ? 'bg-olive text-paper border border-ink' : 'hover:bg-cream border border-transparent');
+  });
+}
+tabs.forEach(t => t.addEventListener('click', () => {
+  tabs.forEach(x => x.setAttribute('aria-selected', 'false'));
+  t.setAttribute('aria-selected', 'true');
+  const f = t.dataset.filter;
+  document.querySelectorAll('.bento-card').forEach(c => { c.hidden = !(f === 'all' || c.dataset.kind === f); });
+  paintTabs();
+}));
+paintTabs();
+
+/* ---------- Section 4: Score X-Ray ---------- */
+const TRUST = { T0: { w: .5, label: 'New' }, T1: { w: 1, label: 'Regular' }, T2: { w: 1.2, label: 'Trusted' }, F: { w: 1.2, label: 'Founding' } };
+const VAL = { L: 1, G: .7, O: .4, S: 0 };
+const VNAME = { L: 'Loved', G: 'Good', O: 'Okay', S: 'Skip' };
+const VCLR = { L: 'bg-olive text-paper', G: 'bg-limeBright', O: 'bg-saffron', S: 'bg-terracotta text-paper' };
+const C = 5, PRIOR = .72; // prior strength and city mean for haleem
+const SEED = [
+  { h: 'sana.eats',  t: 'F',  v: 'L', age: 12 },
+  { h: 'arjun_hyd',  t: 'T2', v: 'L', age: 40 },
+  { h: 'meher',      t: 'T1', v: 'G', age: 5 },
+  { h: 'fz_khan',    t: 'T1', v: 'L', age: 200 },
+  { h: 'kiran.r',    t: 'T1', v: 'O', age: 90 },
+  { h: 'newbie_221', t: 'T0', v: 'S', age: 2 },
+  { h: 'haleemhub',  t: 'T1', v: 'L', age: 3, paid: true },
+  { h: 'old_timer',  t: 'T1', v: 'L', age: 700 },
+];
+let rows = SEED.map(r => ({ ...r }));
+
+const weight = r => (r.paid || r.held) ? 0 : TRUST[r.t].w * Math.pow(.5, r.age / 270);
+const ageLabel = d => d === 0 ? 'today' : d < 30 ? `${d}d ago` : d < 365 ? `${Math.round(d / 30)}mo ago` : `${(d / 365).toFixed(1)}y ago`;
+
+function render(flashIdx) {
+  const ul = document.getElementById('xrayRows');
+  ul.innerHTML = rows.map((r, i) => {
+    const w = weight(r);
+    const why = r.paid ? 'Paid partnership' : r.held ? 'Held: burst' : r.age > 365 ? 'Old visit, fading' : TRUST[r.t].label;
+    return `
+    <li class="xr-row ${r.held ? 'is-held' : ''} ${i === flashIdx ? 'flash' : ''} grid grid-cols-1 sm:grid-cols-[1.3fr_1.6fr_1fr] gap-2 sm:gap-4 items-center px-5 sm:px-6 py-3">
+      <div class="min-w-0">
+        <div class="text-sm font-semibold truncate">@${r.h}</div>
+        <div class="font-mono text-[11px] text-inkMuted">${TRUST[r.t].label} · ${ageLabel(r.age)}</div>
+      </div>
+      <div class="flex gap-1" role="group" aria-label="Verdict from @${r.h}">
+        ${Object.keys(VNAME).map(k => `
+          <button data-i="${i}" data-v="${k}" aria-pressed="${r.v === k}" ${r.held ? 'disabled' : ''}
+            class="xr-v font-mono text-[11px] font-bold px-2 py-1 rounded-full border border-ink ${r.v === k ? VCLR[k] : 'bg-paper text-inkMuted hover:bg-cream'} ${r.held ? 'opacity-60 cursor-not-allowed' : ''}">${VNAME[k]}</button>`).join('')}
+      </div>
+      <div class="sm:text-right">
+        <div class="flex sm:justify-end items-center gap-2">
+          <div class="w-20 h-2 rounded-full bg-creamDark overflow-hidden border border-ink/30"><div class="w-bar h-full ${w ? 'bg-ink' : ''}" style="width:${Math.min(100, w / 1.2 * 100)}%"></div></div>
+          <span class="font-mono text-xs font-bold w-9 ${w ? '' : 'text-terracotta'}">${w.toFixed(2)}</span>
+        </div>
+        <div class="font-mono text-[10px] ${r.paid || r.held ? 'text-terracotta font-bold' : 'text-inkMuted'}">${why}</div>
+      </div>
+    </li>`;
+  }).join('');
+
+  // plain average: everyone counts the same
+  const plain = rows.reduce((s, r) => s + VAL[r.v], 0) / rows.length;
+  // FDN: weighted + Bayesian shrink toward the city prior
+  let sw = 0, swv = 0; const byV = { L: 0, G: 0, O: 0, S: 0 };
+  rows.forEach(r => { const w = weight(r); sw += w; swv += w * VAL[r.v]; byV[r.v] += w; });
+  const fdn = (C * PRIOR + swv) / (C + sw);
+
+  document.getElementById('plainScore').textContent = Math.round(plain * 100);
+  document.getElementById('fdnScore').textContent = Math.round(fdn * 100);
+  document.getElementById('lovedPct').textContent = sw >= 3 ? `${Math.round(byV.L / sw * 100)}% loved` : 'New: few ratings';
+  ['L', 'G', 'O', 'S'].forEach(k => document.getElementById('bar' + k).style.width = (sw ? byV[k] / sw * 100 : 0) + '%');
+}
+
+document.getElementById('xrayRows').addEventListener('click', e => {
+  const b = e.target.closest('.xr-v'); if (!b || b.disabled) return;
+  const i = +b.dataset.i; rows[i].v = b.dataset.v; render(i);
+});
+
+document.getElementById('burstBtn').addEventListener('click', e => {
+  if (rows.some(r => r.held)) return;
+  for (let k = 0; k < 8; k++) rows.push({ h: `user${Math.floor(1000 + Math.random() * 9000)}`, t: 'T0', v: 'L', age: 0, held: true });
+  document.getElementById('burstAlert').classList.remove('hidden');
+  e.currentTarget.disabled = true; e.currentTarget.classList.add('opacity-50');
+  render();
+  const list = document.getElementById('xrayRows'); list.scrollTop = list.scrollHeight;
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  rows = SEED.map(r => ({ ...r }));
+  document.getElementById('burstAlert').classList.add('hidden');
+  const bb = document.getElementById('burstBtn'); bb.disabled = false; bb.classList.remove('opacity-50');
+  render();
+});
+render();
+
+/* ---------- Section 5: FAQ search ---------- */
+document.getElementById('faqSearch').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase(); let shown = 0;
+  document.querySelectorAll('.faq-item').forEach(d => {
+    const hit = !q || d.textContent.toLowerCase().includes(q);
+    d.hidden = !hit; if (hit) shown++;
+    if (q && hit && shown === 1) d.open = true;
+  });
+  document.getElementById('faqEmpty').classList.toggle('hidden', shown > 0);
+});
+</script>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- Hero: live proof card ---------- */
+  const SETS = {
+    open:     { rank:'#1 in Tolichowki', dist:'1.8 km', open:'Open till 01:30', branch:'Shah Ghouse, Tolichowki', dish:'Special mutton fry piece biryani', d:[78,16,4,2], n:318, price:'₹360', by:'checked 14 h ago by @arjun_hyd', route:'/r/shah-ghouse-tolichowki', q:'mutton biryani open now' },
+    under300: { rank:'#1 under ₹300', dist:'3.1 km', open:'Open till 23:00', branch:'Nimrah Cafe, Charminar', dish:'Irani chai with Osmania biscuits', d:[71,21,6,2], n:942, price:'₹60', by:'checked 2 days ago by @meher', route:'/r/nimrah-cafe-charminar', q:'best dishes under ₹300' },
+    late:     { rank:'#1 after 11 pm', dist:'0.9 km', open:'Open till 02:00', branch:'Cyber Towers cart, Madhapur', dish:'Ghee karam dosa', d:[69,22,7,2], n:187, price:'₹90', by:'checked yesterday by @fz_khan', route:'/r/dosa-cart-cyber-towers', q:'late night dosa near Madhapur' },
+    biryani:  { rank:'#1 biryani in Hyderabad', dist:'5.4 km', open:'Open till 00:30', branch:'Cafe Bahar, Basheerbagh', dish:'Kacchi gosht dum biryani', d:[82,13,3,2], n:1204, price:'₹320', by:'checked 6 h ago by @sana.eats', route:'/hyderabad/top/biryani', q:'best biryani in Hyderabad' },
+    veg:      { rank:'#1 veg breakfast', dist:'2.6 km', open:'Open till 22:30', branch:'Chutneys, Banjara Hills', dish:'Pesarattu upma', d:[73,19,6,2], n:406, price:'₹180', by:'checked 3 days ago by @kiran.r', route:'/r/chutneys-banjara-hills', q:'pure veg tiffins Banjara Hills' },
+  };
+  const $ = id => document.getElementById(id);
+  let currentSet = 'open';
+
+  function paintSet(key) {
+    const s = SETS[key]; currentSet = key;
+    $('pcRank').textContent = s.rank; $('pcDist').textContent = s.dist; $('pcOpen').textContent = s.open;
+    $('pcBranch').textContent = s.branch; $('pcDish').textContent = s.dish;
+    $('pcLoved').textContent = s.d[0] + '%'; $('pcCount').textContent = 'loved · ' + s.n.toLocaleString('en-IN');
+    ['L','G','O','S'].forEach((k, i) => $('pb' + k).style.width = s.d[i] + '%');
+    $('pcLegend').innerHTML = `<span>Loved ${s.d[0]}%</span><span>Good ${s.d[1]}%</span><span>Okay ${s.d[2]}%</span><span>Skip ${s.d[3]}%</span>`;
+    $('pcPrice').textContent = s.price; $('pcConfirmed').textContent = s.by; $('pcRoute').textContent = s.route;
+    $('pcStill').textContent = 'Still true?'; $('pcStill').classList.remove('bg-lime');
+  }
+  function setChip(key) {
+    document.querySelectorAll('.hero-chip[data-set]').forEach(c => c.setAttribute('aria-pressed', c.dataset.set === key));
+    const card = $('proofCard');
+    if (reduce) return paintSet(key);
+    card.classList.add('is-swapping');
+    setTimeout(() => { paintSet(key); card.classList.remove('is-swapping'); }, 180);
+  }
+  document.querySelectorAll('.hero-chip[data-set]').forEach(c => c.addEventListener('click', () => {
+    setChip(c.dataset.set); $('heroSearchInput').value = SETS[c.dataset.set].q;
+  }));
+  paintSet('open');
+
+  $('pcStill').addEventListener('click', e => {
+    e.currentTarget.textContent = 'Thanks, noted'; e.currentTarget.classList.add('bg-lime');
+    showToast('Sign in so your check counts toward keeping this fresh.');
+  });
+  $('heroSearch').addEventListener('submit', e => {
+    e.preventDefault();
+    const q = $('heroSearchInput').value.trim() || $('heroSearchInput').placeholder;
+    showToast(`Opens /hyderabad/search?q=${encodeURIComponent(q)}`, '');
+  });
+
+  // Typed placeholder: shows the range of things people can ask
+  const examples = ['mutton haleem near Tolichowki', 'irani chai open now', 'biryani under ₹300', 'dosa after midnight', 'khubani ka meetha', 'rainy day mirchi bajji'];
+  const input = $('heroSearchInput');
+  if (!reduce) {
+    let ei = 0, ci = 0, del = false;
+    setInterval(() => {
+      if (document.activeElement === input || input.value) return;
+      const w = examples[ei];
+      ci += del ? -1 : 1;
+      input.placeholder = w.slice(0, ci) + (del ? '' : '▍');
+      if (!del && ci === w.length + 14) del = true;          // hold briefly
+      if (del && ci <= 0) { del = false; ei = (ei + 1) % examples.length; }
+    }, 70);
+  }
+
+  /* ---------- Hero: battle (vote requires sign-in; split hidden until vote) ---------- */
+  document.querySelectorAll('.battle-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.battle-btn').forEach(x => {
+      const on = x === b; x.setAttribute('aria-pressed', on);
+      x.classList.toggle('border-lime', on); x.classList.toggle('bg-white/15', on);
+      x.querySelector('.battle-meta').textContent = on ? 'Your pick' : 'Tap to vote';
+    });
+    showToast('Sign in to lock your vote. You’ll see the split right after.');
+  }));
+
+  /* ---------- Diet toggle (veg-only hides non-veg everywhere) ---------- */
+  $('dietToggle').addEventListener('click', e => {
+    const on = document.body.classList.toggle('veg-only');
+    e.currentTarget.setAttribute('aria-pressed', on);
+    $('dietDot').className = 'w-2 h-2 rounded-full ' + (on ? 'bg-olive' : 'bg-inkMuted');
+    $('dietLabel').textContent = on ? 'Veg only' : 'All diets';
+    if (on && currentSet !== 'veg') setChip('veg');
+    if (!on && currentSet === 'veg') setChip('open');
+    renderMood(); applyLb();
+    showToast(on ? 'Showing vegetarian dishes only.' : 'Showing all dishes.', '');
+  });
+
+  /* ---------- Section 2A: collapse six apps ---------- */
+  $('collapseBtn').addEventListener('click', e => {
+    const on = $('sixStage').classList.toggle('collapsed');
+    e.currentTarget.setAttribute('aria-pressed', on);
+    e.currentTarget.textContent = on ? 'Show the old way' : 'Do it in one page';
+    $('collapseHint').textContent = on ? 'With FDN: under 30 seconds' : 'Average decision today: 25 min';
+    $('oneAnswer').setAttribute('aria-hidden', !on);
+  });
+
+  /* ---------- Section 2B: mode tabs ---------- */
+  const modeTabs = [...document.querySelectorAll('.mode-tab')];
+  const NOTES = {
+    'panel-xray':  'Every restaurant page leads with its dishes, best first.',
+    'panel-board': 'Same dish, every branch in the city, ranked by locals.',
+    'panel-mood':  'One tap turns a mood into three good options nearby.',
+    'panel-area':  'Top dishes, open places and live questions for one area.',
+  };
+  function selectMode(tab, focus) {
+    modeTabs.forEach(t => {
+      const on = t === tab; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    const panel = $(tab.getAttribute('aria-controls'));
+    $('urlPath').textContent = panel.dataset.route; $('modeLink').href = panel.dataset.route;
+    $('modeNote').textContent = NOTES[panel.id];
+    if (focus) tab.focus();
+  }
+  modeTabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectMode(t));
+    t.addEventListener('keydown', e => {
+      const k = e.key; let n = null;
+      if (k === 'ArrowDown' || k === 'ArrowRight') n = modeTabs[(i + 1) % modeTabs.length];
+      if (k === 'ArrowUp' || k === 'ArrowLeft') n = modeTabs[(i - 1 + modeTabs.length) % modeTabs.length];
+      if (n) { e.preventDefault(); selectMode(n, true); }
+    });
+  });
+  selectMode(modeTabs[0]);
+  $('modeLink').addEventListener('click', e => { e.preventDefault(); showToast(`Opens ${$('urlPath').textContent}`, ''); });
+
+  // Leaderboard filters
+  const lbActive = new Set();
+  function applyLb() {
+    const veg = document.body.classList.contains('veg-only'); let shown = 0;
+    document.querySelectorAll('.lb-row').forEach(r => {
+      const ok = [...lbActive].every(f => r.dataset[f] === '1');
+      r.hidden = !ok; if (ok && !veg) shown++;
+    });
+    $('lbEmpty').classList.toggle('hidden', veg || shown > 0);
+  }
+  document.querySelectorAll('.lb-filter').forEach(b => b.addEventListener('click', () => {
+    const f = b.dataset.f; lbActive.has(f) ? lbActive.delete(f) : lbActive.add(f);
+    b.setAttribute('aria-pressed', lbActive.has(f)); applyLb();
+  }));
+
+  // Mood trails
+  const MOODS = {
+    rainy:  [['Mirchi bajji + chai','Ram ki Bandi area stalls','₹60','v'],['Mutton paya','Hotel Nayaab, Tolichowki','₹220','nv'],['Cutting chai + samosa','Nimrah Cafe, Charminar','₹45','v'],['Pathar ka gosht','Sarvi, Banjara Hills','₹340','nv']],
+    date:   [['Lukhmi + qubani','Jewel of Nizam, Masab Tank','₹650','nv'],['Paneer tikka platter','Rooftop on Road 36','₹480','v'],['Haleem tasting flight','Pista House, Shalibanda','₹520','nv'],['Filter coffee & sunset','Durgam Cheruvu promenade','₹120','v']],
+    family: [['Chicken mandi for 6','Mandi King, Tolichowki','₹1,200','nv'],['South Indian thali','Chutneys, Banjara Hills','₹320','v'],['Biryani family pack','Cafe Bahar, Basheerbagh','₹1,100','nv'],['Veg meals unlimited','Kakatiya Mess, Ameerpet','₹260','v']],
+    late:   [['Ghee karam dosa','Cyber Towers cart, Madhapur','₹90','v'],['Mutton biryani','Shah Ghouse, Tolichowki','₹360','nv'],['Shawarma roll','Lebanese corner, Gachibowli','₹160','nv'],['Maggi + chai','Midnight stall, Hitec City','₹80','v']],
+    cheap:  [['Irani chai + bun maska','Nimrah Cafe, Charminar','₹60','v'],['Chicken 65 half','Bawarchi, RTC X Roads','₹240','nv'],['Pesarattu','Chutneys, Banjara Hills','₹180','v'],['Egg puff','Karachi Bakery, Mozamjahi','₹40','nv']],
+  };
+  let mood = 'rainy';
+  function renderMood() {
+    const veg = document.body.classList.contains('veg-only');
+    const items = MOODS[mood].filter(m => !veg || m[3] === 'v').slice(0, 3);
+    $('moodList').innerHTML = items.map(([dish, place, price]) => `
+      <li class="mood-card">
+        <span class="font-display font-extrabold text-lg leading-tight">${dish}</span>
+        <span class="text-sm text-inkMuted">${place}</span>
+        <span class="mt-auto font-mono text-xs font-bold">${price}</span>
+      </li>`).join('');
+    $('panel-mood').dataset.route = '/hyderabad/search?mood=' + mood;
+    if (!$('panel-mood').hidden) { $('urlPath').textContent = $('panel-mood').dataset.route; }
+  }
+  document.querySelectorAll('.mood-chip').forEach(c => c.addEventListener('click', () => {
+    mood = c.dataset.mood;
+    document.querySelectorAll('.mood-chip').forEach(x => x.setAttribute('aria-pressed', x === c));
+    renderMood();
+  }));
+  renderMood();
+
+  /* ---------- Header: highlight the section in view ---------- */
+  const pills = document.querySelectorAll('.nav-pill');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      pills.forEach(p => p.classList.toggle('is-active', p.dataset.nav === en.target.id));
+    });
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  ['six-apps','how-it-works','community','rules','faq'].forEach(id => { const el = $(id); if (el) io.observe(el); });
+})();
+</script>
+</body>
+</html>

@@ -1,143 +1,210 @@
 @import 'tailwindcss';
 
 /*
-  Token & Stamp — a Hyderabad food counter in a browser.
-  Day counter (light): newsprint paper, carbon ink, haldi highlighter.
-  Night counter (dark): ink-blue night, paper-coloured type, haldi lamps.
+  FDN design system tokens. Source of truth: docs/DESIGN-SYSTEM.md (§3 colour, §6 shape, §8 motion, §12 tokens).
+  One fixed light palette: no dark theme, no Tailwind default colours, no blurred shadows.
 */
 
 :root {
   color-scheme: light;
-  --paper: #f4eee1;
-  --paper-raised: #fffcf5;
-  --paper-sunk: #e8dfcb;
-  --ink: #1a1c2e;
-  --ink-soft: #55516a;
-  --rule: #d9cfb9;
-  --rule-strong: #7f745e;
-  --haldi: #f2b300;
-  --on-haldi: #1a1c2e;
-  --on-ink: #fffcf5;
-  --live: #0e6b60;
-  --danger: #a3241a;
-  --diet-veg: #18692d;
-  --diet-nonveg: #7a3410;
-  --diet-egg: #7e5a00;
-  --rate-loved: #b0102c;
-  --rate-good: #2c6a2e;
-  --rate-okay: #83560a;
-  --rate-skip: #4f4f5d;
-  --lift-color: #1a1c2e;
-  --grain-opacity: 0.06;
-  --dur-micro: 140ms;
-  --dur-ui: 260ms;
-  --dur-hero: 820ms;
-  --motion-snap: cubic-bezier(0.2, 0.9, 0.1, 1);
-  --motion-out: cubic-bezier(0.4, 0, 1, 1);
-}
+  --fdn-cream: #ecebc9;
+  --fdn-cream-dark: #e2e0b5;
+  --fdn-paper: #f8f7e8;
+  --fdn-ink: #141612;
+  --fdn-ink-muted: #4a4d43;
+  --fdn-lime: #c7ea76;
+  --fdn-lime-bright: #b8e94a;
+  --fdn-olive: #76a02b;
+  --fdn-olive-deep: #4f6e17;
+  --fdn-olive-btn: #97ae42;
+  --fdn-terracotta: #c8524b;
+  --fdn-terracotta-deep: #a9443d;
+  --fdn-saffron: #f2b33d;
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --paper: #111220;
-    --paper-raised: #1b1c2e;
-    --paper-sunk: #0a0b15;
-    --ink: #f3ecdd;
-    --ink-soft: #b9b1a1;
-    --rule: #2e2f44;
-    --rule-strong: #6f6b84;
-    --haldi: #ffc21a;
-    --on-haldi: #111220;
-    --on-ink: #111220;
-    --live: #4fd1c0;
-    --danger: #ff8a7a;
-    --diet-veg: #62cf7e;
-    --diet-nonveg: #ec9a70;
-    --diet-egg: #e8c155;
-    --rate-loved: #ff8a97;
-    --rate-good: #86d38f;
-    --rate-okay: #e9bc5e;
-    --rate-skip: #b8b8c6;
-    --lift-color: #000000;
-    --grain-opacity: 0.08;
-  }
-}
+  --fdn-shadow: 4px 4px 0 var(--fdn-ink);
+  --fdn-font-display: var(--font-bricolage), 'Bricolage Grotesque', system-ui, sans-serif;
+  --fdn-font-body: var(--font-inder), 'Inder', system-ui, sans-serif;
 
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --paper: #111220;
-  --paper-raised: #1b1c2e;
-  --paper-sunk: #0a0b15;
-  --ink: #f3ecdd;
-  --ink-soft: #b9b1a1;
-  --rule: #2e2f44;
-  --rule-strong: #6f6b84;
-  --haldi: #ffc21a;
-  --on-haldi: #111220;
-  --on-ink: #111220;
-  --live: #4fd1c0;
-  --danger: #ff8a7a;
-  --diet-veg: #62cf7e;
-  --diet-nonveg: #ec9a70;
-  --diet-egg: #e8c155;
-  --rate-loved: #ff8a97;
-  --rate-good: #86d38f;
-  --rate-okay: #e9bc5e;
-  --rate-skip: #b8b8c6;
-  --lift-color: #000000;
-  --grain-opacity: 0.08;
+  --dur-instant: 150ms;
+  --dur-swap: 200ms;
+  --dur-bar: 450ms;
+  --dur-collapse: 600ms;
+  --dur-pop: 450ms;
+  --dur-flash: 800ms;
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-raised: var(--paper-raised);
-  --color-sunk: var(--paper-sunk);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-rule: var(--rule);
-  --color-rule-strong: var(--rule-strong);
-  --color-haldi: var(--haldi);
-  --color-on-haldi: var(--on-haldi);
-  --color-on-ink: var(--on-ink);
-  --color-live: var(--live);
-  --color-danger: var(--danger);
-  --color-diet-veg: var(--diet-veg);
-  --color-diet-nonveg: var(--diet-nonveg);
-  --color-diet-egg: var(--diet-egg);
-  --color-rate-loved: var(--rate-loved);
-  --color-rate-good: var(--rate-good);
-  --color-rate-okay: var(--rate-okay);
-  --color-rate-skip: var(--rate-skip);
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-cream: var(--fdn-cream);
+  --color-creamDark: var(--fdn-cream-dark);
+  --color-paper: var(--fdn-paper);
+  --color-ink: var(--fdn-ink);
+  --color-inkMuted: var(--fdn-ink-muted);
+  --color-lime: var(--fdn-lime);
+  --color-limeBright: var(--fdn-lime-bright);
+  --color-olive: var(--fdn-olive);
+  --color-oliveDeep: var(--fdn-olive-deep);
+  --color-oliveBtn: var(--fdn-olive-btn);
+  --color-terracotta: var(--fdn-terracotta);
+  --color-terracottaDeep: var(--fdn-terracotta-deep);
+  --color-saffron: var(--fdn-saffron);
 
-  --font-display:
-    var(--font-anek), var(--font-anek-telugu), var(--font-anek-devanagari), 'Arial Narrow', sans-serif;
-  --font-sans: var(--font-hind), var(--font-hind-guntur), system-ui, sans-serif;
-  --font-mono: var(--font-martian), ui-monospace, monospace;
+  --font-*: initial;
+  --font-display: var(--fdn-font-display);
+  --font-sans: var(--fdn-font-body);
+  /* Legacy alias: there is no monospace font in FDN (§4.1). */
+  --font-mono: var(--fdn-font-body);
 
-  --text-2xs: 0.6875rem;
-  --text-xs: 0.8125rem;
-  --text-sm: 0.9375rem;
-  --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.5625rem;
-  --text-2xl: 1.953rem;
-  --text-3xl: 2.441rem;
-  --text-4xl: 3.052rem;
-  --text-5xl: 3.815rem;
-  --text-6xl: 4.768rem;
-  --text-7xl: 5.96rem;
+  --shadow-*: initial;
+  --shadow-brutal-sm: 2px 2px 0 var(--fdn-ink);
+  --shadow-brutal: 4px 4px 0 var(--fdn-ink);
+  --shadow-brutal-lg: 7px 7px 0 var(--fdn-ink);
+  --shadow-brutal-lime: 6px 6px 0 var(--fdn-lime);
+  --shadow-brutal-terracotta: 4px 4px 0 var(--fdn-terracotta);
 
-  --radius-tick: 2px;
-  --radius-stamp: 5px;
+  --radius-card: 22px;
+  --radius-panel: 18px;
+  --radius-row: 12px;
 
-  --shadow-lift: 3px 3px 0 var(--lift-color);
-  --shadow-lift-sm: 2px 2px 0 var(--lift-color);
-  --shadow-lift-lg: 6px 6px 0 var(--lift-color);
+  --ease-bar: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-collapse: cubic-bezier(0.6, 0, 0.2, 1);
+  --ease-pop: cubic-bezier(0.2, 1.4, 0.4, 1);
 
-  --ease-snap: var(--motion-snap);
-  --ease-out-fast: var(--motion-out);
+  --animate-ticker: ticker 48s linear infinite;
+  --animate-live-dot: pulse-dot 2s ease-in-out infinite;
+  --animate-panel-in: panel-in var(--dur-swap) ease-out;
+  --animate-flash: flash var(--dur-flash) ease-out;
+}
 
-  --animate-ticker: ticker 38s linear infinite;
+/* Type scale (§4.2). Named type-* so they never collide with text colour utilities. */
+@utility type-display-xl {
+  font-family: var(--fdn-font-display);
+  font-weight: 800;
+  font-size: 2.5rem;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  @variant sm {
+    font-size: 3.75rem;
+  }
+  @variant xl {
+    font-size: 4.75rem;
+  }
+}
+
+@utility type-display-l {
+  font-family: var(--fdn-font-display);
+  font-weight: 800;
+  font-size: 2.25rem;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  @variant sm {
+    font-size: 3rem;
+  }
+  @variant xl {
+    font-size: 3.75rem;
+  }
+}
+
+@utility type-title-l {
+  font-family: var(--fdn-font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  @variant sm {
+    font-size: 1.875rem;
+  }
+}
+
+@utility type-title-m {
+  font-family: var(--fdn-font-display);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  @variant sm {
+    font-size: 1.5rem;
+  }
+}
+
+@utility type-title-s {
+  font-family: var(--fdn-font-display);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1.25;
+  @variant sm {
+    font-size: 1.125rem;
+  }
+}
+
+@utility type-score {
+  font-family: var(--fdn-font-display);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Brutal buttons press into the page on hover (§7.1). */
+@utility press {
+  transition:
+    transform var(--dur-instant) ease,
+    box-shadow var(--dur-instant) ease,
+    background-color var(--dur-instant) ease;
+  &:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--fdn-ink);
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Image placeholder until real photos or maps exist (§7.5). */
+@utility map-slot {
+  background: repeating-linear-gradient(-45deg, var(--fdn-cream-dark) 0 10px, var(--fdn-cream) 10px 20px);
+}
+
+/* Torn bottom edge of a receipt card (§7.6). */
+@utility receipt-bottom {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -10px;
+    height: 10px;
+    background:
+      linear-gradient(-45deg, transparent 6px, var(--fdn-paper) 0),
+      linear-gradient(45deg, transparent 6px, var(--fdn-paper) 0);
+    background-size: 12px 12px;
+    background-repeat: repeat-x;
+  }
+}
+
+/* Rows held for review (§7.7). */
+@utility held-stripes {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--fdn-terracotta) 12%, transparent) 0 8px,
+    transparent 8px 16px
+  );
+}
+
+/* Giant outlined footer wordmark (§7.15). */
+@utility wordmark-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--fdn-lime);
+}
+
+/* Small bar widths animate when values change (§8 `bar`). */
+@utility w-bar {
+  transition: width var(--dur-bar) cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 @keyframes ticker {
@@ -149,171 +216,97 @@
   }
 }
 
-@keyframes thump {
-  0% {
-    opacity: 0;
-    transform: scale(1.75) rotate(calc(var(--tilt, -4deg) - 9deg));
-  }
-  55% {
-    opacity: 1;
-    transform: scale(0.93) rotate(var(--tilt, -4deg));
-  }
+@keyframes pulse-dot {
+  0%,
   100% {
+    transform: scale(1);
     opacity: 1;
-    transform: scale(1) rotate(var(--tilt, -4deg));
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.65;
   }
 }
 
-@keyframes grow {
-  from {
-    transform: scaleX(0);
-  }
-}
-
-@keyframes rise {
-  from {
-    transform: translateY(18px);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes rise-fade {
+@keyframes panel-in {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateY(6px);
   }
 }
 
-/* The signature: a rubber stamp. Ink is never perfectly even. */
-@utility stamp {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35em;
-  border: 3px double currentColor;
-  border-radius: var(--radius-stamp);
-  padding: 0.18em 0.5em 0.08em;
-  font-family: var(--font-display);
-  font-stretch: 75%;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-  transform: rotate(var(--tilt, -4deg));
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.6 2.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)'/%3E%3C/svg%3E");
-  mask-size: 120px 120px;
-}
-
-@utility stamp-in {
-  animation: thump 520ms var(--motion-snap) both;
-  animation-delay: calc(var(--i, 0) * 90ms + 120ms);
-}
-
-@utility rise-in {
-  animation: rise 520ms var(--motion-snap) both;
-  animation-delay: calc(var(--i, 0) * 70ms);
-}
-
-/* Scroll reveal: visible by default, animated only where scroll-driven animations exist. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      animation: rise-fade linear both;
-      animation-timeline: view();
-      animation-range: entry calc(5% + var(--reveal-delay, 0%)) cover 22%;
-    }
-  }
-}
-
-@utility grain {
-  position: relative;
-  isolation: isolate;
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: var(--grain-opacity);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-}
-
-@utility perforate-b {
-  --hole: 5px;
-  mask: radial-gradient(circle at 50% 100%, transparent var(--hole), #000 calc(var(--hole) + 0.5px)) 0 0 /
-    16px 100% repeat-x;
-}
-
-@utility notch-x {
-  --notch: 9px;
-  --notch-y: 50%;
-  mask:
-    radial-gradient(circle at 0 var(--notch-y), transparent var(--notch), #000 calc(var(--notch) + 0.5px))
-      left / 51% 100% no-repeat,
-    radial-gradient(circle at 100% var(--notch-y), transparent var(--notch), #000 calc(var(--notch) + 0.5px))
-      right / 51% 100% no-repeat;
-}
-
-@utility leader {
-  flex: 1 1 auto;
-  min-width: 1.5rem;
-  border-bottom: 2px dotted var(--rule-strong);
-  translate: 0 -0.3em;
-}
-
-@utility highlight {
-  background-image: linear-gradient(transparent 55%, var(--haldi) 55%, var(--haldi) 92%, transparent 92%);
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding-inline: 0.06em;
-}
-
-@utility press {
-  transition:
-    transform var(--dur-micro) var(--motion-snap),
-    box-shadow var(--dur-micro) var(--motion-snap);
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 0 0 0 var(--lift-color);
+@keyframes flash {
+  from {
+    background-color: var(--fdn-lime);
   }
 }
 
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
-    background: var(--paper);
+    scroll-padding-top: 88px;
+    background: var(--fdn-cream);
   }
 
   body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--font-sans);
-    font-size: var(--text-base);
+    background-color: var(--fdn-cream);
+    /* Grain overlay (§5): 1px ink dots at 6% every 20px. */
+    background-image: radial-gradient(color-mix(in srgb, var(--fdn-ink) 6%, transparent) 1px, transparent 0);
+    background-size: 20px 20px;
+    color: var(--fdn-ink);
+    font-family: var(--fdn-font-body);
     line-height: 1.5;
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Keep content clear of the fixed mobile bottom bar (§7.12). */
+  @media (width < 64rem) {
+    body {
+      padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   h1,
   h2,
   h3 {
-    font-family: var(--font-display);
-    font-stretch: 80%;
-    line-height: 0.98;
-    letter-spacing: -0.01em;
+    font-family: var(--fdn-font-display);
+    font-optical-sizing: auto;
     text-wrap: balance;
   }
 
   :focus-visible {
-    outline: 3px solid var(--haldi);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 5px var(--ink);
+    outline: 3px solid var(--fdn-terracotta);
+    outline-offset: 3px;
   }
 
   ::selection {
-    background: var(--haldi);
-    color: var(--on-haldi);
+    background: var(--fdn-terracotta-deep);
+    color: var(--fdn-paper);
+  }
+
+  /* Veg-only mode (§7.12): every dish element carries data-diet. */
+  .veg-only [data-diet='egg'],
+  .veg-only [data-diet='nonveg'] {
+    display: none !important;
+  }
+
+  .veg-only-hint {
+    display: none;
+  }
+
+  .veg-only .veg-only-hint {
+    display: block;
+  }
+
+  details > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
   }
 }
 

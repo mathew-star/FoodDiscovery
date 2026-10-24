@@ -44,7 +44,7 @@ test.describe('branch page', () => {
 
   test('shows facts with confirmation age', async ({ page }) => {
     await page.goto('/r/deccan-degh-house-old-city');
-    const facts = page.getByRole('region', { name: 'Facts receipt' }).filter({ visible: true });
+    const facts = page.getByRole('region', { name: 'Facts' }).filter({ visible: true });
     await expect(facts).toHaveCount(1);
     await expect(facts.getByText('Hours', { exact: true })).toBeVisible();
     await expect(facts.getByText(/Confirmed (today|\d+ days ago)/).first()).toBeVisible();
@@ -155,11 +155,8 @@ for (const path of [
   '/hyderabad/dish/mutton-haleem',
   '/hyderabad/area/old-city',
 ]) {
-  test(`${path} has no serious accessibility violations in light and dark`, async ({ page, context }) => {
+  test(`${path} has no serious accessibility violations`, async ({ page }) => {
     await page.goto(path);
-    await expectNoSeriousViolations(page);
-    await context.addCookies([{ name: 'theme', value: 'dark', url: page.url() }]);
-    await page.reload();
     await expectNoSeriousViolations(page);
   });
 }

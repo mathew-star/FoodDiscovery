@@ -26,6 +26,7 @@ bun run build && bun run test:e2e
 | --- | --- |
 | `docs/ARCHITECTURE.md` | Layout, import boundaries, data model, caching, jobs, environment, decisions |
 | `docs/DESIGN-SYSTEM.md` | Tokens, type, motion, components, accessibility |
+| `docs/reference/fdn-landing-full.html` | Visual reference for the design system and the landing page |
 | `docs/PRODUCT-FLOWS.md` | User flows W1–W11 mapped to routes, components and server code |
 | `docs/ROADMAP.md` | Seven phases with scope, exit criteria and tests |
 | `docs/PROGRESS.md` | Phase checklist |

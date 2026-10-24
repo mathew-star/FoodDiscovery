@@ -22,6 +22,7 @@ export default async function Image({ params }: { params: Promise<{ branch: stri
         : undefined;
   return renderOgCard({
     brand: t('app.name'),
+    city: t('city.hyderabad'),
     eyebrow: dish ? `${dish.branchName} · ${dish.localityName}` : t('city.hyderabad'),
     title: dish ? dish.name : t('app.fullName'),
     subtitle: dish?.pricePaise ? formatRupees(dish.pricePaise) : undefined,
