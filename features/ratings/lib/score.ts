@@ -1,8 +1,4 @@
-import type {
-  DishScoringConfig,
-  RatingWeightsConfig,
-  TrustLevel,
-} from '@/features/ratings/schemas/ranking-config';
+import type { DishScoringConfig } from '@/features/ratings/schemas/ranking-config';
 import { sentimentValue, type Sentiment } from '@/features/ratings/schemas/sentiment';
 
 export type SentimentWeights = Record<Sentiment, number>;
@@ -34,21 +30,6 @@ export function computeDishScore(
 
 export function ratingTimeWeight(ageDays: number, halfLifeDays = 270): number {
   return 0.5 ** (Math.max(0, ageDays) / halfLifeDays);
-}
-
-export type WeighableRating = {
-  trust: TrustLevel;
-  ageDays: number;
-  /** Hosted, paid partnership or "I work here" (spec §7.6). */
-  disclosed: boolean;
-  /** Suspect and held for review (spec §7.3). */
-  held: boolean;
-};
-
-/** Spec §6.1 rating weight. Disclosed and held ratings stay visible but count for nothing. */
-export function ratingWeight(rating: WeighableRating, config: RatingWeightsConfig): number {
-  if (rating.disclosed || rating.held) return 0;
-  return config.trust[rating.trust] * ratingTimeWeight(rating.ageDays, config.halfLifeDays);
 }
 
 export type ScoredDish = { score: number | null; weightSum: number };

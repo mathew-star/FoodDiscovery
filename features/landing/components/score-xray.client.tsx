@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { VerdictBar } from '@/features/ratings/components/verdict-bar';
 import { verdictFill } from '@/features/ratings/components/verdict-pill';
-import { computeDishScore, ratingWeight, type SentimentWeights } from '@/features/ratings/lib/score';
+import { computeDishScore, type SentimentWeights } from '@/features/ratings/lib/score';
 import { verdictShares } from '@/features/ratings/lib/verdict-shares';
-import type { DishScoringConfig, RatingWeightsConfig } from '@/features/ratings/schemas/ranking-config';
 import {
   sentimentLabelKey,
   sentiments,
@@ -16,11 +15,7 @@ import { t, tRich } from '@/i18n';
 import { cn } from '@/shared/lib/cn';
 import { cardVariants } from '@/shared/ui/card';
 import { burstHandles, xrayDish, xraySeed, type XrayRating } from '../lib/content';
-
-type ScoreXrayProps = {
-  weights: RatingWeightsConfig;
-  scoring: Pick<DishScoringConfig, 'priorStrength' | 'minWeightForDisplay'>;
-};
+import { demoScoring, demoWeight, maxTrustWeight } from '../lib/score-xray';
 
 type Row = XrayRating & { id: string };
 
@@ -44,13 +39,12 @@ function flash(event: MouseEvent<HTMLButtonElement>) {
 
 /**
  * Score X-Ray (DESIGN-SYSTEM §13 #4). Runs the production scoring code (spec §6.1) on sample
- * ratings with the spec default weights (`defaultRatingWeights`), so what the visitor sees is how scores really work.
+ * ratings with the spec's demo weights (`lib/score-xray.ts`), so what the visitor sees is how scores really work.
  */
-export function ScoreXray({ weights, scoring }: ScoreXrayProps) {
+export function ScoreXray() {
   const [rows, setRows] = useState(seedRows);
   const list = useRef<HTMLUListElement>(null);
   const burst = rows.some((row) => row.held);
-  const maxTrust = Math.max(...Object.values(weights.trust));
 
   useEffect(() => {
     if (burst && list.current) list.current.scrollTop = list.current.scrollHeight;
@@ -58,16 +52,13 @@ export function ScoreXray({ weights, scoring }: ScoreXrayProps) {
 
   const weighted = rows.map((row) => ({
     row,
-    weight: ratingWeight(
-      { trust: row.trust, ageDays: row.ageDays, disclosed: Boolean(row.disclosed), held: Boolean(row.held) },
-      weights,
-    ),
+    weight: demoWeight(row),
   }));
   const byVerdict = weighted.reduce<SentimentWeights>(
     (totals, { row, weight }) => ({ ...totals, [row.verdict]: totals[row.verdict] + weight }),
     { loved: 0, good: 0, okay: 0, skip: 0 },
   );
-  const fdn = computeDishScore(byVerdict, xrayDish.cityPrior, scoring);
+  const fdn = computeDishScore(byVerdict, xrayDish.cityPrior, demoScoring);
   const plain = rows.reduce((total, row) => total + sentimentValue[row.verdict], 0) / rows.length;
 
   function setVerdict(id: string, verdict: Sentiment) {
@@ -167,7 +158,7 @@ export function ScoreXray({ weights, scoring }: ScoreXrayProps) {
                     className="h-2 w-20 overflow-hidden rounded-full border border-ink/30 bg-creamDark"
                   >
                     <div
-                      style={{ width: `${Math.min(100, (weight / maxTrust) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (weight / maxTrustWeight) * 100)}%` }}
                       className="h-full bg-ink w-bar"
                     />
                   </div>
@@ -242,10 +233,10 @@ export function ScoreXray({ weights, scoring }: ScoreXrayProps) {
           <summary className="underline underline-offset-4">{t('landing.trust.xray.howWeight')}</summary>
           <p className="mt-2 max-w-sm leading-relaxed">
             {t('landing.trust.xray.howWeightBody', {
-              t0: weights.trust.T0,
-              t1: weights.trust.T1.toFixed(1),
-              t2: weights.trust.T2,
-              halfLife: weights.halfLifeDays,
+              t0: demoScoring.trust.T0,
+              t1: demoScoring.trust.T1.toFixed(1),
+              t2: demoScoring.trust.T2,
+              halfLife: demoScoring.halfLifeDays,
             })}
           </p>
         </details>

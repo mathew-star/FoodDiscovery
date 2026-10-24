@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { defaultRatingWeights, rankingConfigDefaults } from '@/features/ratings/schemas/ranking-config';
-import { computeDishScore, computeFoodScore, ratingTimeWeight, ratingWeight } from './score';
+import { rankingConfigDefaults } from '@/features/ratings/schemas/ranking-config';
+import { computeDishScore, computeFoodScore, ratingTimeWeight } from './score';
 
 const config = rankingConfigDefaults.dish_scoring;
 
@@ -71,24 +71,5 @@ describe('computeFoodScore', () => {
     ];
     const expected = (0.9 * 40 + 0.8 * 3 + 0.7 * 10 + 0.6 * 5 + 0.5 * 5) / (40 + 3 + 10 + 5 + 5);
     expect(computeFoodScore(dishes, config)).toBeCloseTo(expected, 10);
-  });
-});
-
-describe('ratingWeight', () => {
-  const weights = defaultRatingWeights;
-  const base = { trust: 'T1', ageDays: 0, disclosed: false, held: false } as const;
-
-  it('uses the trust weight for a fresh rating', () => {
-    expect(ratingWeight({ ...base, trust: 'T0' }, weights)).toBe(0.5);
-    expect(ratingWeight({ ...base, trust: 'FOUNDING' }, weights)).toBe(1.2);
-  });
-
-  it('halves every half-life', () => {
-    expect(ratingWeight({ ...base, ageDays: 270 }, weights)).toBeCloseTo(0.5, 10);
-  });
-
-  it('weighs disclosed and held ratings as zero', () => {
-    expect(ratingWeight({ ...base, disclosed: true }, weights)).toBe(0);
-    expect(ratingWeight({ ...base, held: true }, weights)).toBe(0);
   });
 });

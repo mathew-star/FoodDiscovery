@@ -22,16 +22,6 @@ export const factFreshnessConfigSchema = z.object({
   veg_only: z.number().int().positive(),
 });
 
-export const trustLevels = ['T0', 'T1', 'T2', 'FOUNDING'] as const;
-export const trustLevelSchema = z.enum(trustLevels);
-export type TrustLevel = z.infer<typeof trustLevelSchema>;
-
-/** Spec §6.1: weight = trust × time decay × disclosure (disclosed ratings always weigh 0). */
-export const ratingWeightsConfigSchema = z.object({
-  trust: z.record(trustLevelSchema, z.number().nonnegative()),
-  halfLifeDays: z.number().positive(),
-});
-
 export const nearbyConfigSchema = z.object({
   radiusMeters: z.number().positive(),
   limit: z.number().int().positive(),
@@ -40,16 +30,6 @@ export const nearbyConfigSchema = z.object({
 export type DishScoringConfig = z.infer<typeof dishScoringConfigSchema>;
 export type FactFreshnessConfig = z.infer<typeof factFreshnessConfigSchema>;
 export type NearbyConfig = z.infer<typeof nearbyConfigSchema>;
-export type RatingWeightsConfig = z.infer<typeof ratingWeightsConfigSchema>;
-
-/**
- * Spec §6.1 weights. A code constant for now, not a `ranking_config` row: the database is untouched
- * until ratings ship in P3, which moves this into `ranking_config` with its migration (ARCHITECTURE D30).
- */
-export const defaultRatingWeights: RatingWeightsConfig = {
-  trust: { T0: 0.5, T1: 1, T2: 1.2, FOUNDING: 1.2 },
-  halfLifeDays: 270,
-};
 
 export const rankingConfigDefaults = {
   dish_scoring: {

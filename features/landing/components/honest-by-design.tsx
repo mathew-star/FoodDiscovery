@@ -1,6 +1,5 @@
 import { Clock } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { defaultRatingWeights, rankingConfigDefaults } from '@/features/ratings/schemas/ranking-config';
 import { t, type MessageKey } from '@/i18n';
 import { cn } from '@/shared/lib/cn';
 import { ScoreXray } from './score-xray.client';
@@ -35,9 +34,6 @@ const cantBuy: MessageKey[] = [
 
 /** Section 4, the page's one dark section: a score you can take apart. */
 export function HonestByDesign() {
-  const weights = defaultRatingWeights;
-  const scoring = rankingConfigDefaults.dish_scoring;
-
   return (
     <section
       id="rules"
@@ -84,13 +80,7 @@ export function HonestByDesign() {
         </div>
 
         <div className="min-w-0 lg:col-span-7">
-          <ScoreXray
-            weights={weights}
-            scoring={{
-              priorStrength: scoring.priorStrength,
-              minWeightForDisplay: scoring.minWeightForDisplay,
-            }}
-          />
+          <ScoreXray />
         </div>
       </div>
     </section>

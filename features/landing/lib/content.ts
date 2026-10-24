@@ -1,14 +1,13 @@
 import type { Diet } from '@/features/dishes/schemas/diet';
 import { defaultCity } from '@/features/geo/schemas/city';
-import type { TrustLevel } from '@/features/ratings/schemas/ranking-config';
 import type { Sentiment } from '@/features/ratings/schemas/sentiment';
 import type { VerdictShares } from '@/features/ratings/lib/verdict-shares';
+import type { TrustLevel } from './score-xray';
 
 /*
   Illustrative content for the landing page (ARCHITECTURE D28).
-  - Places are the fictional seeded brands, so every link opens a real page and no real business is
-    given invented verdicts. Dish and place names are data (they come from the catalogue in the app);
-    sentences and labels live in i18n under `landing.*`.
+  - Places use the fictional brand names of the sample catalogue, so no real business is given
+    invented verdicts. Dish and place names are data; sentences and labels live in i18n under `landing.*`.
   - Numbers are illustrative; they are not read from the database.
 */
 
@@ -336,7 +335,7 @@ export const communities: { slug: CommunitySlug; members: number }[] = [
   { slug: 'street-food', members: 4_900 },
 ];
 
-/* Section 4: Score X-Ray. The prior is the city mean for haleem; weights come from ranking_config. */
+/* Section 4: Score X-Ray. The prior is an illustrative city mean for haleem; weights are in score-xray.ts. */
 
 export type XrayRating = {
   handle: string;
