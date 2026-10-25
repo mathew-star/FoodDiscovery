@@ -23,7 +23,9 @@ describe.runIf(enabled)('search repository (seeded database)', () => {
     const result = await repo.searchCatalogue(cityId, 'biriyani', threshold, limits);
     expect(result.rankings.map((ranking) => ranking.slug)).toContain('chicken-dum-biryani');
     expect(result.dishes.length).toBeGreaterThan(3);
-    expect(result.dishes.every((dish) => dish.categorySlug === 'biryani' || /biry/i.test(dish.name))).toBe(true);
+    expect(result.dishes.every((dish) => dish.categorySlug === 'biryani' || /biry/i.test(dish.name))).toBe(
+      true,
+    );
     expect(result.dishes[0]?.textRank).toBeGreaterThan(0.45);
   });
 
@@ -33,16 +35,22 @@ describe.runIf(enabled)('search repository (seeded database)', () => {
   });
 
   it('matches restaurants, areas and cuisines', async () => {
-    expect((await repo.searchCatalogue(cityId, 'kebab karkhana', threshold, limits)).branches[0]?.slug).toMatch(
-      /^kebab-karkhana-/,
+    expect(
+      (await repo.searchCatalogue(cityId, 'kebab karkhana', threshold, limits)).branches[0]?.slug,
+    ).toMatch(/^kebab-karkhana-/);
+    expect((await repo.searchCatalogue(cityId, 'madhapur', threshold, limits)).areas[0]?.slug).toBe(
+      'madhapur',
     );
-    expect((await repo.searchCatalogue(cityId, 'madhapur', threshold, limits)).areas[0]?.slug).toBe('madhapur');
-    expect((await repo.searchCatalogue(cityId, 'arabian', threshold, limits)).cuisines[0]?.slug).toBe('arabian');
+    expect((await repo.searchCatalogue(cityId, 'arabian', threshold, limits)).cuisines[0]?.slug).toBe(
+      'arabian',
+    );
   });
 
   it('returns nothing for gibberish', async () => {
     const result = await repo.searchCatalogue(cityId, 'zzqxv', threshold, limits);
-    expect([result.dishes, result.branches, result.areas, result.cuisines, result.rankings].flat()).toHaveLength(0);
+    expect(
+      [result.dishes, result.branches, result.areas, result.cuisines, result.rankings].flat(),
+    ).toHaveLength(0);
   });
 
   it('lists browse candidates best first with chip fields', async () => {
@@ -56,5 +64,17 @@ describe.runIf(enabled)('search repository (seeded database)', () => {
     const rows = await repo.listBrowseCandidates(cityId, 1);
     const counts = await repo.countRecentActions([rows[0]?.id ?? ''], [rows[0]?.branchId ?? ''], 7);
     expect(counts).toEqual({ saves: [], directions: [] });
+  });
+});
+
+describe.runIf(enabled)('spelling suggestion', () => {
+  it('suggests the closest dish name for a badly misspelt query', async () => {
+    const repo = await import('@/features/search/server/repo');
+    const geo = await import('@/features/geo/server/repo');
+    const city = await geo.findCityBySlug('hyderabad');
+    expect(await repo.findSpellingSuggestion(city?.id ?? '', 'zzqxv mutton haleam', 0.3)).toBe(
+      'Mutton Haleem',
+    );
+    expect(await repo.findSpellingSuggestion(city?.id ?? '', 'zzqxv', 0.3)).toBeNull();
   });
 });

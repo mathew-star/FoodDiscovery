@@ -13,7 +13,7 @@ test('hero chips swap the live answer and fill the search', async ({ page }) => 
   await chip.click();
   await expect(chip).toHaveAttribute('aria-pressed', 'true');
   await expect(answer.getByRole('heading', { name: 'Pesarattu upma' })).toBeVisible();
-  await expect(page.getByRole('searchbox', { name: /Search a dish, restaurant or area/ })).toHaveValue(
+  await expect(page.getByRole('combobox', { name: /Search a dish, restaurant or area/ })).toHaveValue(
     'pure veg tiffins Banjara Hills',
   );
   await expect(answer.getByRole('link', { name: /What else to order here/ })).toHaveAttribute(
@@ -61,7 +61,7 @@ test('mode tabs preview real routes and move with the keyboard', async ({ page, 
   await page.keyboard.press('ArrowDown');
   await expect(tabs.getByRole('tab', { name: /Going by mood/ })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('group', { name: 'Moods' }).getByRole('button', { name: 'Date night' }).click();
-  await expect(open).toHaveAttribute('href', '/hyderabad/search?mood=date-night');
+  await expect(open).toHaveAttribute('href', '/hyderabad/search?chip=date-night');
 });
 
 test('leaderboard filters narrow the ranking', async ({ page }) => {

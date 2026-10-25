@@ -16,6 +16,7 @@ export function ClosingCta() {
             action={`/${defaultCity}/search`}
             id="cta-search"
             label={t('landing.cta.searchLabel')}
+            suggestCity={defaultCity}
             placeholder={t('landing.cta.placeholder')}
             showIcon={false}
           />

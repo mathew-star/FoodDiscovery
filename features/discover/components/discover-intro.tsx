@@ -1,6 +1,6 @@
 import type { CitySlug } from '@/features/geo/schemas/city';
 import { CommandBar } from '@/features/search/components/command-bar.client';
-import { ContextChips } from '@/features/search/components/context-chips';
+import { ContextChips } from '@/features/search/components/context-chips.client';
 import { searchExamples } from '@/features/search/lib/examples';
 import { t } from '@/i18n';
 
@@ -18,8 +18,11 @@ export function DiscoverIntro({ city }: { city: CitySlug }) {
           label={t('search.label')}
           placeholder={searchExamples[0] ?? t('search.placeholder')}
           examples={searchExamples}
-        />
-        <ContextChips city={city} />
+          suggestCity={city}
+          className="flex flex-col gap-4"
+        >
+          <ContextChips surface="discover" />
+        </CommandBar>
       </div>
     </section>
   );

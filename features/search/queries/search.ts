@@ -4,7 +4,13 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { getHoursForBranches } from '@/features/places/queries/branches';
 import { getRankingConfig } from '@/features/ratings/queries/ranking-config';
 import { daysBetween } from '@/shared/lib/time';
-import { countRecentActions, listBrowseCandidates, searchCatalogue } from '../server/repo';
+import type { Suggestion } from '../schemas/suggestion';
+import {
+  countRecentActions,
+  findSpellingSuggestion,
+  listBrowseCandidates,
+  searchCatalogue,
+} from '../server/repo';
 
 type CandidateRow = Awaited<ReturnType<typeof listBrowseCandidates>>[number];
 
@@ -59,13 +65,24 @@ export async function getSearchResults(cityId: string, query: string | null) {
         cuisines: [],
       };
 
-  const dishes = await withPopularity(catalogue.dishes, discovery.popularityWindowDays);
+  const empty = [
+    catalogue.rankings,
+    catalogue.dishes,
+    catalogue.branches,
+    catalogue.areas,
+    catalogue.cuisines,
+  ].every((group) => group.length === 0);
+  const [dishes, didYouMean] = await Promise.all([
+    withPopularity(catalogue.dishes, discovery.popularityWindowDays),
+    query && empty ? findSpellingSuggestion(cityId, query, search.spellingSimilarity) : null,
+  ]);
   const hours = await getHoursForBranches([
     ...new Set([...dishes.map((dish) => dish.branchId), ...catalogue.branches.map((branch) => branch.id)]),
   ]);
 
   return {
     query,
+    didYouMean: didYouMean && didYouMean.toLowerCase() !== query ? didYouMean : null,
     rankings: catalogue.rankings.map(({ slug, name }): SearchGroupItem => ({ slug, name })),
     dishes,
     branches: catalogue.branches,
@@ -78,13 +95,6 @@ export async function getSearchResults(cityId: string, query: string | null) {
 }
 
 export type SearchResults = Awaited<ReturnType<typeof getSearchResults>>;
-
-export type Suggestion = {
-  kind: 'ranking' | 'dish' | 'branch' | 'area' | 'cuisine';
-  label: string;
-  detail: string | null;
-  href: string;
-};
 
 /** Typeahead: a short, mixed list in the order a guest scans it (spec E4-2). */
 export async function getSuggestions(cityId: string, citySlug: string, query: string): Promise<Suggestion[]> {

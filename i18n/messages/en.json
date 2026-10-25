@@ -56,7 +56,51 @@
       "e4": "paya after midnight",
       "e5": "qubani ka meetha",
       "e6": "rainy day mirchi bajji"
-    }
+    },
+    "pageTitle": "Search {city}",
+    "metaDescription": "Find a dish, restaurant, area or cuisine in {city}, ranked by what locals loved.",
+    "resultsFor": "Results for “{query}”",
+    "suggestionsLabel": "Suggestions",
+    "suggestionsOne": "1 suggestion. Use the arrow keys to choose.",
+    "suggestionsCount": "{count} suggestions. Use the arrow keys to choose.",
+    "kind": {
+      "ranking": "City ranking",
+      "dish": "Dish",
+      "branch": "Restaurant",
+      "area": "Area",
+      "cuisine": "Cuisine"
+    },
+    "filters": {
+      "title": "More filters",
+      "distance": "Distance",
+      "withinKm": "Within {km} km",
+      "price": "Price",
+      "priceBand": "Price band {band} of 4 or less",
+      "diet": "Diet",
+      "area": "Area",
+      "cuisine": "Cuisine"
+    },
+    "dishesTitle": "Dishes",
+    "browseTitle": "Dishes across the city",
+    "filteredEmpty": "Nothing matches all those filters. Remove one to see more.",
+    "showMore": "Show {count} more",
+    "rankingsTitle": "City rankings in {city}",
+    "bestIn": "Best {dish} in {city}",
+    "restaurantsTitle": "Restaurants",
+    "areasCuisinesTitle": "Areas and cuisines",
+    "areaLink": "Eat in {area}",
+    "cuisineLink": "{cuisine} places",
+    "noResults": {
+      "title": "Nothing for “{query}” yet",
+      "body": "Check the spelling, try the dish’s other name, or look around an area.",
+      "didYouMean": "Did you mean",
+      "areas": "Areas in {city} with the most going on",
+      "ask": "Ask the locals",
+      "askReason": "Sign in to ask the locals about “{query}”."
+    },
+    "dishCount": "{count} dishes",
+    "dishCountOne": "1 dish",
+    "clearFilters": "Clear filters"
   },
   "chips": {
     "label": "Quick filters",
@@ -700,5 +744,13 @@
       "installHint": "Open your browser menu and choose “Add to home screen”.",
       "noStore": "No app store, works on any phone."
     }
+  },
+  "location": {
+    "title": "Show food near you?",
+    "body": "Your location stays on this phone and only sorts by distance.",
+    "denied": "Location is blocked for this site. Pick an area instead, or allow it in your browser settings.",
+    "unavailable": "We couldn’t get a location fix. Pick an area instead.",
+    "allow": "Use my location",
+    "notNow": "Not now"
   }
 }

@@ -7,8 +7,22 @@ import { formatRupees } from '@/shared/lib/money';
 import type { PlacedDish } from '../queries/dishes';
 import { DietMark } from './diet-mark';
 
+export type PlacedDishRowData = Pick<
+  PlacedDish,
+  | 'slug'
+  | 'name'
+  | 'diet'
+  | 'pricePaise'
+  | 'lovedPct'
+  | 'ratingCount'
+  | 'weightSum'
+  | 'branchSlug'
+  | 'branchName'
+  | 'localityName'
+>;
+
 type PlacedDishRowProps = {
-  dish: PlacedDish;
+  dish: PlacedDishRowData;
   rank?: number;
   minWeightForDisplay: number;
   /** Show the dish name as the title (lists across places) or the branch name (one dish's ranking). */

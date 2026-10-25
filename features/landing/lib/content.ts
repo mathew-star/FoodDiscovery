@@ -3,6 +3,7 @@ import { defaultCity } from '@/features/geo/schemas/city';
 import type { Sentiment } from '@/features/ratings/schemas/sentiment';
 import type { VerdictShares } from '@/features/ratings/lib/verdict-shares';
 import type { TrustLevel } from './score-xray';
+import type { ContextChipId } from '@/features/search/schemas/context-chips';
 
 /*
   Illustrative content for the landing page (ARCHITECTURE D28).
@@ -212,7 +213,15 @@ export const haleemBoard: { route: string; entries: LeaderboardEntry[] } = {
 export const moodIds = ['rainy-day', 'date-night', 'family-sunday', 'late-night', 'under-300'] as const;
 export type MoodId = (typeof moodIds)[number];
 
-export const moodRoute = (mood: MoodId) => `/${defaultCity}/search?mood=${mood}`;
+const moodChip: Record<MoodId, ContextChipId> = {
+  'rainy-day': 'rainy-day',
+  'date-night': 'date-night',
+  'family-sunday': 'family',
+  'late-night': 'late-night',
+  'under-300': 'under-300',
+};
+
+export const moodRoute = (mood: MoodId) => `/${defaultCity}/search?chip=${moodChip[mood]}`;
 
 export type MoodPick = { dish: string; place: DemoPlace; pricePaise: number; diet: Diet };
 

@@ -7,8 +7,12 @@ function createRedisClient(): Redis {
   const url = requireEnv('REDIS_URL');
   const tls = url.startsWith('rediss://');
 
-  // Upstash is TLS-only; a plain redis:// URL is accepted for a local server outside production.
-  if (!tls && (process.env.NODE_ENV === 'production' || !url.startsWith('redis://'))) {
+  // Upstash is TLS-only. Plain redis:// is accepted in development, and for a loopback server in
+  // production builds (CI and local e2e run `next start` against a local Redis).
+  const plainAllowed =
+    url.startsWith('redis://') &&
+    (process.env.NODE_ENV !== 'production' || ['localhost', '127.0.0.1'].includes(new URL(url).hostname));
+  if (!tls && !plainAllowed) {
     throw new ConfigurationError('REDIS_URL must be a TLS Redis URL (rediss://)');
   }
 

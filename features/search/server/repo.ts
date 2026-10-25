@@ -48,6 +48,7 @@ const candidateFields = {
   localityName: localities.name,
   localitySlug: localities.slug,
   cuisineSlug: cuisines.slug,
+  cuisineName: cuisines.name,
 };
 
 function candidateQuery(db: Database, textRank: SQL<number>) {
@@ -108,60 +109,58 @@ export async function searchCatalogue(
         )} else 0::real end)`
       : ownRank;
 
-    const [dishes, branchRows, areas, cuisineRows] = await Promise.all([
-      candidateQuery(tx, dishTextRank)
-        .where(
-          and(
-            liveDish(cityId),
-            canonicalIds.length
-              ? or(wordMatch(query, branchDishes.name), inArray(branchDishes.canonicalDishId, canonicalIds))
-              : wordMatch(query, branchDishes.name),
-          ),
-        )
-        .orderBy(desc(sql`text_rank`), sql`${branchDishes.score} desc nulls last`)
-        .limit(limits.dishLimit),
-      tx
-        .select({
-          id: branches.id,
-          slug: branches.slug,
-          name: branches.name,
-          priceBand: branches.priceBand,
-          vegOnly: branches.vegOnly,
-          foodScore: branches.foodScore,
-          tags: branches.tags,
-          location: branches.location,
-          localityName: localities.name,
-          localitySlug: localities.slug,
-          textRank: wordSimilarity(query, branches.name).mapWith(Number),
-        })
-        .from(branches)
-        .innerJoin(localities, eq(localities.id, branches.localityId))
-        .where(
-          and(eq(branches.cityId, cityId), eq(branches.status, 'active'), wordMatch(query, branches.name)),
-        )
-        .orderBy(desc(wordSimilarity(query, branches.name)), sql`${branches.foodScore} desc nulls last`)
-        .limit(limits.branchLimit),
-      tx
-        .select({
-          slug: localities.slug,
-          name: localities.name,
-          textRank: wordSimilarity(query, localities.name).mapWith(Number),
-        })
-        .from(localities)
-        .where(and(eq(localities.cityId, cityId), wordMatch(query, localities.name)))
-        .orderBy(desc(wordSimilarity(query, localities.name)))
-        .limit(limits.groupLimit),
-      tx
-        .select({
-          slug: cuisines.slug,
-          name: cuisines.name,
-          textRank: wordSimilarity(query, cuisines.name).mapWith(Number),
-        })
-        .from(cuisines)
-        .where(wordMatch(query, cuisines.name))
-        .orderBy(desc(wordSimilarity(query, cuisines.name)))
-        .limit(limits.groupLimit),
-    ]);
+    // Sequential: one transaction is one connection, which runs one statement at a time.
+    const dishes = await candidateQuery(tx, dishTextRank)
+      .where(
+        and(
+          liveDish(cityId),
+          canonicalIds.length
+            ? or(wordMatch(query, branchDishes.name), inArray(branchDishes.canonicalDishId, canonicalIds))
+            : wordMatch(query, branchDishes.name),
+        ),
+      )
+      .orderBy(desc(sql`text_rank`), sql`${branchDishes.score} desc nulls last`)
+      .limit(limits.dishLimit);
+    const branchRows = await tx
+      .select({
+        id: branches.id,
+        slug: branches.slug,
+        name: branches.name,
+        priceBand: branches.priceBand,
+        vegOnly: branches.vegOnly,
+        foodScore: branches.foodScore,
+        status: branches.status,
+        tags: branches.tags,
+        location: branches.location,
+        localityName: localities.name,
+        localitySlug: localities.slug,
+        textRank: wordSimilarity(query, branches.name).mapWith(Number),
+      })
+      .from(branches)
+      .innerJoin(localities, eq(localities.id, branches.localityId))
+      .where(and(eq(branches.cityId, cityId), eq(branches.status, 'active'), wordMatch(query, branches.name)))
+      .orderBy(desc(wordSimilarity(query, branches.name)), sql`${branches.foodScore} desc nulls last`)
+      .limit(limits.branchLimit);
+    const areas = await tx
+      .select({
+        slug: localities.slug,
+        name: localities.name,
+        textRank: wordSimilarity(query, localities.name).mapWith(Number),
+      })
+      .from(localities)
+      .where(and(eq(localities.cityId, cityId), wordMatch(query, localities.name)))
+      .orderBy(desc(wordSimilarity(query, localities.name)))
+      .limit(limits.groupLimit);
+    const cuisineRows = await tx
+      .select({
+        slug: cuisines.slug,
+        name: cuisines.name,
+        textRank: wordSimilarity(query, cuisines.name).mapWith(Number),
+      })
+      .from(cuisines)
+      .where(wordMatch(query, cuisines.name))
+      .orderBy(desc(wordSimilarity(query, cuisines.name)))
+      .limit(limits.groupLimit);
 
     return {
       rankings: canonicalMatches.slice(0, limits.groupLimit),
@@ -171,6 +170,27 @@ export async function searchCatalogue(
       cuisines: cuisineRows,
     };
   });
+}
+
+/** E4-7 "did you mean": the closest dish or area name, however weak the query's own matches were. */
+export async function findSpellingSuggestion(cityId: string, query: string, minSimilarity: number) {
+  const similarityTo = (column: AnyPgColumn) =>
+    sql<number>`greatest(similarity(${normalizedQuery(query)}, ${normalized(column)}), word_similarity(${normalizedQuery(query)}, ${normalized(column)}))`;
+  const [dishes, areas] = await Promise.all([
+    getDb()
+      .select({ name: canonicalDishes.name, similarity: similarityTo(canonicalDishes.name).mapWith(Number) })
+      .from(canonicalDishes)
+      .orderBy(desc(similarityTo(canonicalDishes.name)))
+      .limit(1),
+    getDb()
+      .select({ name: localities.name, similarity: similarityTo(localities.name).mapWith(Number) })
+      .from(localities)
+      .where(eq(localities.cityId, cityId))
+      .orderBy(desc(similarityTo(localities.name)))
+      .limit(1),
+  ]);
+  const best = [...dishes, ...areas].sort((a, b) => b.similarity - a.similarity)[0];
+  return best && best.similarity >= minSimilarity ? best.name : null;
 }
 
 /** Browse mode (chips without a query): the city's live dishes, best first. */

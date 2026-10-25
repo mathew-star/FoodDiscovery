@@ -78,6 +78,7 @@ export function HeroDemo({ title, footer, aside }: HeroDemoProps) {
             label={t('landing.hero.searchLabel')}
             placeholder={searchExamples[0] ?? t('search.placeholder')}
             examples={searchExamples}
+            suggestCity={defaultCity}
             value={query}
             onValueChange={setQuery}
           />

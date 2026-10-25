@@ -21,6 +21,24 @@ describe('searchParamsSchema', () => {
     expect(searchParamsSchema.parse({}).chip).toEqual([]);
   });
 
+  it('parses filters and drops invalid ones', () => {
+    expect(
+      searchParamsSchema.parse({ area: 'old-city', diet: 'egg', price: '2', km: '3', cuisine: 'arabian' }),
+    ).toMatchObject({
+      area: 'old-city',
+      diet: 'egg',
+      price: 2,
+      km: 3,
+      cuisine: 'arabian',
+    });
+    expect(searchParamsSchema.parse({ area: '../x', diet: 'vegan', price: '9', km: '4' })).toMatchObject({
+      area: undefined,
+      diet: undefined,
+      price: undefined,
+      km: undefined,
+    });
+  });
+
   it('caps query length', () => {
     expect(normalizeSearchQuery('a'.repeat(120))).toHaveLength(80);
   });

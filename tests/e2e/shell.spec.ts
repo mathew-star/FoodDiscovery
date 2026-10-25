@@ -31,9 +31,9 @@ test('landing page leads into the city', async ({ page }) => {
 test('discover page shows search and context chips', async ({ page }) => {
   await page.goto('/hyderabad');
   await expect(page.getByRole('search').first()).toBeAttached();
-  const chips = page.getByRole('navigation', { name: 'Quick filters' }).getByRole('link');
-  await expect(chips).toHaveCount(8);
-  await expect(chips.first()).toHaveAttribute('href', '/hyderabad/search?chip=open-now');
+  const chips = page.getByRole('group', { name: 'Quick filters' }).getByRole('button');
+  await expect(chips).toHaveCount(9);
+  await expect(chips.first()).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('unknown city returns not found', async ({ page }) => {

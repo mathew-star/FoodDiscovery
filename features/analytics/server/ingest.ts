@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { createHash } from 'node:crypto';
 import { after, type NextRequest } from 'next/server';
+import { clientIpKey } from '@/infra/client-ip';
 import { logger } from '@/infra/logger';
 import { limit, type RateLimitPolicy } from '@/infra/ratelimit';
 import { uuidv7 } from '@/shared/lib/uuid';
@@ -34,13 +34,6 @@ function isSameOrigin(request: NextRequest): boolean {
   }
 }
 
-function clientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown';
-}
-
-const hashKey = (value: string) => createHash('sha256').update(value).digest('hex').slice(0, 32);
-
 export async function ingestEvents(request: NextRequest): Promise<Response> {
   if (!isSameOrigin(request)) return empty(403);
 
@@ -62,7 +55,7 @@ export async function ingestEvents(request: NextRequest): Promise<Response> {
   const deviceId = existingDevice && uuidPattern.test(existingDevice) ? existingDevice : uuidv7();
 
   for (const [policy, identifier] of [
-    [ipPolicy, hashKey(clientIp(request))],
+    [ipPolicy, clientIpKey(request.headers)],
     [devicePolicy, deviceId],
   ] as const) {
     const decision = await limit(policy, identifier);
