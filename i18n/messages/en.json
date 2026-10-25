@@ -852,5 +852,36 @@
       "signedInAs": "Signed in as {email}",
       "signOut": "Sign out"
     }
+  },
+  "profile": {
+    "onboarding": {
+      "title": "Set up your profile",
+      "intro": "One screen. Your username and diet help locals trust your ratings; everything else is optional.",
+      "submit": "Finish",
+      "pending": "Saving",
+      "underage": "I’m under 18",
+      "underageConfirm": "FDN is for people 18 and older, so we’ll delete this account now. Continue?",
+      "underageYes": "Yes, delete it",
+      "underageNo": "Go back",
+      "underageDone": "Your account has been deleted. You can still read everything on FDN without one."
+    },
+    "fields": {
+      "displayName": "Display name",
+      "username": "Username",
+      "usernameHint": "3 to 20 characters: letters, numbers and underscores. Shown on your ratings.",
+      "diet": "What do you eat?",
+      "noPreference": "No preference",
+      "cuisines": "Cuisines you love (up to {max}, {count} picked)",
+      "homeLocality": "Your home area",
+      "adult": "I’m 18 or older"
+    },
+    "errors": {
+      "displayName": "Enter a name of 40 characters or fewer.",
+      "usernameFormat": "Use 3 to 20 letters, numbers or underscores.",
+      "usernameReserved": "That username is reserved. Try another.",
+      "usernameTaken": "That username is taken. Try another.",
+      "adult": "Confirm you’re 18 or older to finish.",
+      "cuisines": "Pick up to 5 cuisines."
+    }
   }
 }

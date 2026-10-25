@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { authClient } from '../lib/auth-client';
 import { authErrorMessage } from '../lib/auth-errors';
+import { onboardingPath } from '../lib/onboarding-path';
 import { FormField, FormMessage } from './auth-card';
 
 /** Spec W2.3 as D1: email + password; an unverified account gets a fresh link instead of a session. */
@@ -26,7 +27,7 @@ export function SignInForm({ next }: { next: string }) {
     const { error: failure } = await authClient.signIn.email({
       email: String(form.get('email') ?? ''),
       password: String(form.get('password') ?? ''),
-      callbackURL: next,
+      callbackURL: onboardingPath(next),
     });
     setPending(false);
     if (failure) {
@@ -34,7 +35,8 @@ export function SignInForm({ next }: { next: string }) {
       else setError(authErrorMessage(failure));
       return;
     }
-    router.replace(next);
+    // Onboarding forwards straight to `next` once the profile is complete.
+    router.replace(onboardingPath(next));
     router.refresh();
   }
 

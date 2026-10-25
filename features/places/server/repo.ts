@@ -172,3 +172,10 @@ export async function listHoursForBranches(branchIds: string[]) {
     .from(branchHours)
     .where(inArray(branchHours.branchId, branchIds));
 }
+
+export async function listCuisines() {
+  return getDb()
+    .select({ slug: cuisines.slug, name: cuisines.name })
+    .from(cuisines)
+    .orderBy(asc(cuisines.name));
+}

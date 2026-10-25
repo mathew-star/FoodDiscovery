@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { t } from '@/i18n';
-import { safeNextPath } from '../lib/safe-next';
+import { safeNextPath } from '@/shared/lib/safe-next';
 import { getSession } from '../queries/session';
 import { AuthCard } from './auth-card';
 import { ForgotForm } from './forgot-form.client';

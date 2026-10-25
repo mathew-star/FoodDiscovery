@@ -24,6 +24,19 @@ async function latestLink(to: string, tag: string): Promise<string> {
   return link;
 }
 
+async function completeOnboarding(page: Page) {
+  const form = card(page, 'Set up your profile');
+  await expect(form.getByLabel('Display name', { exact: true })).toHaveValue('Asha Rao');
+  await expect(form.getByLabel('Username', { exact: true })).toHaveValue(/^asha_rao(_\d{3})?$/);
+  await form.getByRole('button', { name: 'Veg', exact: true }).click();
+  await form.getByRole('button', { name: 'Hyderabadi' }).click();
+  await form.getByRole('button', { name: 'Old City' }).click();
+  await form.getByRole('button', { name: 'Finish' }).click();
+  await expect(form.getByText('Confirm you’re 18 or older to finish.')).toBeVisible();
+  await form.getByRole('checkbox', { name: 'I’m 18 or older' }).click();
+  await form.getByRole('button', { name: 'Finish' }).click();
+}
+
 const uniqueEmail = (label: string) =>
   `${label}-${Date.now()}-${Math.round(Math.random() * 1e6)}@example.com`;
 const password = 'irani chai before the azaan';
@@ -50,6 +63,8 @@ test('sign up from a guest prompt, confirm the email, and land back where you we
   await signUp(page, email);
 
   await page.goto(await latestLink(email, 'verify-email'));
+  await expect(page).toHaveURL(/\/onboarding\?next=%2Fr%2Fdeccan-degh-house-old-city/);
+  await completeOnboarding(page);
   await expect(page).toHaveURL(/\/r\/deccan-degh-house-old-city$/);
   await page.goto('/saved');
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
@@ -94,6 +109,8 @@ test('reset a forgotten password from the emailed link', async ({ page }) => {
   await page.goto('/login/create');
   await signUp(page, email);
   await page.goto(await latestLink(email, 'verify-email'));
+  await completeOnboarding(page);
+  await expect(page).toHaveURL(/\/hyderabad$/);
 
   await page.context().clearCookies();
   await page.goto('/login/forgot');
@@ -131,4 +148,21 @@ test('auth pages are not indexed and pass axe', async ({ page }) => {
       path,
     ).toEqual([]);
   }
+});
+
+test('under 18 means no account', async ({ page }) => {
+  const email = uniqueEmail('minor');
+  await page.goto('/login/create');
+  await signUp(page, email);
+  await page.goto(await latestLink(email, 'verify-email'));
+  const form = card(page, 'Set up your profile');
+  await form.getByRole('button', { name: 'I’m under 18' }).click();
+  await form.getByRole('button', { name: 'Yes, delete it' }).click();
+  await expect(page.getByRole('main').getByRole('status')).toContainText('Your account has been deleted');
+
+  await page.goto('/login');
+  await card(page, 'Sign in').getByLabel('Email', { exact: true }).fill(email);
+  await card(page, 'Sign in').getByLabel('Password', { exact: true }).fill(password);
+  await card(page, 'Sign in').getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.getByRole('main').getByRole('alert')).toHaveText('That email and password don’t match.');
 });

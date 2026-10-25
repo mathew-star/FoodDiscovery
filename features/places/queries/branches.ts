@@ -7,6 +7,7 @@ import type { HoursRow } from '../lib/opening-hours';
 import {
   findBranchBySlug,
   findCuisineBySlug,
+  listCuisines,
   findNearbyBranches,
   listBranchesForCuisine,
   listBranchesInLocality,
@@ -76,6 +77,13 @@ export async function getLocalityBranches(localityId: string) {
   cacheLife('catalog');
   cacheTag(`locality:${localityId}`, 'branches');
   return withHours(await listBranchesInLocality(localityId, 12));
+}
+
+export async function getCuisineOptions() {
+  'use cache';
+  cacheLife('cuisine');
+  cacheTag('cuisines');
+  return listCuisines();
 }
 
 export async function getCuisine(slug: string) {

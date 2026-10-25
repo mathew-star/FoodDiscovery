@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { authClient } from '../lib/auth-client';
 import { authErrorMessage } from '../lib/auth-errors';
+import { onboardingPath } from '../lib/onboarding-path';
 import { checkPassword, passwordMinLength } from '../lib/password-policy';
 import { FormField, FormMessage } from './auth-card';
 
@@ -31,7 +32,7 @@ export function SignUpForm({ next }: { next: string }) {
       name: String(form.get('name') ?? '').trim(),
       email,
       password,
-      callbackURL: next,
+      callbackURL: onboardingPath(next),
     });
     setPending(false);
     if (failure) setError(authErrorMessage(failure));
@@ -40,7 +41,10 @@ export function SignUpForm({ next }: { next: string }) {
 
   async function resend() {
     if (!sentTo) return;
-    const { error: failure } = await authClient.sendVerificationEmail({ email: sentTo, callbackURL: next });
+    const { error: failure } = await authClient.sendVerificationEmail({
+      email: sentTo,
+      callbackURL: onboardingPath(next),
+    });
     setError(failure ? authErrorMessage(failure) : null);
   }
 

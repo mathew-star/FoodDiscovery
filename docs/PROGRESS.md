@@ -95,7 +95,8 @@ Notes:
 
 - [x] Better Auth email + password (D1): sign up, verify by email, sign in, sign out, forgot and reset password; D2 password policy and limits; Resend client with dev/e2e outbox (D41); `users`/`sessions`/`accounts`/`verifications`/`profiles` migration (`20261025113625_auth_profiles`)
 - [x] Header Sign in / avatar, `/saved` account panel; Playwright W2 sign-up → verify → resume, unverified sign-in, reset, axe on auth pages
-- [ ] Onboarding (E1-3), device-save import (E1-4), intent resume after sign-in
+- [x] Onboarding (E1-3): `/onboarding` after every fresh session, prefilled free username, reserved names, diet, ≤ 5 cuisines, home area, 18+ required; "I'm under 18" deletes the account; `?next=` resume
+- [ ] Device-save import (E1-4) and member saves/lists
 - [ ] Settings: sessions, export, delete
 - [ ] Ratings + aspect ratings + score jobs
 - [ ] Trust levels, rate limits, lists
