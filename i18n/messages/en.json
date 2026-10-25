@@ -768,5 +768,89 @@
     "emptyTitle": "Nothing saved yet",
     "emptyBody": "Tap Save on a dish or a place and it shows up here, ready for tonight.",
     "emptyAction": "Explore Hyderabad"
+  },
+  "auth": {
+    "google": "Continue with Google",
+    "soon": "Soon",
+    "or": "or",
+    "fields": {
+      "name": "Your name",
+      "email": "Email",
+      "password": "Password",
+      "newPassword": "New password",
+      "passwordHint": "At least {min} characters. A short sentence works well."
+    },
+    "signIn": {
+      "title": "Sign in",
+      "intro": "Reading stays free. Sign in to rate, post, vote and keep your saves everywhere.",
+      "submit": "Sign in",
+      "pending": "Signing in",
+      "forgot": "Forgot your password?",
+      "newHere": "New to FDN?",
+      "verifyAgain": "Your email isn’t confirmed yet. We sent a fresh link; open it to finish signing in."
+    },
+    "signUp": {
+      "title": "Create an account",
+      "intro": "One account for rating dishes, posting and keeping your saves on every phone.",
+      "submit": "Create account",
+      "pending": "Creating account",
+      "haveAccount": "Already have an account?",
+      "terms": "By creating an account you agree to follow the community guidelines. You must be 18 or older.",
+      "checkEmail": "Check {email}. We sent a link that confirms your email and signs you in.",
+      "checkEmailHint": "The link works for 30 minutes. Nothing there? Check spam, or send it again.",
+      "resend": "Send the link again"
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "intro": "Enter your email and we’ll send a link to choose a new password.",
+      "submit": "Send reset link",
+      "sent": "If that email has an account, a reset link is on its way. It works for 30 minutes.",
+      "back": "Back to sign in"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "intro": "This signs you out on every other device.",
+      "submit": "Save new password",
+      "done": "Password saved. Sign in with your new password.",
+      "again": "Need a new link?"
+    },
+    "errors": {
+      "generic": "That didn’t work. Try again in a moment.",
+      "rateLimited": "Too many tries. Wait a few minutes, then try again.",
+      "invalidCredentials": "That email and password don’t match.",
+      "invalidEmail": "Enter a valid email address.",
+      "notVerified": "Confirm your email first. We sent you a new link.",
+      "exists": "That email already has an account. Sign in instead.",
+      "invalidToken": "That link has expired or was already used. Ask for a new one.",
+      "password": {
+        "too_short": "Use at least 10 characters.",
+        "too_long": "Use 128 characters or fewer.",
+        "common": "That password is too common. Pick something only you would think of.",
+        "repetitive": "That password repeats too much. Mix it up.",
+        "contains_email": "Don’t use your email address in your password."
+      }
+    },
+    "email": {
+      "verify": {
+        "subject": "Confirm your email for FDN",
+        "heading": "Confirm your email",
+        "body": "Open this link to confirm your email and finish signing in. It works for 30 minutes.",
+        "button": "Confirm email",
+        "footnote": "Didn’t create an FDN account? Ignore this email and nothing happens."
+      },
+      "reset": {
+        "subject": "Reset your FDN password",
+        "heading": "Choose a new password",
+        "body": "Someone asked to reset the password for this email. The link works for 30 minutes.",
+        "button": "Choose a new password",
+        "footnote": "Didn’t ask for this? Ignore this email; your password stays the same."
+      }
+    },
+    "account": {
+      "label": "Your account, {name}",
+      "guest": "Saves stay on this phone until you sign in.",
+      "signedInAs": "Signed in as {email}",
+      "signOut": "Sign out"
+    }
   }
 }

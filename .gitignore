@@ -59,3 +59,9 @@ next-env.d.ts
 
 # local scratch output (verification screenshots, temp scripts)
 *.tmp.*
+
+# local email outbox (development and e2e without Resend)
+/.email-outbox/
+
+# local Redis snapshots
+dump.rdb

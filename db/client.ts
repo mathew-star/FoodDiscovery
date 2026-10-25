@@ -43,6 +43,11 @@ export function getDb(): Database {
   return clients().reader;
 }
 
+/** Pooled client for libraries that run their own transactions (Better Auth). */
+export function getWriteDb(): Database {
+  return clients().writer;
+}
+
 export function withTransaction<T>(work: (tx: Transaction) => Promise<T>): Promise<T> {
   return clients().writer.transaction(work);
 }

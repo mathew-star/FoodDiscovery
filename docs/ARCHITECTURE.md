@@ -48,6 +48,7 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D38 | Context chips use the DESIGN-SYSTEM §7.2 vocabulary (Breakfast dropped; Rainy day, Within 3 km added). Occasion chips (rainy day, date night, family Sunday) match `branches.tags`, set by Ops; Biryani leaderboard matches the biryani category. On Discover the chips are toggles inside the search form and submit with the query | Earlier chip set | Matches the design system; tags are editorial, not inferred |
 | D39 | Guest saves are a device list (`fdn:saves`, ≤ 20, validated on read) that stores a display snapshot (name, place, link, diet) so `/saved` renders without a request; the 21st save shows the sign-in prompt. `/saved` is a public route until accounts import device saves in P3 | Spec W2 "stored on device" | No server state for guests |
 | D40 | Discover "Trending near you" ships at most 60 candidates, pre-ranked server-side with trending weights and no location; the browser narrows to 5 km and falls back to "Trending across Hyderabad" below 4 items | Spec §3.5 per-locality cached query | Bounded page weight; same cache for every guest |
+| D41 | Email goes through `infra/email.ts`: Resend's HTTP API via `fetch` (no SDK) with sender `EMAIL_FROM` (Resend's test sender when unset). Without a key outside production, or when `EMAIL_OUTBOX_DIR` is set, each email is written as a JSON file instead; Playwright reads the links from there. The outbox is refused on Vercel production. Logs record only the email kind. D2 sign-in limits count attempts, not only failures | Resend SDK; spec silent on test transport | One small fetch call instead of a dependency; e2e covers the real verification and reset links |
 
 ## 2. Repository layout
 
@@ -130,11 +131,13 @@ Tags: `city:{slug}`, `locality:{id}`, `branch:{id}`, `branch-dish:{id}`, `dish:{
 
 ## 5. Auth
 
-- Better Auth with Drizzle adapter; tables `user`, `session`, `account`, `verification` in `db/schema/auth.ts`.
-- Providers: email + password with required email verification; verification and reset emails sent through Resend (`features/auth/emails/`). Google social provider added later (D1).
-- Session: database-backed, 30-day `expiresIn`, sliding `updateAge` 1 day, cookie HttpOnly, Secure, SameSite=Lax. Sessions listed/revocable in settings; all revoked on ban or deletion.
-- Base URL `https://food-discovery-eta.vercel.app`, base path `/api/auth`. Dashboard connection uses `BETTER_AUTH_API_KEY`.
-- Roles on `profiles.role`: `member | ops | admin`; community moderators in `community_moderators`; trust in `profiles.trust_level` (T0/T1/T2/FOUNDING) recomputed nightly and after moderation.
+- Better Auth (`features/auth/server/auth.ts`, built lazily by `getAuth()`) with the Drizzle adapter on the pooled client (`getWriteDb()`, transactions on); tables `users`, `sessions`, `accounts`, `verifications` in `db/schema/auth.ts` (`usePlural`), uuidv7 ids. Endpoints at `/api/auth/*` (`app/api/auth/[...all]/route.ts`). Telemetry off.
+- Email + password with required verification; the verification link signs the member in and returns to `?next=` (checked by `safeNextPath`, no open redirects). Verification and reset emails go through `infra/email.ts` (Resend; a JSON outbox in development and e2e, D41). Links expire in 30 min; a password reset signs out every other session. Google is shown disabled (D1).
+- D2 limits run in a Better Auth `before` hook on the shared Redis limiter, only on sign-up, sign-in, reset and email-sending endpoints, so session reads never touch it. Password policy: `features/auth/lib/password-policy.ts`, checked in the browser and again on the server.
+- Session: database-backed, 30-day `expiresIn`, sliding `updateAge` 1 day, cookie `fdn.session_token` HttpOnly, SameSite=Lax, Secure on https. `getSession()` (`features/auth/queries/session.ts`) is per-request (`react.cache`) and renders inside `<Suspense>`; a failing auth backend degrades to guest instead of failing the page.
+- Routes: `/login`, `/login/create`, `/login/forgot`, `/login/reset` (all `noindex`). The header shows Sign in or the member's avatar; `/saved` shows who is signed in and Sign out.
+- Base URL `https://food-discovery-eta.vercel.app`, base path `/api/auth`. `BETTER_AUTH_API_KEY` is reserved for the Better Auth dashboard connection (`@better-auth/infra`, not wired yet).
+- Roles on `profiles.role`: `member | ops | admin`; community moderators in `community_moderators`; trust in `profiles.trust_level` (`t0`/`t1`/`t2`/`founding`) recomputed nightly and after moderation.
 - Onboarding gate: a user without `profiles.onboarded_at` is redirected to `/onboarding` by the session helper, not by `proxy.ts`.
 
 ## 6. Data model (Postgres, Drizzle)
@@ -147,7 +150,7 @@ All tables: `id uuid` (v7), `created_at`, `updated_at`; soft delete via `deleted
 | places | `brands`, `branches` (slug, brand, locality, `location geography(Point)`, status, price_band, veg_only, tags[] for occasion chips, food_score, aspect scores), `branch_hours`, `branch_cuisines`, `cuisines`, `slug_redirects` |
 | facts | `facts` (branch, field, value jsonb, source, verified_at, freshness_days), `fact_confirmations`, `fact_proposals` |
 | dishes | `dish_categories`, `canonical_dishes`, `canonical_dish_aliases`, `branch_dishes` (price_paise, diet, is_signature, score, loved_pct, rating_count, weight_sum, scored_at, last_seen_at), `leaderboard_snapshots` |
-| users | Better Auth tables, `profiles` (username, display_name, bio, diet, cuisines[], home_locality, role, trust_level, adult_confirmed_at, onboarded_at), `username_redirects`, `brand_affiliations`, `user_blocks`, `devices` |
+| users | Better Auth tables `users`, `sessions`, `accounts`, `verifications`; `profiles` (user_id pk, username lower-unique `^[a-z0-9_]{3,20}$`, display_name, bio ≤ 160, diet `veg|jain|egg|nonveg`, cuisines[] ≤ 5, home_locality, role, trust_level, adult_confirmed_at, onboarded_at), `username_redirects`, `brand_affiliations`, `user_blocks`, `devices` |
 | ratings | `dish_ratings` (user, branch_dish, sentiment, post_id, disclosure, suspect, active, superseded_at), `aspect_ratings` (value/service/ambience, would_return) |
 | content | `posts` (type experience/question/discussion, community, title, body, disclosure, embed_url, status, score, hot, on_site), `post_media`, `post_entities`, `comments` (parent, depth ≤ 6, path, accepted, status), `post_votes`, `comment_votes` |
 | communities | `communities` (kind city/locality/topic), `community_members`, `community_moderators`, `community_pins`, `community_requests` |
@@ -205,7 +208,9 @@ Names only; values live in local `.env` and Vercel project settings, never in ch
 | `REDIS_URL` | ioredis (`rediss://`; `redis://` in development and for a loopback host, D33). Rate limiting fails closed without it in production |
 | `R2_ACCOUNT_ID`, `S3_API`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` (optional) | R2 client |
 | `API_TOKEN` | Cloudflare API token; not read by app code |
-| `RESEND_API_KEY` | OTP and transactional email |
+| `RESEND_API_KEY` | Verification and reset email via Resend (D41) |
+| `EMAIL_FROM` | Verified Resend sender, e.g. `FDN <hello@your-domain>`; defaults to Resend's test sender |
+| `EMAIL_OUTBOX_DIR` | Development and e2e only: write emails as JSON files instead of sending (D41) |
 | `BETTER_AUTH_API_KEY` | Better Auth dashboard connection |
 | `BETTER_AUTH_SECRET` | Better Auth signing/encryption secret |
 | `BETTER_AUTH_URL` | Better Auth base URL: `http://localhost:3000` locally, `https://food-discovery-eta.vercel.app` on Vercel |

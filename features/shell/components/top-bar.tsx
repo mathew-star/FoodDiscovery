@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { AccountEntry } from '@/features/auth/components/account-entry';
 import { DietToggle } from '@/features/dishes/components/diet-toggle.client';
 import type { CitySlug } from '@/features/geo/schemas/city';
 import { SearchBox } from '@/features/search/components/search-box';
@@ -28,6 +30,11 @@ export function TopBar({ city }: { city: CitySlug }) {
           <DietToggle />
           <span className="hidden lg:inline-flex">
             <PostButton variant="header" />
+          </span>
+          <span className="hidden min-w-[5.5rem] justify-end lg:inline-flex">
+            <Suspense fallback={null}>
+              <AccountEntry />
+            </Suspense>
           </span>
         </div>
       </div>

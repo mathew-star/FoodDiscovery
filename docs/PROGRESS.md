@@ -7,7 +7,7 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 | P0 Foundations | Done | branch `claude/food-discovery-audit-7wepur` |
 | P1 Catalogue | In progress | — |
 | P2 Search and Discover | In progress | — |
-| P3 Accounts and ratings | Not started | — |
+| P3 Accounts and ratings | In progress | — |
 | P4 Posts, comments, communities | Not started | — |
 | P5 Battles, leaderboards, living facts | Not started | — |
 | P6 Safety, notifications, admin, launch | Not started | — |
@@ -93,7 +93,9 @@ Notes:
 
 ## P3 Accounts and ratings
 
-- [ ] Better Auth (Google, One Tap, email OTP), onboarding, device-save import
+- [x] Better Auth email + password (D1): sign up, verify by email, sign in, sign out, forgot and reset password; D2 password policy and limits; Resend client with dev/e2e outbox (D41); `users`/`sessions`/`accounts`/`verifications`/`profiles` migration (`20261025113625_auth_profiles`)
+- [x] Header Sign in / avatar, `/saved` account panel; Playwright W2 sign-up → verify → resume, unverified sign-in, reset, axe on auth pages
+- [ ] Onboarding (E1-3), device-save import (E1-4), intent resume after sign-in
 - [ ] Settings: sessions, export, delete
 - [ ] Ratings + aspect ratings + score jobs
 - [ ] Trust levels, rate limits, lists

@@ -4,7 +4,7 @@ import { config } from './proxy';
 const pattern = new RegExp(`^${config.matcher[0] ?? ''}$`);
 
 describe('proxy matcher', () => {
-  it.each(['/mumbai', '/mumbai/search', '/wp-login.php', '/hyderabadx', '/battlesx'])(
+  it.each(['/mumbai', '/mumbai/search', '/wp-login.php', '/hyderabadx', '/battlesx', '/loginx'])(
     'treats %s as unknown',
     (path) => {
       expect(pattern.test(path)).toBe(true);
@@ -28,6 +28,8 @@ describe('proxy matcher', () => {
     '/guidelines',
     '/offline',
     '/login',
+    '/login/create',
+    '/login/reset',
     '/onboarding',
     '/post/new',
     '/rate/pista-house-shalibanda',

@@ -6,6 +6,6 @@ export function proxy(request: NextRequest): NextResponse {
 
 export const config = {
   matcher: [
-    '/((?!_next/|api/|hyderabad(?:/|$)|r/|p/|c/|u/|lists/|battles(?:/|$)|communities(?:/|$)|about$|guidelines$|offline$|login$|onboarding$|post/|rate/|saved$|notifications$|settings$|admin(?:/|$)|manifest\\.webmanifest$|robots\\.txt$|sitemap\\.xml$|sw\\.js$|icons/|icon\\.svg$|apple-icon\\.png$)[^/]+.*)',
+    '/((?!_next/|api/|hyderabad(?:/|$)|r/|p/|c/|u/|lists/|battles(?:/|$)|communities(?:/|$)|about$|guidelines$|offline$|login(?:/|$)|onboarding$|post/|rate/|saved$|notifications$|settings$|admin(?:/|$)|manifest\\.webmanifest$|robots\\.txt$|sitemap\\.xml$|sw\\.js$|icons/|icon\\.svg$|apple-icon\\.png$)[^/]+.*)',
   ],
 };
