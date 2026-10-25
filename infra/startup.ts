@@ -59,8 +59,8 @@ export async function registerServer(): Promise<void> {
       await getDb().execute(sql`select 1`);
     }),
     checkService('upstash-redis', async () => {
-      const { redis } = await import('./redis');
-      await redis.ping();
+      const { getRedis } = await import('./redis');
+      await getRedis().ping();
     }),
     checkService('cloudflare-r2', async () => {
       const { r2, r2Bucket } = await import('./r2');

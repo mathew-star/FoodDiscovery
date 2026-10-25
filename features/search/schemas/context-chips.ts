@@ -7,9 +7,10 @@ export const contextChipIds = [
   'late-night',
   'veg',
   'biryani',
-  'breakfast',
+  'rainy-day',
   'date-night',
   'family',
+  'within-3km',
 ] as const;
 
 export const contextChipIdSchema = z.enum(contextChipIds);
@@ -20,8 +21,9 @@ export const contextChipLabelKey: Record<ContextChipId, MessageKey> = {
   'under-300': 'chips.under300',
   'late-night': 'chips.lateNight',
   veg: 'chips.veg',
-  biryani: 'chips.biryani',
-  breakfast: 'chips.breakfast',
+  biryani: 'chips.biryaniLeaderboard',
+  'rainy-day': 'chips.rainyDay',
   'date-night': 'chips.dateNight',
   family: 'chips.family',
+  'within-3km': 'chips.within3km',
 };

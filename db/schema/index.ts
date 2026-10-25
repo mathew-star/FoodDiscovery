@@ -1,3 +1,4 @@
+export * from './analytics';
 export * from './config';
 export * from './dishes';
 export * from './facts';

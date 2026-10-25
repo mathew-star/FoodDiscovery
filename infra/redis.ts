@@ -5,8 +5,10 @@ import { ConfigurationError, requireEnv } from './env';
 
 function createRedisClient(): Redis {
   const url = requireEnv('REDIS_URL');
+  const tls = url.startsWith('rediss://');
 
-  if (!url.startsWith('rediss://')) {
+  // Upstash is TLS-only; a plain redis:// URL is accepted for a local server outside production.
+  if (!tls && (process.env.NODE_ENV === 'production' || !url.startsWith('redis://'))) {
     throw new ConfigurationError('REDIS_URL must be a TLS Redis URL (rediss://)');
   }
 
@@ -17,10 +19,10 @@ function createRedisClient(): Redis {
   });
 }
 
-const globalForRedis = globalThis as typeof globalThis & { dishRedis?: Redis };
+const globalForRedis = globalThis as typeof globalThis & { fdnRedis?: Redis };
 
-export const redis = globalForRedis.dishRedis ?? createRedisClient();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForRedis.dishRedis = redis;
+/** Lazily created so modules that only sometimes need Redis can import this without REDIS_URL. */
+export function getRedis(): Redis {
+  globalForRedis.fdnRedis ??= createRedisClient();
+  return globalForRedis.fdnRedis;
 }
