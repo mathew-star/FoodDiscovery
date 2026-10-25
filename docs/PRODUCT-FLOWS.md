@@ -31,6 +31,7 @@ Legend — **A** server action (`features/x/server/actions.ts`), **R** route han
 | Step | Route | Components | Server |
 | --- | --- | --- | --- |
 | Guest save | branch, branch dish; list at `/saved` | `SaveButton`, `SavedList` [saves] | `localStorage` `fdn:saves` (≤ 20, D39) |
+| Member save | same buttons; lists at `/saved` | `SaveButton`, `MemberSync`, `SavedContent`, `RemoveSaveButton` [saves] | A `toggleSaveAction`, A `importDeviceSavesAction`, A `listSavedKeysAction` (D42) |
 | Intent prompt | any | `useSignInPrompt`, `IntentButton` [shell], `ToastProvider` [shared/ui] | — |
 | Sign in / up | `/login`, `/login/create`, `/login/forgot`, `/login/reset` | `AuthCard`, `SignInForm`, `SignUpForm`, `ForgotForm`, `ResetForm`, `GoogleButton` (disabled) [auth] | R `/api/auth/*` (Better Auth email + password; verification and reset via Resend, D41) |
 | Onboarding | `/onboarding?next=` (every sign-in and verification link passes through; forwards when done) | `OnboardingPage`, `OnboardingForm` [profile] | A `completeOnboardingAction`, A `declineUnderageAction`; Q `getViewer`, `getUsernameSuggestion` |

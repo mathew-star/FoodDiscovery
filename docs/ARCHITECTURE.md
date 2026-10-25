@@ -49,6 +49,7 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D39 | Guest saves are a device list (`fdn:saves`, ≤ 20, validated on read) that stores a display snapshot (name, place, link, diet) so `/saved` renders without a request; the 21st save shows the sign-in prompt. `/saved` is a public route until accounts import device saves in P3 | Spec W2 "stored on device" | No server state for guests |
 | D40 | Discover "Trending near you" ships at most 60 candidates, pre-ranked server-side with trending weights and no location; the browser narrows to 5 km and falls back to "Trending across Hyderabad" below 4 items | Spec §3.5 per-locality cached query | Bounded page weight; same cache for every guest |
 | D41 | Email goes through `infra/email.ts`: Resend's HTTP API via `fetch` (no SDK) with sender `EMAIL_FROM` (Resend's test sender when unset). Without a key outside production, or when `EMAIL_OUTBOX_DIR` is set, each email is written as a JSON file instead; Playwright reads the links from there. The outbox is refused on Vercel production. Logs record only the email kind. D2 sign-in limits count attempts, not only failures | Resend SDK; spec silent on test transport | One small fetch call instead of a dependency; e2e covers the real verification and reset links |
+| D42 | Member saves go to the default "Want to try" list. `MemberSync` (a header `<Suspense>` slot) marks the browser as signed in, imports any device saves through `importDeviceSavesAction` (valid targets only, de-duplicated, then the device list is cleared) and loads the saved keys; Save buttons toggle optimistically and roll back on failure. Default lists are created lazily and idempotently (partial unique index). "Been there" fills from ratings in P3 | Spec E1-4 "imported on first login" | Import runs at every sign-in while the device still holds saves, so a failed first attempt retries; no session state on the client beyond a flag |
 
 ## 2. Repository layout
 
@@ -154,7 +155,7 @@ All tables: `id uuid` (v7), `created_at`, `updated_at`; soft delete via `deleted
 | ratings | `dish_ratings` (user, branch_dish, sentiment, post_id, disclosure, suspect, active, superseded_at), `aspect_ratings` (value/service/ambience, would_return) |
 | content | `posts` (type experience/question/discussion, community, title, body, disclosure, embed_url, status, score, hot, on_site), `post_media`, `post_entities`, `comments` (parent, depth ≤ 6, path, accepted, status), `post_votes`, `comment_votes` |
 | communities | `communities` (kind city/locality/topic), `community_members`, `community_moderators`, `community_pins`, `community_requests` |
-| saves | `lists` (kind want_to_try/been_there/custom, visibility), `list_items` (branch or branch_dish, rank, note) |
+| saves | `lists` (user, kind `want_to_try|been_there|custom` with one default of each per member, title, description, visibility `private|public`), `list_items` (branch, optional branch dish, note ≤ 280, position; unique per list and entity; ≤ 100 per list in the service) |
 | battles | `battles` (canonical dish, two branch dishes, opens_at, closes_at, status, result), `battle_votes` |
 | media | `media` (r2 key, mime, width, height, phash, screen_status) |
 | notifications | `notifications`, `push_subscriptions`, `notification_prefs`, `visit_nudges` |

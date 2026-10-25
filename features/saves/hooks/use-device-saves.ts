@@ -53,3 +53,20 @@ export function toggleSave(item: DeviceSave) {
   }
   return result.outcome;
 }
+
+/** After a member's device saves are imported into their account (spec E1-4). */
+export function clearDeviceSaves() {
+  try {
+    localStorage.removeItem(deviceSavesStorageKey);
+  } catch {
+    // Nothing stored.
+  }
+  memoryOnly = null;
+  snapshotRaw = null;
+  snapshot = emptySaves;
+  listeners.forEach((listener) => listener());
+}
+
+export function readDeviceSaves(): DeviceSave[] {
+  return read();
+}

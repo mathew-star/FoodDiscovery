@@ -767,7 +767,19 @@
     "places": "Places",
     "emptyTitle": "Nothing saved yet",
     "emptyBody": "Tap Save on a dish or a place and it shows up here, ready for tonight.",
-    "emptyAction": "Explore Hyderabad"
+    "emptyAction": "Explore Hyderabad",
+    "pageTitle": "Saved",
+    "open": "See your saves",
+    "savedToList": "Saved to Want to try.",
+    "failed": "That didn’t save. Try again.",
+    "listFull": "Want to try holds 100 places. Remove one to add more.",
+    "imported": "Moved {count} saves from this phone to your account.",
+    "importedOne": "Moved 1 save from this phone to your account.",
+    "wantToTry": "Want to try",
+    "beenThere": "Been there",
+    "itemCount": "{count} saved",
+    "wantToTryEmpty": "Tap Save on a dish or a place and it lands here.",
+    "beenThereEmpty": "Places you rate will show up here."
   },
   "auth": {
     "google": "Continue with Google",
@@ -848,7 +860,7 @@
     },
     "account": {
       "label": "Your account, {name}",
-      "guest": "Saves stay on this phone until you sign in.",
+      "guest": "These saves stay on this phone. Sign in to keep them on every device.",
       "signedInAs": "Signed in as {email}",
       "signOut": "Sign out"
     }

@@ -70,7 +70,9 @@ test('sign up from a guest prompt, confirm the email, and land back where you we
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
 
   await page.getByRole('button', { name: 'Sign out' }).click();
-  await expect(page.getByText('Saves stay on this phone until you sign in.')).toBeVisible();
+  await expect(
+    page.getByText('These saves stay on this phone. Sign in to keep them on every device.'),
+  ).toBeVisible();
 
   await page.goto('/login');
   await page.getByRole('main').getByLabel('Email', { exact: true }).fill(email);
@@ -165,4 +167,36 @@ test('under 18 means no account', async ({ page }) => {
   await card(page, 'Sign in').getByLabel('Password', { exact: true }).fill(password);
   await card(page, 'Sign in').getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('main').getByRole('alert')).toHaveText('That email and password don’t match.');
+});
+
+test('guest saves move into the account at sign-in and Save then writes to the account', async ({ page }) => {
+  const email = uniqueEmail('saves');
+  await page.goto('/r/kebab-karkhana-old-city');
+  await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByRole('main').getByRole('button', { name: 'Save' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
+  await page.goto('/login/create?next=%2Fsaved');
+  await signUp(page, email);
+  await page.goto(await latestLink(email, 'verify-email'));
+  await completeOnboarding(page);
+  await expect(page).toHaveURL(/\/saved$/);
+  await expect(page.getByRole('status').filter({ hasText: 'Moved 1 save from this phone' })).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('fdn:saves'))).toBeNull();
+
+  await page.reload();
+  const wantToTry = page.getByRole('region', { name: 'Want to try' });
+  await expect(wantToTry.getByRole('link', { name: 'Kebab Karkhana' })).toBeVisible();
+
+  await page.goto('/r/kebab-karkhana-old-city');
+  const save = page.getByRole('main').getByRole('button', { name: 'Save' });
+  await expect(save).toHaveAttribute('aria-pressed', 'true');
+  await save.click();
+  await expect(save).toHaveAttribute('aria-pressed', 'false');
+  await page.goto('/saved');
+  await expect(
+    page.getByRole('region', { name: 'Want to try' }).getByText('Tap Save on a dish or a place'),
+  ).toBeVisible();
 });

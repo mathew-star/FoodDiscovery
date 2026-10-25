@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { AccountEntry } from '@/features/auth/components/account-entry';
 import { DietToggle } from '@/features/dishes/components/diet-toggle.client';
 import type { CitySlug } from '@/features/geo/schemas/city';
+import { MemberSync } from '@/features/saves/components/member-sync';
 import { SearchBox } from '@/features/search/components/search-box';
 import { t } from '@/i18n';
 import { CityPill } from './city-pill.client';
@@ -34,6 +35,7 @@ export function TopBar({ city }: { city: CitySlug }) {
           <span className="hidden min-w-[5.5rem] justify-end lg:inline-flex">
             <Suspense fallback={null}>
               <AccountEntry />
+              <MemberSync />
             </Suspense>
           </span>
         </div>
