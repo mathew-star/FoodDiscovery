@@ -21,6 +21,8 @@ import { buttonVariants } from '@/shared/ui/button';
 import { cardVariants } from '@/shared/ui/card';
 import { ImageSlot } from '@/shared/ui/image-slot';
 import { JsonLd } from '@/shared/ui/json-ld';
+import { ShareButton } from '@/features/places/components/share-button.client';
+import { SaveButton } from '@/features/saves/components/save-button.client';
 
 export async function generateStaticParams() {
   return (await getBranchDishParams()).map(({ branch, dish }) => ({ branch, branchDish: dish }));
@@ -111,6 +113,27 @@ export default async function BranchDishPage({ params }: PageProps<'/r/[branch]/
                 ) : null}
                 <DietMark diet={dish.diet} showLabel size="md" className="text-sm" />
                 {dish.isJain ? <Badge>{t('dish.jain')}</Badge> : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <SaveButton
+                  surface="branch_dish"
+                  size="sm"
+                  item={{
+                    kind: 'dish',
+                    id: dish.id,
+                    branchId: dish.branchId,
+                    name: dish.name,
+                    detail: `${dish.branchName} · ${dish.localityName}`,
+                    href: `/r/${branch.slug}/dish/${dish.slug}`,
+                    diet: dish.diet,
+                  }}
+                />
+                <ShareButton
+                  size="sm"
+                  title={`${dish.name} · ${dish.branchName}`}
+                  path={`/r/${branch.slug}/dish/${dish.slug}`}
+                  analytics={{ surface: 'branch_dish', branchId: dish.branchId, branchDishId: dish.id }}
+                />
               </div>
               <div className="mt-auto flex flex-wrap items-end justify-between gap-4 border-t-2 border-dashed border-ink/25 pt-4">
                 <ScoreBadge

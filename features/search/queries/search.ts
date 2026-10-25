@@ -4,6 +4,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { getHoursForBranches } from '@/features/places/queries/branches';
 import { getRankingConfig } from '@/features/ratings/queries/ranking-config';
 import { daysBetween } from '@/shared/lib/time';
+import { discoveryScore } from '../lib/ranking';
 import type { Suggestion } from '../schemas/suggestion';
 import {
   countRecentActions,
@@ -140,4 +141,35 @@ export async function getSuggestions(cityId: string, citySlug: string, query: st
     })),
   ];
   return suggestions.slice(0, search.suggestLimit);
+}
+
+/**
+ * Discover "Trending near you" candidates: the city's dishes pre-ranked by trending R without a
+ * location, trimmed so the page ships a bounded list; the browser narrows it to 5 km.
+ */
+export async function getTrendingCandidates(cityId: string) {
+  'use cache';
+  cacheLife('search');
+  cacheTag('search', 'branch-dishes', 'branches');
+  const results = await getSearchResults(cityId, null);
+  const { discovery } = results.config;
+  const dishes = results.dishes
+    .map((dish) => ({
+      dish,
+      rank: discoveryScore(
+        { ...dish, distanceKm: null, preferredCuisines: null },
+        discovery.trendingWeights,
+        discovery,
+      ),
+    }))
+    .sort((a, b) => b.rank - a.rank)
+    .slice(0, discovery.trendingCandidates)
+    .map(({ dish }) => dish);
+  const branchIds = new Set(dishes.map((dish) => dish.branchId));
+  return {
+    dishes,
+    hours: Object.fromEntries(Object.entries(results.hours).filter(([branchId]) => branchIds.has(branchId))),
+    config: discovery,
+    minWeightForDisplay: results.minWeightForDisplay,
+  };
 }

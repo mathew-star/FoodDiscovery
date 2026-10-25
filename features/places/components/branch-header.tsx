@@ -45,7 +45,9 @@ export function BranchHeader({ branch }: { branch: BranchDetail }) {
       </div>
       <FoodScore score={branch.foodScore} />
       <ActionRow
+        branchId={branch.id}
         name={branch.name}
+        locality={branch.localityName}
         path={`/r/${branch.slug}`}
         location={branch.location}
         phone={branch.phone}

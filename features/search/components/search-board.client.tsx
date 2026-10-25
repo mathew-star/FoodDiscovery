@@ -6,6 +6,7 @@ import { LeaderboardList, PlacedDishRow } from '@/features/dishes/components/pla
 import { useVegOnly } from '@/features/dishes/hooks/use-veg-only';
 import { LocationBanner } from '@/features/geo/components/location-banner.client';
 import { useDeviceLocation } from '@/features/geo/hooks/use-device-location';
+import { formatDistanceKm } from '@/features/geo/lib/format-distance';
 import { getOpenStatus, type HoursRow } from '@/features/places/lib/opening-hours';
 import type { DiscoveryRankingConfig, SearchConfig } from '@/features/ratings/schemas/ranking-config';
 import { t } from '@/i18n';
@@ -53,12 +54,6 @@ function syncUrl(
   for (const [key, value] of Object.entries(filters)) if (value !== undefined) params.set(key, String(value));
   const search = params.toString();
   window.history.replaceState(null, '', search ? `${path}?${search}` : path);
-}
-
-function formatKm(km: number): string {
-  return km < 1
-    ? t('place.distanceM', { m: Math.round(km * 100) * 10 })
-    : t('place.distanceKm', { km: km.toFixed(1) });
 }
 
 /** Dish results (spec E4-1–E4-3): chips and filters apply in place; nothing refetches. */
@@ -245,7 +240,7 @@ export function SearchBoard({
                     status={
                       <>
                         {distanceKm !== null ? (
-                          <span className="tabular-nums">· {formatKm(distanceKm)}</span>
+                          <span className="tabular-nums">· {formatDistanceKm(distanceKm)}</span>
                         ) : null}
                         {status?.state === 'open' ? (
                           <Badge tone="lime">{t('place.openTill', { time: status.closesAt })}</Badge>

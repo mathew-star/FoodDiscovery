@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AreaBoard } from '@/features/discover/components/area-board';
 import { DiscoverIntro } from '@/features/discover/components/discover-intro';
+import { Trending } from '@/features/discover/components/trending.client';
 import { Shelf } from '@/features/discover/components/shelf';
 import { LeaderboardList, PlacedDishRow } from '@/features/dishes/components/placed-dish-row';
 import { getCityShelves } from '@/features/dishes/queries/dishes';
 import { cityNameKey, citySlugs, parseCitySlug } from '@/features/geo/schemas/city';
 import { getCity, getLocalities } from '@/features/geo/queries/geo';
+import { getTrendingCandidates } from '@/features/search/queries/search';
 import { t } from '@/i18n';
 import { formatRupees } from '@/shared/lib/money';
 import { Ticker } from '@/shared/ui/ticker';
@@ -30,9 +32,10 @@ export default async function CityDiscoverPage({ params }: PageProps<'/[city]'>)
   if (!slug) notFound();
   const city = await getCity(slug);
   if (!city) notFound();
-  const [{ shelves, topOverall, minWeightForDisplay }, areas] = await Promise.all([
+  const [{ shelves, topOverall, minWeightForDisplay }, areas, trending] = await Promise.all([
     getCityShelves(city.id),
     getLocalities(slug),
+    getTrendingCandidates(city.id),
   ]);
 
   const ticker = topOverall.map((dish, index) =>
@@ -68,6 +71,15 @@ export default async function CityDiscoverPage({ params }: PageProps<'/[city]'>)
           ))}
         </LeaderboardList>
       </section>
+
+      <Trending
+        cityName={city.name}
+        dishes={trending.dishes}
+        hours={trending.hours}
+        timezone={city.timezone}
+        config={trending.config}
+        minWeightForDisplay={trending.minWeightForDisplay}
+      />
 
       {shelves.slice(0, 3).map((shelf) => (
         <Shelf key={shelf.slug} shelf={shelf} city={slug} minWeightForDisplay={minWeightForDisplay} />

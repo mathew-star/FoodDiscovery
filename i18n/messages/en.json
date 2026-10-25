@@ -134,7 +134,10 @@
     "bestAt": "Best at {branch}",
     "cityRankingLink": "All {dish} ranked",
     "shelfCount": "{count} dishes",
-    "launchArea": "Launch area"
+    "launchArea": "Launch area",
+    "trendingNear": "Trending near you",
+    "trendingCity": "Trending across {city}",
+    "trendingBody": "What locals saved and asked directions to this week, weighed with how good it is."
   },
   "imageSlot": {
     "dishPhoto": "Dish photo · {width} × {height}",
@@ -752,5 +755,18 @@
     "unavailable": "We couldn’t get a location fix. Pick an area instead.",
     "allow": "Use my location",
     "notNow": "Not now"
+  },
+  "saves": {
+    "title": "Saved on this phone",
+    "intro": "Dishes and places you saved. They stay on this phone until you sign in.",
+    "save": "Save",
+    "remove": "Remove",
+    "full": "This phone holds 20 saves. Sign in to keep saving, and your 20 come with you.",
+    "count": "{count} of {limit} saves on this phone",
+    "dishes": "Dishes",
+    "places": "Places",
+    "emptyTitle": "Nothing saved yet",
+    "emptyBody": "Tap Save on a dish or a place and it shows up here, ready for tonight.",
+    "emptyAction": "Explore Hyderabad"
   }
 }

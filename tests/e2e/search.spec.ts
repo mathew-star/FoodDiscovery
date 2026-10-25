@@ -61,3 +61,68 @@ test('search page is not indexed and passes axe', async ({ page }) => {
   const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => v.id)).toEqual([]);
 });
+
+test('guests save on this phone, see the list, and the 21st save asks to sign in', async ({ page }) => {
+  await page.goto('/r/deccan-degh-house-old-city');
+  const save = page.getByRole('main').getByRole('button', { name: 'Save' });
+  await save.click();
+  await expect(save).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('status').filter({ hasText: 'Saved on this phone' })).toBeVisible();
+
+  await page.goto('/saved');
+  await expect(page.getByRole('heading', { name: 'Places' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Deccan Degh House' }).first()).toHaveAttribute(
+    'href',
+    '/r/deccan-degh-house-old-city',
+  );
+
+  // Fill the phone to the limit, then try one more.
+  await page.evaluate(() => {
+    const saves = Array.from({ length: 20 }, (_, n) => ({
+      kind: 'dish',
+      id: `01920000-0000-7000-8000-${String(n).padStart(12, '0')}`,
+      branchId: '01920000-0000-7000-8000-999999999999',
+      name: `Dish ${n}`,
+      detail: 'Somewhere',
+      href: '/hyderabad',
+      diet: 'veg',
+      savedAt: n,
+    }));
+    localStorage.setItem('fdn:saves', JSON.stringify(saves));
+  });
+  await page.goto('/r/kebab-karkhana-madhapur');
+  await page.getByRole('main').getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'This phone holds 20 saves' })).toBeVisible();
+  await expect(page.getByRole('main').getByRole('button', { name: 'Save' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+});
+
+test('discover shows trending across the city until location is shared', async ({ page, context }) => {
+  await page.goto('/hyderabad');
+  await expect(page.getByRole('heading', { name: 'Trending across Hyderabad' })).toBeVisible();
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: 17.3616, longitude: 78.4747 });
+  await page.getByRole('button', { name: 'Use my location' }).click();
+  await expect(page.getByRole('heading', { name: /^Trending (near you|across Hyderabad)$/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use my location' })).toHaveCount(0);
+  await expect(
+    page
+      .getByRole('region', { name: /^Trending/ })
+      .getByText(/(k?m) away/)
+      .first(),
+  ).toBeVisible();
+});
+
+test('directions clicks are recorded without blocking the link', async ({ page, context }) => {
+  await context.route('https://www.google.com/**', (route) => route.fulfill({ body: 'ok' }));
+  await page.goto('/r/deccan-degh-house-old-city');
+  const beacon = page.waitForRequest(
+    (request) => request.url().endsWith('/api/events') && request.method() === 'POST',
+  );
+  const popup = page.waitForEvent('popup');
+  await page.getByRole('link', { name: 'Directions' }).click();
+  expect((await beacon).postData()).toContain('directions_click');
+  await popup;
+});

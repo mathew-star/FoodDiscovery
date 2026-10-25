@@ -1,14 +1,23 @@
 'use client';
 
 import { Share2 } from 'lucide-react';
+import { track } from '@/features/analytics/lib/track';
+import type { AnalyticsSurface } from '@/features/analytics/schemas/events';
 import { t } from '@/i18n';
 import { Button, type ButtonProps } from '@/shared/ui/button';
 import { useToast } from '@/shared/ui/toast.client';
 
-type ShareButtonProps = { title: string; path: string; size?: ButtonProps['size']; className?: string };
+type ShareButtonProps = {
+  title: string;
+  path: string;
+  size?: ButtonProps['size'];
+  className?: string;
+  /** Records a share event for catalogue entities. */
+  analytics?: { surface: AnalyticsSurface; branchId?: string; branchDishId?: string };
+};
 
 /** Web Share API with a copy-link fallback (spec E2-3). */
-export function ShareButton({ title, path, size, className }: ShareButtonProps) {
+export function ShareButton({ title, path, size, className, analytics }: ShareButtonProps) {
   const toast = useToast();
 
   async function share() {
@@ -16,6 +25,7 @@ export function ShareButton({ title, path, size, className }: ShareButtonProps) 
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
+        if (analytics) track({ name: 'share', method: 'native', ...analytics });
         return;
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return;
@@ -24,6 +34,7 @@ export function ShareButton({ title, path, size, className }: ShareButtonProps) 
     try {
       await navigator.clipboard.writeText(url);
       toast({ message: t('place.linkCopied') });
+      if (analytics) track({ name: 'share', method: 'copy', ...analytics });
     } catch {
       toast({ message: t('place.copyFailed', { url }) });
     }

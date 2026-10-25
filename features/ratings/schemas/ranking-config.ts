@@ -47,6 +47,7 @@ export const discoveryRankingConfigSchema = z.object({
   unscoredQuality: z.number().min(0).max(1),
   trendingRadiusKm: z.number().positive(),
   trendingLimit: z.number().int().positive(),
+  trendingCandidates: z.number().int().positive(),
   trendingMaxPerBranch: z.number().int().positive(),
   sectionMinItems: z.number().int().positive(),
 });
@@ -105,6 +106,7 @@ export const rankingConfigDefaults = {
     unscoredQuality: 0.5,
     trendingRadiusKm: 5,
     trendingLimit: 12,
+    trendingCandidates: 60,
     trendingMaxPerBranch: 2,
     sectionMinItems: 4,
   } satisfies DiscoveryRankingConfig,
