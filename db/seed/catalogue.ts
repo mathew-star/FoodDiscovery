@@ -1,3 +1,5 @@
+import type { BranchTag } from '@/features/places/schemas/branch-tags';
+
 export type Diet = 'veg' | 'egg' | 'nonveg';
 
 export const city = { slug: 'hyderabad', name: 'Hyderabad', center: { lat: 17.385, lng: 78.4867 } };
@@ -259,6 +261,7 @@ export type BrandSeed = {
   cuisines: CuisineSlug[];
   priceBand: 1 | 2 | 3 | 4;
   vegOnly?: boolean;
+  tags?: BranchTag[];
   payments: string[];
   hours: Hours;
   branches: { locality: LocalitySlug; street: string }[];
@@ -281,6 +284,7 @@ export const brands: BrandSeed[] = [
     name: 'Deccan Degh House',
     cuisines: ['hyderabadi', 'mughlai'],
     priceBand: 2,
+    tags: ['family'],
     payments: allPayments,
     hours: lunchToLate,
     branches: [
@@ -370,6 +374,7 @@ export const brands: BrandSeed[] = [
     name: 'Qamar Irani Café',
     cuisines: ['irani-cafe', 'cafe'],
     priceBand: 1,
+    tags: ['rainy-day'],
     payments: cashUpi,
     hours: earlyToLate,
     branches: [
@@ -407,6 +412,7 @@ export const brands: BrandSeed[] = [
     name: 'Mandi Majlis',
     cuisines: ['arabian'],
     priceBand: 3,
+    tags: ['family'],
     payments: allPayments,
     hours: [{ opens: '12:30', closes: '01:00' }],
     branches: [
@@ -449,6 +455,7 @@ export const brands: BrandSeed[] = [
     name: 'Gulmohar Tiffins',
     cuisines: ['south-indian'],
     priceBand: 1,
+    tags: ['rainy-day', 'family'],
     vegOnly: true,
     payments: cashUpi,
     hours: tiffinShifts,
@@ -494,6 +501,7 @@ export const brands: BrandSeed[] = [
     name: 'Noor-e-Deccan Kitchen',
     cuisines: ['hyderabadi'],
     priceBand: 2,
+    tags: ['family'],
     payments: cashUpi,
     hours: eveningToNight,
     branches: [{ locality: 'old-city', street: 'Mughalpura main road' }],
@@ -548,6 +556,7 @@ export const brands: BrandSeed[] = [
     name: 'Shahi Dastarkhwan',
     cuisines: ['mughlai', 'hyderabadi'],
     priceBand: 4,
+    tags: ['date-night', 'family'],
     payments: allPayments,
     hours: [
       { opens: '12:30', closes: '15:30' },
@@ -666,6 +675,7 @@ export const brands: BrandSeed[] = [
     name: 'Abids Chai Adda',
     cuisines: ['irani-cafe'],
     priceBand: 1,
+    tags: ['rainy-day'],
     payments: cashUpi,
     hours: [{ opens: '06:00', closes: '00:30' }],
     branches: [{ locality: 'abids', street: 'Bogulkunta lane, near the old cinema' }],
@@ -704,6 +714,7 @@ export const brands: BrandSeed[] = [
     name: 'Velvet Spoon Desserts',
     cuisines: ['desserts', 'cafe'],
     priceBand: 2,
+    tags: ['date-night'],
     vegOnly: true,
     payments: allPayments,
     hours: [{ opens: '12:00', closes: '23:59' }],
@@ -783,6 +794,7 @@ export const brands: BrandSeed[] = [
     name: 'Pesarattu & Co.',
     cuisines: ['south-indian'],
     priceBand: 1,
+    tags: ['rainy-day'],
     vegOnly: true,
     payments: cashUpi,
     hours: [{ opens: '07:00', closes: '22:00' }],
@@ -822,6 +834,7 @@ export const brands: BrandSeed[] = [
     name: 'Raat Ki Rasoi',
     cuisines: ['hyderabadi'],
     priceBand: 2,
+    tags: ['date-night'],
     payments: allPayments,
     hours: [{ opens: '19:00', closes: '03:00' }],
     branches: [{ locality: 'banjara-hills', street: 'Road No. 3, Sagar Society turn' }],

@@ -58,6 +58,11 @@ export const branches = pgTable(
       .notNull()
       .default(sql`'{}'::text[]`),
     status: branchStatus('status').notNull().default('active'),
+    // Occasion tags behind context chips (rainy-day, date-night, family); editorial, set by Ops.
+    tags: text('tags')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     foodScore: real('food_score'),
     publishedAt: timestamp('published_at', { withTimezone: true }),
     ...timestamps,
@@ -66,6 +71,7 @@ export const branches = pgTable(
     index('branches_location_gist').using('gist', table.location),
     index('branches_locality_idx').on(table.localityId),
     index('branches_brand_idx').on(table.brandId),
+    index('branches_tags_gin').using('gin', table.tags),
     check('branches_price_band_check', sql`${table.priceBand} between 1 and 4`),
   ],
 );

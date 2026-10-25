@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
     catalog: { stale: 300, revalidate: 900, expire: 86_400 },
     cuisine: { stale: 900, revalidate: 3_600, expire: 86_400 },
     config: { stale: 900, revalidate: 3_600, expire: 86_400 },
+    search: { stale: 300, revalidate: 600, expire: 3_600 },
   },
   turbopack: {
     rules: {

@@ -195,6 +195,7 @@ async function main(): Promise<void> {
             phone: null,
             priceBand: brand.priceBand,
             vegOnly: brand.vegOnly ?? false,
+            tags: brand.tags ?? [],
             paymentModes: brand.payments,
             publishedAt: new Date(now - integerBetween(random, 30, 200) * DAY_MS),
           });
