@@ -201,6 +201,7 @@ Labels say what happens: "Save changes", "Find dish", "Add your answer". No trai
 - **Active** (`aria-pressed="true"`): `lime` fill, `brutal-sm` shadow, lifts `-1px,-1px`.
 - Chips are **toggle buttons** (`<button aria-pressed>`), not links. On mobile they scroll horizontally edge-to-edge (`overflow-x-auto no-scrollbar -mx-5 px-5`).
 - Approved chip vocabulary: Open now, Under ₹300, After 11 pm, Pure veg, Biryani leaderboard, Rainy day, Date night, Family Sunday, Within 3 km.
+- `ContextChips` (`features/search`): on Discover the chips sit inside the search form and submit as `chip` fields with the query; on search results they filter in place and update the URL (ARCHITECTURE D35, D38).
 
 ### 7.3 Segmented tabs (feed sort)
 
@@ -272,7 +273,7 @@ Primitive: `Badge` with `tone="lime" | "paper" | "ink" | "olive" | "disclosure" 
 
 ### 7.10 Search bar (command bar)
 
-`paper`, 2px ink, `rounded-2xl`, `brutal-lg`, focus ring `ring-4 ring-lime`. Search icon left, input Inder 14–16px, dark "Find dish" button right. Placeholder types example queries (stops on focus, disabled under reduced motion). Submit → `/hyderabad/search?q=`. Always `role="search"` with a visually hidden label.
+`paper`, 2px ink, `rounded-2xl`, `brutal-lg`, focus ring `ring-4 ring-lime`. With `suggestCity` it is an ARIA 1.2 combobox: suggestions after two characters in a `paper` listbox below the bar (2px ink, `brutal`), highlighted option `lime`, kind label as a small cream tag; arrow keys move, Enter opens, Escape closes; the count is announced politely after typing settles. Search icon left, input Inder 14–16px, dark "Find dish" button right. Placeholder types example queries (stops on focus, disabled under reduced motion). Submit → `/hyderabad/search?q=`. Always `role="search"` with a visually hidden label.
 
 ### 7.11 Toast / sign-in-at-intent
 
@@ -450,7 +451,10 @@ shared/ui/                         primitives: no data fetching, no feature impo
 features/ratings/components/       VerdictPill, VerdictBar, RatingDistribution, ScoreBadge (box | pill | inline), FoodScore, ScoreInfo
 features/dishes/components/        DietMark, DietToggle, DishRow (xray | menu), PlacedDishRow + LeaderboardList
 features/places/components/        BranchHeader, ActionRow, OpenStatus, FactsCard, BranchCard, ShareButton
-features/search/components/        CommandBar (§7.10), SearchBox (header), ContextChips
+features/search/components/        CommandBar (§7.10, with typeahead), SearchBox (header), ContextChips (toggles), SearchBoard, SearchSection
+features/geo/components/           LocationBanner (§9.6)
+features/saves/components/         SaveButton (aria-pressed, constant label "Save"), SavedList
+features/discover/components/      DiscoverIntro, Trending, Shelf, AreaBoard
 features/shell/components/         TopBar, BottomNav, SiteFooter, Logo, CityPill, NavPills, PostButton, IntentButton
 features/landing/                  landing sections; illustrative content in lib/content.ts (ARCHITECTURE D28)
 ```

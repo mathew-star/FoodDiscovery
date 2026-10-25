@@ -14,11 +14,11 @@ Legend — **A** server action (`features/x/server/actions.ts`), **R** route han
 
 | Step | Route | Components | Server |
 | --- | --- | --- | --- |
-| Home | `/hyderabad` | `TopBar`, `SearchTypeahead`, `ContextChips`, `LocationBanner`, `DishCard`, `BattleCard`, `PostCard` [discover, search] | Q `getDiscoverSections(city, locality, prefs)` |
-| Typeahead | — | `SearchTypeahead` | R `GET /api/search/suggest?q=` |
-| Results | `/hyderabad/search` | `FilterSheet`, `DishCard`, `BranchCard`, `NoResults` | Q `searchCity(params)` |
-| Branch | `/r/[branch]` | `BranchHeader`, `ActionRow`, `FactsCard`, posts tabs [places, facts, posts] | Q `getBranchPage(slug)` |
-| Actions | — | `ActionRow` | R `POST /api/events` (`directions_click`, `call_click`, `share`) |
+| Home | `/hyderabad` | `DiscoverIntro` (`CommandBar` with typeahead + `ContextChips` toggles), `Trending` + `LocationBanner`, `Shelf`, `AreaBoard` [discover, search, geo] | Q `getCityShelves`, Q `getTrendingCandidates` (D40) |
+| Typeahead | any `CommandBar` | ARIA combobox in `CommandBar`, `useSuggestions` [search] | R `GET /api/search/suggest?city=&q=` → Q `getSuggestions` |
+| Results | `/hyderabad/search?q=&chip=&area=&cuisine=&diet=&price=&km=` | `SearchSection` (server), `SearchBoard` (chips, filters, ranking in place), `BranchCard`, `NoResults` [search] | Q `getSearchResults(city, text)`; typed phrases → chips/area (D36) |
+| Branch | `/r/[branch]` | `BranchHeader`, `ActionRow` (Directions, Call, Share, Save), `FactsCard`, posts tabs [places, facts, posts] | Q `getBranch(slug)` |
+| Actions | — | `TrackedAnchor`, `ShareButton`, `SaveButton` | R `POST /api/events` (`directions_click`, `call_click`, `share`, `save`) |
 
 ## W2 Guest → member
 
@@ -30,7 +30,7 @@ Legend — **A** server action (`features/x/server/actions.ts`), **R** route han
 
 | Step | Route | Components | Server |
 | --- | --- | --- | --- |
-| Guest save | any | `SaveButton` [saves] | client storage `fdn_saves` |
+| Guest save | branch, branch dish; list at `/saved` | `SaveButton`, `SavedList` [saves] | `localStorage` `fdn:saves` (≤ 20, D39) |
 | Intent prompt | any | `useSignInPrompt`, `IntentButton` [shell], `ToastProvider` [shared/ui] | — |
 | Sign in / up | `/login`, `/signup` or sheet | `AuthSheet`, `SignInForm`, `SignUpForm` [auth] | R `/api/auth/*` (Better Auth email + password; verification and reset via Resend) |
 | Onboarding | `/onboarding` | `OnboardingForm` [profile] | A `completeOnboardingAction`, A `importDeviceSavesAction` |

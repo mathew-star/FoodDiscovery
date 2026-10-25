@@ -31,8 +31,8 @@ Seven phases, each shippable to the beta environment. Story IDs from `docs/spec/
 ## P2 Search and Discover
 
 **Scope:** W1; E4-1…E4-5, E4-7; E9-1; §6.5; E16-1 (pipeline + discovery events).
-- Typeahead route handler, grouped results, typo tolerance, filters, context chips (in-place toggles, DESIGN-SYSTEM §7.2; today they are links).
-- Landing previews (hero proof card, mode panels) read live queries instead of illustrative content (D28).
+- Typeahead route handler, grouped results, typo tolerance, filters, context chips as in-place toggles (DESIGN-SYSTEM §7.2).
+- Landing previews (hero proof card, mode panels) read live queries instead of illustrative content (D28) — moved to P5, when ratings and battles make the live numbers meaningful.
 - Discover sections with city-wide fallback ("Across Hyderabad").
 - `LocationBanner`, distance labels, Directions/Call/Share with events; guest device saves.
 - `analytics_events` table + beacon endpoint + device id cookie.
@@ -69,6 +69,7 @@ Seven phases, each shippable to the beta environment. Story IDs from `docs/spec/
 - Leaderboards hourly + weekly snapshot; rank arrows.
 - Fact confirm/propose, consensus engine, Ops corrections queue.
 - Public lists with map; 1080×1350 share images.
+- Landing previews (hero proof card, mode panels) switch to live queries (D28, from P2).
 
 **Exit:** consensus rule table fully covered; battle results exclude flagged votes and log the count; leaderboard minimums enforced.
 **Tests:** consensus table-driven tests (every §6.6 branch); battle eligibility (24 h) and hidden-share tests; Playwright W7–W9.

@@ -6,7 +6,7 @@ Update at the end of every phase in the PR that closes it: tick items, note devi
 | --- | --- | --- |
 | P0 Foundations | Done | branch `claude/food-discovery-audit-7wepur` |
 | P1 Catalogue | In progress | — |
-| P2 Search and Discover | Not started | — |
+| P2 Search and Discover | In progress | — |
 | P3 Accounts and ratings | Not started | — |
 | P4 Posts, comments, communities | Not started | — |
 | P5 Battles, leaderboards, living facts | Not started | — |
@@ -72,11 +72,24 @@ Notes for later phases:
 
 ## P2 Search and Discover
 
-- [ ] Typeahead + search results + filters + chips
-- [ ] Discover sections with fallback
-- [ ] Location banner, Directions/Call/Share, guest saves
-- [ ] Analytics pipeline
-- [ ] Exit criteria met
+- [x] `infra/ratelimit.ts` sliding window in Redis, fails closed (D33); `infra/client-ip.ts`
+- [x] Analytics pipeline: `analytics_events` + migration, `POST /api/events` beacon (same-origin, 4 KB, strict schema, `fdn_did` cookie, IP + device limits), `track()` client (D34)
+- [x] Search data: `f_unaccent` + trigram GIN indexes, `branches.tags` + seed tags, typo-tolerant repo, `discovery_ranking` and `search` keys in `ranking_config` (D35, D38)
+- [x] §6.5 ranking, chip filter, E4-2 filters, query intents — pure and unit tested (D36)
+- [x] Typeahead: `GET /api/search/suggest` + ARIA combobox in `CommandBar` (E4-1)
+- [x] `/hyderabad/search`: grouped results, chips and filters in place and in the URL, no-results helper with did-you-mean, areas and Ask the locals (E4-1…E4-3, E4-7); `noindex`
+- [x] Location banner, device-only location, distance labels and sort, Within 3 km (D37)
+- [x] Directions / Call / Share events; guest saves (≤ 20, `/saved`, 21st → sign-in) (D39)
+- [x] Trending near you with "Trending across Hyderabad" fallback (D40)
+- [ ] Remaining Discover sections (Live battle, Fresh from the community) — they need P4/P5 data
+- [ ] Exit on Neon: run the three P2 migrations, reseed or set `branches.tags`, check typeahead p95 and events landing with a device id
+
+Verified locally (PostGIS 16 + Redis): typecheck, lint, format, 193 unit + integration tests, `next build`, 91 Playwright tests passed / 3 viewport skips (search, typeahead keyboard path, chips, filters, no results, saves, trending, directions beacon, axe on search). Typeahead server time on seed data: p50 22 ms, p95 30 ms uncached (local Postgres; Neon adds network latency).
+
+Notes:
+- New migrations: `20261025080156_analytics`, `20261025080655_branch_tags`, `20261025080657_search_trigram`. They are additive. Production runs them through the release workflow, never from a laptop.
+- Without `REDIS_URL`, rate-limited endpoints answer `429` in production by design (D33). Vercel needs `REDIS_URL` set.
+- `@better-auth/infra` is unused and caret-ranged; remove or pin it when auth lands in P3.
 
 ## P3 Accounts and ratings
 

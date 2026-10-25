@@ -52,7 +52,7 @@ bun run db:seed             # sample catalogue into an empty database
 bun run db:reseed           # truncate catalogue tables and reseed (never on production)
 ```
 
-`next build`, e2e and integration tests need a migrated, seeded database. Locally use Postgres 16 + PostGIS with `DATABASE_DRIVER=pg`. In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. `inngest:dev` lands in P3.
+`next build`, e2e and integration tests need a migrated, seeded database. Locally use Postgres 16 + PostGIS with `DATABASE_DRIVER=pg`; e2e also needs `REDIS_URL` (a local `redis://localhost:6379` works, D33). In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. `inngest:dev` lands in P3.
 
 ## Architecture rules
 
