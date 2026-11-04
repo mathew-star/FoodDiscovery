@@ -93,7 +93,11 @@ function FactValue({ fact }: { fact: Fact }) {
 
 function Freshness({ fact }: { fact: Fact }) {
   const label =
-    fact.ageDays === 0 ? t('place.confirmedToday') : t('place.confirmedDaysAgo', { days: fact.ageDays });
+    fact.ageDays === 0
+      ? t('place.confirmedToday')
+      : fact.ageDays === 1
+        ? t('place.confirmedYesterday')
+        : t('place.confirmedDaysAgo', { days: fact.ageDays });
   return (
     <p
       className={cn(

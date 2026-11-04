@@ -42,7 +42,8 @@
     "battleVote": "Sign in to lock your vote. You’ll see the split right after.",
     "factCheck": "Thanks. Sign in so your check counts toward the update.",
     "stillTrue": "Sign in so your check counts toward keeping this fresh.",
-    "saved": "Saved on this phone. Sign in to keep it everywhere."
+    "saved": "Saved on this phone. Sign in to keep it everywhere.",
+    "rate": "Sign in to rate. Your verdict moves this dish up or down for the next person."
   },
   "search": {
     "label": "Search dishes, restaurants or areas",
@@ -241,7 +242,8 @@
     "foodMixed": "Mixed",
     "foodPoor": "Poor",
     "foodScoreInfo": "Food score is the weighted average of this restaurant’s top five dishes. It appears once at least two dishes have enough ratings.",
-    "noFoodScore": "Not enough ratings yet"
+    "noFoodScore": "Not enough ratings yet",
+    "lastRatedYesterday": "rated yesterday"
   },
   "place": {
     "inArea": "{place}, {area}",
@@ -311,7 +313,8 @@
       "d4": "Thu",
       "d5": "Fri",
       "d6": "Sat"
-    }
+    },
+    "confirmedYesterday": "Confirmed yesterday"
   },
   "dish": {
     "atBranch": "at {branch}",
@@ -895,5 +898,41 @@
       "adult": "Confirm you’re 18 or older to finish.",
       "cuisines": "Pick up to 5 cuisines."
     }
+  },
+  "ratings": {
+    "rate": "Rate",
+    "sheet": {
+      "title": "Rate {place}",
+      "description": "Tap what you ate and give each a verdict.",
+      "whatDidYouEat": "What did you eat?",
+      "findDish": "Find a dish",
+      "dishChoices": "Dishes at this place",
+      "noMatch": "No dish here by that name yet.",
+      "remove": "Remove",
+      "howWasPlace": "How was the place? (optional)",
+      "value": "Value",
+      "service": "Service",
+      "ambience": "Ambience",
+      "good": "Good",
+      "okay": "Okay",
+      "poor": "Poor",
+      "wouldReturn": "Go back?",
+      "yes": "Yes",
+      "no": "No",
+      "save": "Save ratings",
+      "saveCount": "Save {count} ratings",
+      "saving": "Saving",
+      "note": "Rating a dish again replaces your earlier verdict. Your old one stays in your history.",
+      "nothing": "Pick a dish and a verdict, or tell us how the place was.",
+      "onboarding": "Finish your profile first; it takes a minute.",
+      "finishProfile": "Finish your profile",
+      "limited": "You’ve rated a lot today. Try again tomorrow.",
+      "failed": "That didn’t save. Try again.",
+      "thanksTitle": "Thanks. Your ratings are in.",
+      "thanksBody": "They help the next person decide what to order at {place}.",
+      "done": "Done",
+      "saveOne": "Save 1 rating"
+    },
+    "wouldReturnPct": "{pct}% would go back"
   }
 }

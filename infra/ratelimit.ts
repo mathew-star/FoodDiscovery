@@ -14,6 +14,7 @@ export interface RateLimitStore {
     keys: { current: string; previous: string },
     policy: RateLimitPolicy,
     elapsedMs: number,
+    cost: number,
   ): Promise<Counts>;
 }
 
@@ -27,8 +28,9 @@ local previous = tonumber(redis.call('GET', KEYS[2]) or '0')
 local windowMs = tonumber(ARGV[1])
 local elapsed = tonumber(ARGV[2])
 local limit = tonumber(ARGV[3])
-if previous * ((windowMs - elapsed) / windowMs) + current + 1 <= limit then
-  redis.call('INCR', KEYS[1])
+local cost = tonumber(ARGV[4])
+if previous * ((windowMs - elapsed) / windowMs) + current + cost <= limit then
+  redis.call('INCRBY', KEYS[1], cost)
   redis.call('PEXPIRE', KEYS[1], windowMs * 2)
 end
 return { previous, current }
@@ -38,7 +40,7 @@ async function redisStore(): Promise<RateLimitStore> {
   const { getRedis } = await import('./redis');
   const redis = getRedis();
   return {
-    async hit(keys, policy, elapsedMs) {
+    async hit(keys, policy, elapsedMs, cost) {
       const reply = (await redis.eval(
         slidingWindowScript,
         2,
@@ -47,6 +49,7 @@ async function redisStore(): Promise<RateLimitStore> {
         policy.windowMs,
         elapsedMs,
         policy.limit,
+        cost,
       )) as [number, number];
       return { previousCount: Number(reply[0]), currentCount: Number(reply[1]) };
     },
@@ -56,7 +59,7 @@ async function redisStore(): Promise<RateLimitStore> {
 export function createMemoryStore(): RateLimitStore {
   const counters = new Map<string, { count: number; expiresAt: number }>();
   return {
-    async hit(keys, policy, elapsedMs) {
+    async hit(keys, policy, elapsedMs, cost) {
       const now = Date.now();
       const read = (key: string) => {
         const entry = counters.get(key);
@@ -68,10 +71,13 @@ export function createMemoryStore(): RateLimitStore {
       };
       const counts = { previousCount: read(keys.previous), currentCount: read(keys.current) };
       if (
-        slidingWindowDecision({ ...counts, elapsedMs, windowMs: policy.windowMs, limit: policy.limit })
+        slidingWindowDecision({ ...counts, elapsedMs, windowMs: policy.windowMs, limit: policy.limit, cost })
           .allowed
       ) {
-        counters.set(keys.current, { count: counts.currentCount + 1, expiresAt: now + policy.windowMs * 2 });
+        counters.set(keys.current, {
+          count: counts.currentCount + cost,
+          expiresAt: now + policy.windowMs * 2,
+        });
       }
       return counts;
     },
@@ -95,9 +101,10 @@ function defaultStore(): Promise<RateLimitStore> {
 export async function limit(
   policy: RateLimitPolicy,
   identifier: string,
-  options: { store?: RateLimitStore; now?: number } = {},
+  options: { store?: RateLimitStore; now?: number; cost?: number } = {},
 ): Promise<WindowDecision> {
   const now = options.now ?? Date.now();
+  const cost = Math.max(1, Math.floor(options.cost ?? 1));
   const { index, elapsedMs } = windowIndex(now, policy.windowMs);
   // Hash tag keeps both windows in one slot on clustered Redis.
   const prefix = `rl:{${policy.name}:${identifier}}`;
@@ -106,8 +113,14 @@ export async function limit(
   try {
     globalForLimiter.fdnRateLimitStore ??= defaultStore();
     const store = options.store ?? (await globalForLimiter.fdnRateLimitStore);
-    const counts = await store.hit(keys, policy, elapsedMs);
-    return slidingWindowDecision({ ...counts, elapsedMs, windowMs: policy.windowMs, limit: policy.limit });
+    const counts = await store.hit(keys, policy, elapsedMs, cost);
+    return slidingWindowDecision({
+      ...counts,
+      elapsedMs,
+      windowMs: policy.windowMs,
+      limit: policy.limit,
+      cost,
+    });
   } catch (error) {
     if (!options.store) globalForLimiter.fdnRateLimitStore = undefined;
     logger.error({ err: error, policy: policy.name }, 'rate limit store unavailable');

@@ -448,7 +448,7 @@ shared/ui/                         primitives: no data fetching, no feature impo
   tabs.client.tsx TabsRoot, TabsPanel, SegmentedTabsList, SegmentedTab, ModeTabsList, ModeTab
   image-slot.tsx  accordion.tsx  ticker.tsx  toast.client.tsx  tooltip.client.tsx  dialog.client.tsx
   input.tsx  avatar.tsx  breadcrumbs.tsx  empty-state.tsx  skeleton.tsx  og-card.tsx
-features/ratings/components/       VerdictPill, VerdictBar, RatingDistribution, ScoreBadge (box | pill | inline), FoodScore, ScoreInfo
+features/ratings/components/       VerdictPill, VerdictBar, RatingDistribution, ScoreBadge (box | pill | inline), FoodScore, ScoreInfo, AspectSummary, RateButton, RateSheet (verdict buttons use the §3.3 fills when pressed)
 features/dishes/components/        DietMark, DietToggle, DishRow (xray | menu), PlacedDishRow + LeaderboardList
 features/places/components/        BranchHeader, ActionRow, OpenStatus, FactsCard, BranchCard, ShareButton
 features/search/components/        CommandBar (§7.10, with typeahead), SearchBox (header), ContextChips (toggles), SearchBoard, SearchSection

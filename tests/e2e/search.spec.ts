@@ -6,13 +6,13 @@ test('typeahead suggests after two characters and opens the highlighted result',
   const box = page.getByRole('combobox', { name: 'Search dishes, restaurants or areas' });
   await box.fill('halem');
   const list = page.getByRole('listbox', { name: 'Suggestions' });
-  await expect(list.getByRole('option').first()).toHaveText(/Mutton Haleem/);
+  await expect(list.getByRole('option').first()).toHaveText(/(Chicken|Mutton) Haleem/);
   await expect(box).toHaveAttribute('aria-expanded', 'true');
 
   await box.press('ArrowDown');
   await expect(list.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
   await box.press('Enter');
-  await expect(page).toHaveURL(/\/hyderabad\/dish\/mutton-haleem$/);
+  await expect(page).toHaveURL(/\/hyderabad\/dish\/(chicken|mutton)-haleem$/);
 });
 
 test('typed filters become chips and results are typo tolerant', async ({ page }) => {

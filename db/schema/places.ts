@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   check,
+  integer,
   index,
   pgEnum,
   pgTable,
@@ -13,11 +14,23 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
+import { users } from './auth';
 import { geographyPoint, id, timestamps } from './columns';
 import { cities, localities } from './geo';
 
 export const branchStatus = pgEnum('branch_status', ['active', 'temporarily_closed', 'permanently_closed']);
+/** Listing lifecycle, separate from the real-world `status` (docs/CONTRIBUTIONS.md §2). */
+export const branchListing = pgEnum('branch_listing', ['provisional', 'listed', 'rejected', 'merged']);
+export const branchFormat = pgEnum('branch_format', [
+  'restaurant',
+  'cafe',
+  'stall',
+  'bakery',
+  'cloud_kitchen',
+  'other',
+]);
 
 export const cuisines = pgTable('cuisines', {
   id: id(),
@@ -58,12 +71,22 @@ export const branches = pgTable(
       .notNull()
       .default(sql`'{}'::text[]`),
     status: branchStatus('status').notNull().default('active'),
+    listing: branchListing('listing').notNull().default('listed'),
+    format: branchFormat('format').notNull().default('restaurant'),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    mergedIntoId: uuid('merged_into_id').references((): AnyPgColumn => branches.id),
     // Occasion tags behind context chips (rainy-day, date-night, family); editorial, set by Ops.
     tags: text('tags')
       .array()
       .notNull()
       .default(sql`'{}'::text[]`),
     foodScore: real('food_score'),
+    // Spec §6.2 aspects, 0–1 after Bayesian shrink; null until enough answers.
+    valueScore: real('value_score'),
+    serviceScore: real('service_score'),
+    ambienceScore: real('ambience_score'),
+    wouldReturnPct: real('would_return_pct'),
+    aspectCount: integer('aspect_count').notNull().default(0),
     publishedAt: timestamp('published_at', { withTimezone: true }),
     ...timestamps,
   },
@@ -72,6 +95,7 @@ export const branches = pgTable(
     index('branches_locality_idx').on(table.localityId),
     index('branches_brand_idx').on(table.brandId),
     index('branches_tags_gin').using('gin', table.tags),
+    index('branches_listing_idx').on(table.listing),
     check('branches_price_band_check', sql`${table.priceBand} between 1 and 4`),
   ],
 );

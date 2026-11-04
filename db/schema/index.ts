@@ -7,3 +7,4 @@ export * from './geo';
 export * from './places';
 export * from './profiles';
 export * from './lists';
+export * from './ratings';

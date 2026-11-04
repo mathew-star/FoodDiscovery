@@ -22,6 +22,7 @@ import { cardVariants } from '@/shared/ui/card';
 import { ImageSlot } from '@/shared/ui/image-slot';
 import { JsonLd } from '@/shared/ui/json-ld';
 import { ShareButton } from '@/features/places/components/share-button.client';
+import { RateButton } from '@/features/ratings/components/rate-button.client';
 import { SaveButton } from '@/features/saves/components/save-button.client';
 
 export async function generateStaticParams() {
@@ -127,6 +128,13 @@ export default async function BranchDishPage({ params }: PageProps<'/r/[branch]/
                     href: `/r/${branch.slug}/dish/${dish.slug}`,
                     diet: dish.diet,
                   }}
+                />
+                <RateButton
+                  branchId={dish.branchId}
+                  branchName={dish.branchName}
+                  dishId={dish.id}
+                  size="sm"
+                  variant="primary"
                 />
                 <ShareButton
                   size="sm"

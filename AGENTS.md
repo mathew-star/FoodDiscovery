@@ -125,5 +125,6 @@ Full detail: `docs/ARCHITECTURE.md`.
 - `docs/DESIGN-SYSTEM.md` — tokens, type, motion, components, a11y rules
 - `docs/reference/fdn-landing-full.html` — visual reference for the design system (the doc wins on conflicts)
 - `docs/PRODUCT-FLOWS.md` — W1–W11 mapped to routes, components, actions, jobs
+- `docs/CONTRIBUTIONS.md` — ratings, adding dishes and places, duplicates, owner claims (reviewed design and build order R1–R5)
 - `docs/ROADMAP.md` — 7 phases with scope, exit criteria, tests
 - `docs/PROGRESS.md` — phase checklist; update at the end of every phase

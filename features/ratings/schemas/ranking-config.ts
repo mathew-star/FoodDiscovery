@@ -64,12 +64,59 @@ export const searchConfigSchema = z.object({
   browseLimit: z.int().positive(),
 });
 
+const trustWeightsSchema = z.object({
+  t0: z.number().nonnegative(),
+  t1: z.number().nonnegative(),
+  t2: z.number().nonnegative(),
+  founding: z.number().nonnegative(),
+});
+
+/** Spec §6.1 weights: trust × time (half-life) × disclosure. */
+export const ratingWeightsConfigSchema = z.object({
+  trust: trustWeightsSchema,
+  halfLifeDays: z.number().positive(),
+});
+
+/** Spec §6.2 aspects: Bayesian shrink and the word labels. */
+export const aspectScoringConfigSchema = z.object({
+  priorStrength: z.number().positive(),
+  defaultPrior: z.number().min(0).max(1),
+  minAnswersForCityPrior: z.int().nonnegative(),
+  minWeightForDisplay: z.number().nonnegative(),
+  minWouldReturnAnswers: z.int().positive(),
+  labels: z.object({ great: z.number(), good: z.number(), mixed: z.number() }),
+});
+
+const quotaSchema = z.object({
+  t0: z.int().positive(),
+  t1: z.int().positive(),
+  t2: z.int().positive(),
+  founding: z.int().positive(),
+  ip: z.int().positive(),
+});
+
+/** Spec §7.1 daily quotas per trust level and per IP. */
+export const actionLimitsConfigSchema = z.object({
+  windowMs: z.int().positive(),
+  posts: quotaSchema,
+  comments: quotaSchema,
+  dishRatings: quotaSchema,
+  votes: quotaSchema,
+  reports: quotaSchema,
+  factConfirmations: quotaSchema,
+  photoUploads: quotaSchema,
+});
+
 export type DishScoringConfig = z.infer<typeof dishScoringConfigSchema>;
 export type FactFreshnessConfig = z.infer<typeof factFreshnessConfigSchema>;
 export type NearbyConfig = z.infer<typeof nearbyConfigSchema>;
 export type RankingWeights = z.infer<typeof rankingWeightsSchema>;
 export type DiscoveryRankingConfig = z.infer<typeof discoveryRankingConfigSchema>;
 export type SearchConfig = z.infer<typeof searchConfigSchema>;
+export type RatingWeightsConfig = z.infer<typeof ratingWeightsConfigSchema>;
+export type AspectScoringConfig = z.infer<typeof aspectScoringConfigSchema>;
+export type ActionLimitsConfig = z.infer<typeof actionLimitsConfigSchema>;
+export type LimitedAction = Exclude<keyof ActionLimitsConfig, 'windowMs'>;
 
 export const rankingConfigDefaults = {
   dish_scoring: {
@@ -110,6 +157,28 @@ export const rankingConfigDefaults = {
     trendingMaxPerBranch: 2,
     sectionMinItems: 4,
   } satisfies DiscoveryRankingConfig,
+  rating_weights: {
+    trust: { t0: 0.5, t1: 1, t2: 1.2, founding: 1.2 },
+    halfLifeDays: 270,
+  } satisfies RatingWeightsConfig,
+  aspect_scoring: {
+    priorStrength: 5,
+    defaultPrior: 0.6,
+    minAnswersForCityPrior: 20,
+    minWeightForDisplay: 3,
+    minWouldReturnAnswers: 5,
+    labels: { great: 0.8, good: 0.6, mixed: 0.4 },
+  } satisfies AspectScoringConfig,
+  action_limits: {
+    windowMs: 24 * 60 * 60 * 1000,
+    posts: { t0: 3, t1: 20, t2: 40, founding: 40, ip: 30 },
+    comments: { t0: 20, t1: 200, t2: 400, founding: 400, ip: 300 },
+    dishRatings: { t0: 30, t1: 100, t2: 200, founding: 200, ip: 200 },
+    votes: { t0: 200, t1: 1000, t2: 2000, founding: 2000, ip: 3000 },
+    reports: { t0: 10, t1: 30, t2: 60, founding: 60, ip: 60 },
+    factConfirmations: { t0: 30, t1: 100, t2: 200, founding: 200, ip: 200 },
+    photoUploads: { t0: 30, t1: 150, t2: 300, founding: 300, ip: 300 },
+  } satisfies ActionLimitsConfig,
   search: {
     textWeight: 0.6,
     rankWeight: 0.4,
@@ -129,6 +198,9 @@ export const rankingConfigSchemas = {
   nearby_alternatives: nearbyConfigSchema,
   discovery_ranking: discoveryRankingConfigSchema,
   search: searchConfigSchema,
+  rating_weights: ratingWeightsConfigSchema,
+  aspect_scoring: aspectScoringConfigSchema,
+  action_limits: actionLimitsConfigSchema,
 } as const;
 
 export type RankingConfigKey = keyof typeof rankingConfigSchemas;

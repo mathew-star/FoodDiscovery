@@ -11,11 +11,16 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core';
+import { users } from './auth';
 import { id, timestamps } from './columns';
 import { branches } from './places';
 
 export const diet = pgEnum('diet', ['veg', 'egg', 'nonveg']);
+/** Listing lifecycle of a dish card (docs/CONTRIBUTIONS.md §2); only `active` cards count and rank. */
+export const dishStatus = pgEnum('dish_status', ['pending', 'active', 'rejected', 'merged', 'archived']);
+export const dishSource = pgEnum('dish_source', ['seed', 'community', 'owner', 'ops']);
 
 export const dishCategories = pgTable('dish_categories', {
   id: id(),
@@ -69,7 +74,13 @@ export const branchDishes = pgTable(
     diet: diet('diet').notNull(),
     isJain: boolean('is_jain').notNull().default(false),
     isSignature: boolean('is_signature').notNull().default(false),
+    // "Served now": false greys a dish out but keeps its ratings readable.
     isActive: boolean('is_active').notNull().default(true),
+    status: dishStatus('status').notNull().default('active'),
+    source: dishSource('source').notNull().default('seed'),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    mergedIntoId: uuid('merged_into_id').references((): AnyPgColumn => branchDishes.id),
+    ownerManaged: boolean('owner_managed').notNull().default(false),
     score: real('score'),
     lovedPct: real('loved_pct'),
     ratingCount: integer('rating_count').notNull().default(0),
@@ -86,5 +97,6 @@ export const branchDishes = pgTable(
     uniqueIndex('branch_dishes_branch_slug_key').on(table.branchId, table.slug),
     index('branch_dishes_canonical_score_idx').on(table.canonicalDishId, table.score),
     index('branch_dishes_branch_score_idx').on(table.branchId, table.score),
+    index('branch_dishes_status_idx').on(table.status),
   ],
 );

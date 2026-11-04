@@ -20,7 +20,9 @@ function lastSeen(dish: BranchMenuDish): string | null {
   if (dish.lastRatedDays === null) return null;
   return dish.lastRatedDays === 0
     ? t('rating.lastRatedToday')
-    : t('rating.lastRated', { days: dish.lastRatedDays });
+    : dish.lastRatedDays === 1
+      ? t('rating.lastRatedYesterday')
+      : t('rating.lastRated', { days: dish.lastRatedDays });
 }
 
 export function DishRow({

@@ -35,6 +35,13 @@ describe('limit', () => {
     expect((await limit(policy, 'device-a', { store, now: 61_000 })).allowed).toBe(false);
   });
 
+  it('charges a multi-unit request its full cost', async () => {
+    const store = createMemoryStore();
+    expect((await limit(policy, 'device-a', { store, now: 1_000, cost: 2 })).allowed).toBe(true);
+    expect((await limit(policy, 'device-a', { store, now: 1_000, cost: 2 })).allowed).toBe(false);
+    expect((await limit(policy, 'device-a', { store, now: 1_000 })).allowed).toBe(true);
+  });
+
   it('fails closed when the store errors', async () => {
     const store = { hit: () => Promise.reject(new Error('down')) };
     expect(await limit(policy, 'device-a', { store, now: 30_000 })).toEqual({

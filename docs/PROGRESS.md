@@ -99,7 +99,8 @@ Notes:
 - [x] Member saves to "Want to try" and "Been there" default lists (E9-2), device-save import at sign-in (E1-4, D42), `/saved` member view; migration `20261025122537_lists`
 - [ ] Custom lists (E9-3) and public list pages (E9-4, P5 map)
 - [ ] Settings: sessions, export, delete
-- [ ] Ratings + aspect ratings + score jobs
+- [x] R1 ratings (docs/CONTRIBUTIONS.md): lifecycle columns (D43), `dish_ratings` with history, aspect ratings, brand affiliations; synchronous recompute (D46); rate sheet on branch and dish pages with sign-in resume (W3, E6-1, E6-2, E6-4); aspect summary on branch page; per-trust daily quotas (D50); sample ratings in seed (D44); migration `20261104175853_ratings_lifecycle`
+- [ ] R2 missing dishes (fingerprint, aliases, pending + activation, New badge, review tasks), nightly recompute job
 - [ ] Trust levels, §7.1 per-action limits
 - [ ] Exit criteria met
 

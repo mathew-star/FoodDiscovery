@@ -10,14 +10,16 @@ export function slidingWindowDecision(input: {
   elapsedMs: number;
   windowMs: number;
   limit: number;
+  /** Units this request uses, e.g. five dish ratings in one submission. */
+  cost?: number;
 }): WindowDecision {
-  const { previousCount, currentCount, elapsedMs, windowMs, limit } = input;
+  const { previousCount, currentCount, elapsedMs, windowMs, limit, cost = 1 } = input;
   const overlap = (windowMs - elapsedMs) / windowMs;
   const estimate = previousCount * overlap + currentCount;
-  if (estimate + 1 > limit) {
+  if (estimate + cost > limit) {
     return { allowed: false, remaining: 0, retryAfterMs: Math.max(1, windowMs - elapsedMs) };
   }
-  return { allowed: true, remaining: Math.max(0, Math.floor(limit - estimate - 1)), retryAfterMs: 0 };
+  return { allowed: true, remaining: Math.max(0, Math.floor(limit - estimate - cost)), retryAfterMs: 0 };
 }
 
 export function windowIndex(now: number, windowMs: number): { index: number; elapsedMs: number } {

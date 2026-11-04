@@ -45,9 +45,12 @@ Legend — **A** server action (`features/x/server/actions.ts`), **R** route han
 5. Optional "Add photos and a few words" → W4 with ratings attached.
 6. Submit → saved; scores update < 1 min; thank-you card with Share. Re-rate replaces, history kept.
 
-| Route | Components | Server |
-| --- | --- | --- |
-| `/rate/[branch]` (also sheet on `/r/[branch]`) | `RatingPicker`, `Chip`, `PlacePicker` [ratings, dishes] | A `submitRatingsAction` → J `ratings/recompute-dish`, J `moderation/review-bomb-scan`; A `proposeDishAction` (T1+) |
+| Step | Route | Components | Server |
+| --- | --- | --- | --- |
+| Open | `/r/[branch]`, `/r/[branch]/dish/[dish]` (Rate button; `?rate=1` or `?rate=<dish>` reopens after sign-in) | `RateButton`, `RateSheet` [ratings] | A `loadRateSheetAction` |
+| Submit | — | `RateSheet` | A `rateBranchAction` → `rateBranch` (history kept, D45), synchronous recompute (D46), `updateTag('branch:{id}')` |
+| Show | branch header, What to order here, dish page | `FoodScore`, `AspectSummary`, `ScoreBadge` | Q `getBranch`, `getBranchMenu` |
+| Add a missing dish | in the sheet (R2) | `RateSheet` | fingerprint + pending card (docs/CONTRIBUTIONS.md §5) |
 
 ## W4 Snap-to-post (experience)
 

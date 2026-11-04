@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, gte, inArray, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, or, sql, type SQL } from 'drizzle-orm';
 import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { getDb, withTransaction, type Database } from '@/db/client';
 import {
@@ -94,7 +94,7 @@ export async function searchCatalogue(
       .leftJoin(canonicalDishAliases, eq(canonicalDishAliases.canonicalDishId, canonicalDishes.id))
       .where(or(wordMatch(query, canonicalDishes.name), wordMatch(query, canonicalDishAliases.alias)))
       .groupBy(canonicalDishes.id)
-      .orderBy(desc(canonicalRankSql))
+      .orderBy(desc(canonicalRankSql), asc(canonicalDishes.name))
       .limit(limits.groupLimit * 2);
 
     const canonicalRank = new Map(canonicalMatches.map((match) => [match.id, match.textRank]));

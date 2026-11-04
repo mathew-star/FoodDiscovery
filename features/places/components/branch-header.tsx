@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AspectSummary } from '@/features/ratings/components/aspect-summary';
 import { FoodScore } from '@/features/ratings/components/food-score';
 import { t } from '@/i18n';
 import { Badge } from '@/shared/ui/badge';
@@ -43,7 +44,15 @@ export function BranchHeader({ branch }: { branch: BranchDetail }) {
           ))}
         </ul>
       </div>
-      <FoodScore score={branch.foodScore} />
+      <div className="flex flex-col gap-2">
+        <FoodScore score={branch.foodScore} />
+        <AspectSummary
+          value={branch.valueScore}
+          service={branch.serviceScore}
+          ambience={branch.ambienceScore}
+          wouldReturnPct={branch.wouldReturnPct}
+        />
+      </div>
       <ActionRow
         branchId={branch.id}
         name={branch.name}

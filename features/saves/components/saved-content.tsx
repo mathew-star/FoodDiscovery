@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getSession } from '@/features/auth/queries/session';
 import { DietMark } from '@/features/dishes/components/diet-mark';
+import { getRatedBranches } from '@/features/ratings/queries/member-ratings';
 import { defaultCity } from '@/features/geo/schemas/city';
 import { t } from '@/i18n';
 import { getMemberLists } from '../queries/member-lists';
@@ -12,10 +13,33 @@ export async function SavedContent() {
   const session = await getSession();
   if (!session) return <SavedList discoverHref={`/${defaultCity}`} />;
 
-  const lists = await getMemberLists(session.userId);
+  const [lists, rated] = await Promise.all([
+    getMemberLists(session.userId),
+    getRatedBranches(session.userId),
+  ]);
+  // "Been there" is every place the member rated, plus anything they added by hand (D42).
+  const withRated = lists.map((list) => {
+    if (list.kind !== 'been_there') return list;
+    const manual = new Set(list.items.map((item) => item.branchId));
+    const fromRatings = rated
+      .filter((place) => !manual.has(place.branchId))
+      .map((place) => ({
+        listId: list.id,
+        branchId: place.branchId,
+        branchSlug: place.branchSlug,
+        branchName: place.branchName,
+        localityName: place.localityName,
+        branchDishId: null,
+        dishSlug: null,
+        dishName: null,
+        diet: null,
+        note: null,
+      }));
+    return { ...list, items: [...fromRatings, ...list.items] };
+  });
   return (
     <div className="flex flex-col gap-8">
-      {lists.map((list) => (
+      {withRated.map((list) => (
         <section key={list.id} aria-labelledby={`list-${list.id}`} className="flex flex-col gap-3">
           <div className="flex items-baseline justify-between gap-3">
             <h2 id={`list-${list.id}`} className="type-title-m">

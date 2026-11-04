@@ -1,5 +1,6 @@
 import { Navigation, Phone } from 'lucide-react';
 import { TrackedAnchor } from '@/features/analytics/components/tracked-anchor.client';
+import { RateButton } from '@/features/ratings/components/rate-button.client';
 import { SaveButton } from '@/features/saves/components/save-button.client';
 import { t } from '@/i18n';
 import { googleMapsDirectionsUrl, type LatLng } from '@/shared/lib/geo';
@@ -44,6 +45,7 @@ export function ActionRow({ branchId, name, locality, path, location, phone }: A
         surface="branch"
         item={{ kind: 'branch', id: branchId, branchId, name, detail: locality, href: path, diet: null }}
       />
+      <RateButton branchId={branchId} branchName={name} variant="primary" />
     </div>
   );
 }

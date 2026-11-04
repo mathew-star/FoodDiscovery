@@ -7,9 +7,20 @@ import { drizzle as drizzleNodePg } from 'drizzle-orm/node-postgres';
 import type { PgAsyncDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import { Pool as PgPool } from 'pg';
 import * as schema from '@/db/schema';
-import { computeDishScore, computeFoodScore, type SentimentWeights } from '@/features/ratings/lib/score';
+import {
+  aggregateAspects,
+  aggregateDishRatings,
+  aspectKeys,
+  aspectScores,
+  cityPrior,
+  weightedValue,
+  type AspectAnswer,
+  type AspectRow,
+  type TrustLevel,
+} from '@/features/ratings/lib/aggregate';
+import { computeDishScore, computeFoodScore } from '@/features/ratings/lib/score';
 import { rankingConfigDefaults } from '@/features/ratings/schemas/ranking-config';
-import { sentimentValue, sentiments, type Sentiment } from '@/features/ratings/schemas/sentiment';
+import { sentiments, type Sentiment } from '@/features/ratings/schemas/sentiment';
 import { branchSlug, slugify, uniqueSlug } from '@/shared/lib/slug';
 import { uuidv7 } from '@/shared/lib/uuid';
 import { brands, canonicalDishes, categories, city, cuisines, localities } from './catalogue';
@@ -18,8 +29,39 @@ import { between, createRandom, integerBetween, type Random } from './random';
 type Database = PgAsyncDatabase<PgQueryResultHKT>;
 
 const DAY_MS = 86_400_000;
-const AVERAGE_RATING_WEIGHT = 0.92;
 const config = rankingConfigDefaults.dish_scoring;
+const weightConfig = rankingConfigDefaults.rating_weights;
+const aspectConfig = rankingConfigDefaults.aspect_scoring;
+// Fictional members behind the sample ratings (D19, D44). `.invalid` never resolves, and with no
+// password account they cannot sign in.
+const SAMPLE_EMAIL_DOMAIN = 'sample.fdn.invalid';
+const SAMPLE_MEMBERS = 180;
+const MAX_RATINGS_PER_DISH = 160;
+
+type SampleMember = { id: string; trust: TrustLevel };
+type SampleRating = { userId: string; sentiment: Sentiment; trust: TrustLevel; ageDays: number };
+
+function sampleTrust(random: Random): TrustLevel {
+  const roll = random();
+  return roll < 0.25 ? 't0' : roll < 0.8 ? 't1' : roll < 0.95 ? 't2' : 'founding';
+}
+
+/** Mostly recent, some old: age in days skewed toward today. */
+const sampleAge = (random: Random) => Math.floor(300 * random() ** 1.8);
+
+function pickMembers(random: Random, members: SampleMember[], count: number): SampleMember[] {
+  const pool = [...members];
+  for (let index = pool.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(random() * (index + 1));
+    [pool[index], pool[swap]] = [pool[swap] as SampleMember, pool[index] as SampleMember];
+  }
+  return pool.slice(0, count);
+}
+
+function aspectAnswer(random: Random, quality: number): AspectAnswer {
+  const roll = random() - (quality - 0.6);
+  return roll < 0.45 ? 'good' : roll < 0.85 ? 'okay' : 'poor';
+}
 
 function connect(): { db: Database; close: () => Promise<void> } {
   const url = process.env.DATABASE_URL;
@@ -46,7 +88,8 @@ function simulateRatings(
   random: Random,
   quality: number,
 ): { counts: Record<Sentiment, number>; total: number } {
-  const total = random() < 0.12 ? integerBetween(random, 0, 2) : integerBetween(random, 3, 160);
+  const total =
+    random() < 0.12 ? integerBetween(random, 0, 2) : integerBetween(random, 3, MAX_RATINGS_PER_DISH);
   const counts: Record<Sentiment, number> = { loved: 0, good: 0, okay: 0, skip: 0 };
   const shape: Record<Sentiment, number> = {
     loved: quality ** 2.2,
@@ -95,6 +138,7 @@ async function main(): Promise<void> {
         await tx.execute(
           sql`TRUNCATE ranking_config, facts, branch_dishes, branch_hours, branch_cuisines, branches, brands, canonical_dish_aliases, canonical_dishes, dish_categories, cuisines, localities, cities, slug_redirects CASCADE`,
         );
+        await tx.execute(sql`DELETE FROM users WHERE email LIKE ${`%@${SAMPLE_EMAIL_DOMAIN}`}`);
       }
 
       await tx
@@ -162,7 +206,34 @@ async function main(): Promise<void> {
       );
       await tx.insert(schema.canonicalDishAliases).values(aliasRows);
 
-      type DishDraft = typeof schema.branchDishes.$inferInsert & { weights: SentimentWeights };
+      const members: SampleMember[] = Array.from({ length: SAMPLE_MEMBERS }, () => ({
+        id: uuidv7(),
+        trust: sampleTrust(random),
+      }));
+      const joined = new Date(now - 400 * DAY_MS);
+      await tx.insert(schema.users).values(
+        members.map((member, index) => ({
+          id: member.id,
+          name: `Sample member ${index + 1}`,
+          email: `member-${index + 1}@${SAMPLE_EMAIL_DOMAIN}`,
+          emailVerified: true,
+          createdAt: joined,
+        })),
+      );
+      await tx.insert(schema.profiles).values(
+        members.map((member, index) => ({
+          userId: member.id,
+          username: `sample_${index + 1}`,
+          displayName: `Sample member ${index + 1}`,
+          trustLevel: member.trust,
+          adultConfirmedAt: joined,
+          onboardedAt: joined,
+        })),
+      );
+
+      type DishDraft = typeof schema.branchDishes.$inferInsert & { id: string };
+      const sampleRatings = new Map<string, SampleRating[]>();
+      const aspectRows: (typeof schema.branchAspectRatings.$inferInsert)[] = [];
       const dishDrafts: DishDraft[] = [];
       const branchRows: (typeof schema.branches.$inferInsert)[] = [];
       const branchCuisineRows: (typeof schema.branchCuisines.$inferInsert)[] = [];
@@ -243,15 +314,19 @@ async function main(): Promise<void> {
             takenDishSlugs.add(dishSlug);
             const quality = Math.min(0.97, Math.max(0.2, item.quality + between(random, -0.08, 0.08)));
             const { counts, total } = simulateRatings(random, quality);
-            const weights: SentimentWeights = {
-              loved: counts.loved * AVERAGE_RATING_WEIGHT,
-              good: counts.good * AVERAGE_RATING_WEIGHT,
-              okay: counts.okay * AVERAGE_RATING_WEIGHT,
-              skip: counts.skip * AVERAGE_RATING_WEIGHT,
-            };
+            const raters = pickMembers(random, members, total);
+            const ratings: SampleRating[] = sentiments
+              .flatMap((sentiment) => Array.from({ length: counts[sentiment] }, () => sentiment))
+              .map((sentiment, index) => {
+                const rater = raters[index] as SampleMember;
+                return { userId: rater.id, sentiment, trust: rater.trust, ageDays: sampleAge(random) };
+              });
             const canonicalDishId = item.dish ? canonicalIds.get(item.dish) : undefined;
             if (item.dish && !canonicalDishId) throw new Error(`Unknown canonical dish ${item.dish}`);
+            const dishId = uuidv7();
+            sampleRatings.set(dishId, ratings);
             dishDrafts.push({
+              id: dishId,
               branchId,
               canonicalDishId: canonicalDishId ?? null,
               slug: dishSlug,
@@ -261,47 +336,92 @@ async function main(): Promise<void> {
               diet: item.diet,
               isJain: item.jain ?? false,
               isSignature: item.signature ?? false,
-              ratingCount: total,
-              lastRatedAt: total > 0 ? new Date(now - integerBetween(random, 0, 45) * DAY_MS) : null,
-              weights,
+            });
+          }
+
+          // Restaurant aspects (spec §6.2) from a handful of the same sample members.
+          const brandQuality = brand.menu.reduce((sum, item) => sum + item.quality, 0) / brand.menu.length;
+          for (const member of pickMembers(random, members, integerBetween(random, 0, 24))) {
+            const ageDays = sampleAge(random);
+            aspectRows.push({
+              userId: member.id,
+              branchId,
+              value: aspectAnswer(random, brandQuality),
+              service: random() < 0.85 ? aspectAnswer(random, brandQuality) : null,
+              ambience: random() < 0.7 ? aspectAnswer(random, brandQuality - 0.05) : null,
+              wouldReturn: random() < 0.9 ? random() < brandQuality + 0.1 : null,
+              trustAtTime: member.trust,
+              createdAt: new Date(now - ageDays * DAY_MS),
             });
           }
         }
       }
 
-      const priorTotals = new Map<string, { value: number; weight: number; count: number }>();
+      const counted = {
+        isCurrent: true,
+        suspect: false,
+        disclosed: false,
+        affiliated: false,
+        dishActive: true,
+        branchListed: true,
+      };
+      const aggregates = new Map(
+        dishDrafts.map((draft) => [
+          draft.id,
+          aggregateDishRatings(
+            (sampleRatings.get(draft.id) ?? []).map((rating) => ({ ...counted, ...rating })),
+            weightConfig,
+          ),
+        ]),
+      );
+
+      const priorTotals = new Map<string, { weightedValue: number; weight: number; count: number }>();
       for (const draft of dishDrafts) {
-        if (!draft.canonicalDishId) continue;
-        const entry = priorTotals.get(draft.canonicalDishId) ?? { value: 0, weight: 0, count: 0 };
-        for (const sentiment of sentiments) {
-          entry.value += draft.weights[sentiment] * sentimentValue[sentiment];
-          entry.weight += draft.weights[sentiment];
-        }
-        entry.count += draft.ratingCount ?? 0;
+        const aggregate = aggregates.get(draft.id);
+        if (!draft.canonicalDishId || !aggregate) continue;
+        const entry = priorTotals.get(draft.canonicalDishId) ?? { weightedValue: 0, weight: 0, count: 0 };
+        entry.weightedValue += weightedValue(aggregate.weights);
+        entry.weight += sentiments.reduce((sum, sentiment) => sum + aggregate.weights[sentiment], 0);
+        entry.count += aggregate.ratingCount;
         priorTotals.set(draft.canonicalDishId, entry);
       }
 
       const scoredAt = new Date(now);
-      const dishRows = dishDrafts.map(({ weights, ...draft }) => {
+      const dishRows = dishDrafts.map((draft) => {
+        const aggregate = aggregates.get(draft.id);
+        if (!aggregate) throw new Error('missing aggregate');
         const totals = draft.canonicalDishId ? priorTotals.get(draft.canonicalDishId) : undefined;
-        const prior =
-          totals && totals.count >= config.minRatingsForCityPrior && totals.weight > 0
-            ? totals.value / totals.weight
-            : config.defaultPrior;
-        const { score, lovedPct, weightSum } = computeDishScore(weights, prior, config);
+        const prior = totals
+          ? cityPrior(totals, config.minRatingsForCityPrior, config.defaultPrior)
+          : config.defaultPrior;
+        const { score, lovedPct, weightSum } = computeDishScore(aggregate.weights, prior, config);
         return {
           ...draft,
           score,
           lovedPct,
           weightSum,
-          lovedWeight: weights.loved,
-          goodWeight: weights.good,
-          okayWeight: weights.okay,
-          skipWeight: weights.skip,
+          ratingCount: aggregate.ratingCount,
+          lovedWeight: aggregate.weights.loved,
+          goodWeight: aggregate.weights.good,
+          okayWeight: aggregate.weights.okay,
+          skipWeight: aggregate.weights.skip,
+          lastRatedAt:
+            aggregate.newestAgeDays === null ? null : new Date(now - aggregate.newestAgeDays * DAY_MS),
           scoredAt,
         };
       });
 
+      const answerValue: Record<AspectAnswer, number> = { good: 1, okay: 0.5, poor: 0 };
+      const aspectPriors = Object.fromEntries(
+        aspectKeys.map((key) => {
+          const answers = aspectRows.flatMap((row) => (row[key] ? [answerValue[row[key]]] : []));
+          const mean = answers.reduce((sum, value) => sum + value, 0) / Math.max(1, answers.length);
+          return [
+            key,
+            aspectRows.length >= aspectConfig.minAnswersForCityPrior ? mean : aspectConfig.defaultPrior,
+          ];
+        }),
+      ) as Record<(typeof aspectKeys)[number], number>;
       for (const branch of branchRows) {
         branch.foodScore = computeFoodScore(
           dishRows
@@ -309,6 +429,28 @@ async function main(): Promise<void> {
             .map((dish) => ({ score: dish.score, weightSum: dish.weightSum })),
           config,
         );
+        const rows: AspectRow[] = aspectRows
+          .filter((row) => row.branchId === branch.id)
+          .map((row) => ({
+            ...counted,
+            answers: {
+              value: row.value ?? null,
+              service: row.service ?? null,
+              ambience: row.ambience ?? null,
+            },
+            wouldReturn: row.wouldReturn ?? null,
+            trust: row.trustAtTime,
+            ageDays: Math.round((now - (row.createdAt ?? scoredAt).getTime()) / DAY_MS),
+          }));
+        const totals = aggregateAspects(rows, weightConfig);
+        const scores = aspectScores(totals, aspectPriors, aspectConfig);
+        Object.assign(branch, {
+          valueScore: scores.value,
+          serviceScore: scores.service,
+          ambienceScore: scores.ambience,
+          wouldReturnPct: scores.wouldReturnPct,
+          aspectCount: totals.respondents,
+        });
       }
 
       await tx.insert(schema.branches).values(branchRows);
@@ -316,9 +458,22 @@ async function main(): Promise<void> {
       await tx.insert(schema.branchHours).values(hoursRows);
       await tx.insert(schema.facts).values(factRows);
       await tx.insert(schema.branchDishes).values(dishRows);
+      const ratingRows = dishDrafts.flatMap((draft) =>
+        (sampleRatings.get(draft.id) ?? []).map((rating) => ({
+          userId: rating.userId,
+          branchDishId: draft.id,
+          sentiment: rating.sentiment,
+          trustAtTime: rating.trust,
+          createdAt: new Date(now - rating.ageDays * DAY_MS),
+        })),
+      );
+      for (let start = 0; start < ratingRows.length; start += 1000) {
+        await tx.insert(schema.dishRatings).values(ratingRows.slice(start, start + 1000));
+      }
+      if (aspectRows.length > 0) await tx.insert(schema.branchAspectRatings).values(aspectRows);
 
       console.log(
-        `Seeded ${localities.length} localities, ${brands.length} brands, ${branchRows.length} branches, ${dishRows.length} dishes, ${canonicalDishes.length} canonical dishes.`,
+        `Seeded ${localities.length} localities, ${brands.length} brands, ${branchRows.length} branches, ${dishRows.length} dishes, ${canonicalDishes.length} canonical dishes, ${members.length} sample members, ${ratingRows.length} ratings.`,
       );
     });
   } finally {
