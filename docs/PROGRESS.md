@@ -1,13 +1,13 @@
 # Progress
 
-Update at the end of every phase in the PR that closes it: tick items, note deviations (and add them to `docs/ARCHITECTURE.md` §Decisions), record the closing PR.
+Update at the end of every phase in the PR that closes it: tick items, note deviations (and add them to `docs/ARCHITECTURE.md` §Decisions), record the closing PR. The one-page overview of where everything stands is `docs/STATUS.md`.
 
 | Phase | Status | Closing PR |
 | --- | --- | --- |
 | P0 Foundations | Done | branch `claude/food-discovery-audit-7wepur` |
-| P1 Catalogue | In progress | — |
-| P2 Search and Discover | In progress | — |
-| P3 Accounts and ratings | In progress | — |
+| P1 Catalogue | Done except admin entity editing, maps, live OG check | — |
+| P2 Search and Discover | Done except Discover sections that need P4/P5 data | — |
+| P3 Accounts and ratings | In progress (places, Ops queue, claims, settings, custom lists left) | — |
 | P4 Posts, comments, communities | Not started | — |
 | P5 Battles, leaderboards, living facts | Not started | — |
 | P6 Safety, notifications, admin, launch | Not started | — |
@@ -103,7 +103,7 @@ Notes:
 - [x] R2 missing dishes (docs/CONTRIBUTIONS.md §5): fingerprint with protected canonical names (D48), `branch_dish_aliases`, "Add and rate" in the rate sheet (Gate 1 + Gate 2), pending cards with "New" badge, activation by trust-weighted corroboration (D47) or confident canonical match, `review_tasks`, read-side filters (only live dishes at listed branches rank or search), new-dish quota (D52); migration `20261108170450_dish_contributions`, `bun run db:backfill` for existing rows
 - [x] Inngest: `/api/inngest`, nightly trust job (§2.2, D53) chained into the full score recompute (D46, D54); `bun run inngest:dev`
 - [ ] R3 add a place, R4 Ops queue and merges, R5 owner claims
-- [ ] Trust levels, §7.1 per-action limits
+- [x] Trust levels computed nightly (D53); §7.1 quotas for ratings and new dishes (D50). Quotas for posts, comments, votes, reports and uploads arrive with those features
 - [ ] Exit criteria met
 
 ## P4 Posts, comments, communities

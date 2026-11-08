@@ -122,6 +122,7 @@ Full detail: `docs/ARCHITECTURE.md`.
 
 ## Docs
 
+- `docs/STATUS.md` — one-page status: what works, where it is deployed, release steps, next work
 - `docs/spec/MVP-SPEC.md` — product spec (source of truth)
 - `docs/ARCHITECTURE.md` — structure, boundaries, data model, caching, jobs, decisions
 - `docs/DESIGN-SYSTEM.md` — tokens, type, motion, components, a11y rules
