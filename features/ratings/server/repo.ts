@@ -4,6 +4,7 @@ import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { getDb, type Database, type Transaction } from '@/db/client';
 import {
   brandAffiliations,
+  branchDishAliases,
   branchAspectRatings,
   branchDishes,
   branches,
@@ -11,6 +12,7 @@ import {
   localities,
   profiles,
   rankingConfig,
+  reviewTasks,
 } from '@/db/schema';
 import type { RatingWeightsConfig } from '../schemas/ranking-config';
 import type { Sentiment } from '../schemas/sentiment';
@@ -335,4 +337,114 @@ export async function listRatedBranches(db: Executor, userId: string) {
     .where(and(eq(dishRatings.userId, userId), eq(dishRatings.isCurrent, true)))
     .groupBy(branches.id, localities.name)
     .orderBy(desc(sql`max(${dishRatings.createdAt})`));
+}
+
+// Dish contributions (docs/CONTRIBUTIONS.md §5): born inside a rating submission, so they share its
+// transaction and live with the ratings feature (D52).
+
+export async function findDishByFingerprint(db: Executor, branchId: string, fingerprint: string) {
+  const [row] = await db
+    .select({ id: branchDishes.id, status: branchDishes.status })
+    .from(branchDishes)
+    .where(
+      and(
+        eq(branchDishes.branchId, branchId),
+        eq(branchDishes.fingerprint, fingerprint),
+        inArray(branchDishes.status, ['pending', 'active']),
+      ),
+    );
+  return row ?? null;
+}
+
+export async function listBranchDishSlugs(db: Executor, branchId: string) {
+  const rows = await db
+    .select({ slug: branchDishes.slug })
+    .from(branchDishes)
+    .where(eq(branchDishes.branchId, branchId));
+  return new Set(rows.map((row) => row.slug));
+}
+
+export async function insertCommunityDish(
+  db: Executor,
+  dish: {
+    branchId: string;
+    canonicalDishId: string | null;
+    slug: string;
+    name: string;
+    normalizedName: string;
+    fingerprint: string;
+    menuSection: string;
+    pricePaise: number | null;
+    diet: 'veg' | 'egg' | 'nonveg';
+    status: 'pending' | 'active';
+    createdBy: string;
+  },
+) {
+  // DO NOTHING (not an error) when someone added the same fingerprint a moment earlier, so the
+  // surrounding transaction stays usable; the caller then reads that card instead.
+  const [row] = await db
+    .insert(branchDishes)
+    .values({ ...dish, source: 'community' })
+    .onConflictDoNothing()
+    .returning({ id: branchDishes.id });
+  return row?.id ?? null;
+}
+
+export async function insertDishAlias(
+  db: Executor,
+  alias: {
+    branchDishId: string;
+    rawText: string;
+    normalizedText: string;
+    createdBy: string;
+    submittedPricePaise: number | null;
+  },
+) {
+  await db
+    .insert(branchDishAliases)
+    .values({ ...alias, how: 'typed' })
+    .onConflictDoNothing();
+}
+
+export async function openReviewTask(
+  db: Executor,
+  task: { kind: 'new_dish'; entityId: string; branchId: string; priority: number; openedBy: string },
+) {
+  await db.insert(reviewTasks).values(task).onConflictDoNothing();
+}
+
+export async function resolveReviewTask(
+  db: Executor,
+  kind: 'new_dish',
+  entityId: string,
+  resolution: string,
+) {
+  await db
+    .update(reviewTasks)
+    .set({ state: 'resolved', resolution, resolvedAt: new Date() })
+    .where(
+      and(eq(reviewTasks.kind, kind), eq(reviewTasks.entityId, entityId), eq(reviewTasks.state, 'open')),
+    );
+}
+
+/** Current raters of a dish with their trust today (D45), for the activation rule (D47). */
+export async function listCurrentRaters(db: Executor, branchDishId: string) {
+  return db
+    .select({ userId: dishRatings.userId, trust: currentTrust })
+    .from(dishRatings)
+    .leftJoin(profiles, eq(profiles.userId, dishRatings.userId))
+    .where(
+      and(
+        eq(dishRatings.branchDishId, branchDishId),
+        eq(dishRatings.isCurrent, true),
+        eq(dishRatings.suspect, false),
+      ),
+    );
+}
+
+export async function activateDish(db: Executor, branchDishId: string) {
+  await db
+    .update(branchDishes)
+    .set({ status: 'active' })
+    .where(and(eq(branchDishes.id, branchDishId), eq(branchDishes.status, 'pending')));
 }

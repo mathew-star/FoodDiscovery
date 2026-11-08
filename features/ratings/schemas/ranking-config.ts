@@ -105,6 +105,13 @@ export const actionLimitsConfigSchema = z.object({
   reports: quotaSchema,
   factConfirmations: quotaSchema,
   photoUploads: quotaSchema,
+  newDishes: quotaSchema,
+});
+
+/** docs/CONTRIBUTIONS.md §5.3 (D47): when a pending dish counts as corroborated. */
+export const dishActivationConfigSchema = z.object({
+  minDistinctRaters: z.int().positive(),
+  minTrustWeight: z.number().positive(),
 });
 
 export type DishScoringConfig = z.infer<typeof dishScoringConfigSchema>;
@@ -115,6 +122,7 @@ export type DiscoveryRankingConfig = z.infer<typeof discoveryRankingConfigSchema
 export type SearchConfig = z.infer<typeof searchConfigSchema>;
 export type RatingWeightsConfig = z.infer<typeof ratingWeightsConfigSchema>;
 export type AspectScoringConfig = z.infer<typeof aspectScoringConfigSchema>;
+export type DishActivationConfig = z.infer<typeof dishActivationConfigSchema>;
 export type ActionLimitsConfig = z.infer<typeof actionLimitsConfigSchema>;
 export type LimitedAction = Exclude<keyof ActionLimitsConfig, 'windowMs'>;
 
@@ -178,7 +186,9 @@ export const rankingConfigDefaults = {
     reports: { t0: 10, t1: 30, t2: 60, founding: 60, ip: 60 },
     factConfirmations: { t0: 30, t1: 100, t2: 200, founding: 200, ip: 200 },
     photoUploads: { t0: 30, t1: 150, t2: 300, founding: 300, ip: 300 },
+    newDishes: { t0: 5, t1: 20, t2: 40, founding: 40, ip: 40 },
   } satisfies ActionLimitsConfig,
+  dish_activation: { minDistinctRaters: 2, minTrustWeight: 1.5 } satisfies DishActivationConfig,
   search: {
     textWeight: 0.6,
     rankWeight: 0.4,
@@ -201,6 +211,7 @@ export const rankingConfigSchemas = {
   rating_weights: ratingWeightsConfigSchema,
   aspect_scoring: aspectScoringConfigSchema,
   action_limits: actionLimitsConfigSchema,
+  dish_activation: dishActivationConfigSchema,
 } as const;
 
 export type RankingConfigKey = keyof typeof rankingConfigSchemas;

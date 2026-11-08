@@ -84,6 +84,7 @@ describe.runIf(enabled)('ratings service (seeded database)', () => {
 
     const first = await service.rateBranch(userId, {
       branchId: branch.id,
+      newDishes: [],
       dishes: [{ branchDishId: dish.id, sentiment: 'skip' }],
       aspects: null,
     });
@@ -94,6 +95,7 @@ describe.runIf(enabled)('ratings service (seeded database)', () => {
 
     const same = await service.rateBranch(userId, {
       branchId: branch.id,
+      newDishes: [],
       dishes: [{ branchDishId: dish.id, sentiment: 'skip' }],
       aspects: null,
     });
@@ -101,6 +103,7 @@ describe.runIf(enabled)('ratings service (seeded database)', () => {
 
     await service.rateBranch(userId, {
       branchId: branch.id,
+      newDishes: [],
       dishes: [{ branchDishId: dish.id, sentiment: 'loved' }],
       aspects: null,
     });
@@ -119,11 +122,15 @@ describe.runIf(enabled)('ratings service (seeded database)', () => {
     const userId = await member('t2');
     const [branchBefore] = await db.select().from(schema.branches).where(eq(schema.branches.id, branch.id));
     const aspects = { value: 'good', service: 'okay', ambience: null, wouldReturn: true } as const;
-    expect(await service.rateBranch(userId, { branchId: branch.id, dishes: [], aspects })).toMatchObject({
+    expect(
+      await service.rateBranch(userId, { branchId: branch.id, newDishes: [], dishes: [], aspects }),
+    ).toMatchObject({
       ok: true,
       data: { aspectsSaved: true },
     });
-    expect(await service.rateBranch(userId, { branchId: branch.id, dishes: [], aspects })).toMatchObject({
+    expect(
+      await service.rateBranch(userId, { branchId: branch.id, newDishes: [], dishes: [], aspects }),
+    ).toMatchObject({
       ok: true,
       data: { aspectsSaved: false },
     });
@@ -141,6 +148,7 @@ describe.runIf(enabled)('ratings service (seeded database)', () => {
     const before = await dishRow(dish.id);
     await service.rateBranch(userId, {
       branchId: branch.id,
+      newDishes: [],
       dishes: [{ branchDishId: dish.id, sentiment: 'loved' }],
       aspects: null,
     });
@@ -156,6 +164,7 @@ describe.runIf(enabled)('ratings service (seeded database)', () => {
     expect(
       await service.rateBranch(pending, {
         branchId: branch.id,
+        newDishes: [],
         dishes: [{ branchDishId: dish.id, sentiment: 'good' }],
         aspects: null,
       }),
@@ -173,6 +182,7 @@ describe.runIf(enabled)('ratings service (seeded database)', () => {
     expect(
       await service.rateBranch(userId, {
         branchId: branch.id,
+        newDishes: [],
         dishes: [{ branchDishId: other?.id ?? '', sentiment: 'good' }],
         aspects: null,
       }),

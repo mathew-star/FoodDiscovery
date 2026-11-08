@@ -81,6 +81,9 @@ export const branchDishes = pgTable(
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     mergedIntoId: uuid('merged_into_id').references((): AnyPgColumn => branchDishes.id),
     ownerManaged: boolean('owner_managed').notNull().default(false),
+    // Duplicate detection (docs/CONTRIBUTIONS.md §5.1); written by the app, backfilled for old rows.
+    normalizedName: text('normalized_name'),
+    fingerprint: text('fingerprint'),
     score: real('score'),
     lovedPct: real('loved_pct'),
     ratingCount: integer('rating_count').notNull().default(0),
@@ -98,5 +101,29 @@ export const branchDishes = pgTable(
     index('branch_dishes_canonical_score_idx').on(table.canonicalDishId, table.score),
     index('branch_dishes_branch_score_idx').on(table.branchId, table.score),
     index('branch_dishes_status_idx').on(table.status),
+    // Two people adding the same dish at once get one card (Gate 2).
+    uniqueIndex('branch_dishes_branch_fingerprint_key')
+      .on(table.branchId, table.fingerprint)
+      .where(sql`${table.status} in ('pending', 'active') and ${table.fingerprint} is not null`),
   ],
+);
+
+export const aliasSource = pgEnum('alias_source', ['typed', 'merge', 'owner', 'seed']);
+
+/** Every spelling people used for a dish card, for matching and search. */
+export const branchDishAliases = pgTable(
+  'branch_dish_aliases',
+  {
+    id: id(),
+    branchDishId: uuid('branch_dish_id')
+      .notNull()
+      .references(() => branchDishes.id, { onDelete: 'cascade' }),
+    rawText: text('raw_text').notNull(),
+    normalizedText: text('normalized_text').notNull(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    submittedPricePaise: integer('submitted_price_paise'),
+    how: aliasSource('how').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('branch_dish_aliases_dish_text_key').on(table.branchDishId, table.normalizedText)],
 );

@@ -67,7 +67,13 @@ function candidateQuery(db: Database, textRank: SQL<number>) {
 }
 
 const liveDish = (cityId: string) =>
-  and(eq(branches.cityId, cityId), eq(branches.status, 'active'), eq(branchDishes.isActive, true));
+  and(
+    eq(branches.cityId, cityId),
+    eq(branches.status, 'active'),
+    eq(branches.listing, 'listed'),
+    eq(branchDishes.isActive, true),
+    eq(branchDishes.status, 'active'),
+  );
 
 /*
   One transaction so SET LOCAL scopes the trigram threshold to these statements; the default 0.6
@@ -138,7 +144,14 @@ export async function searchCatalogue(
       })
       .from(branches)
       .innerJoin(localities, eq(localities.id, branches.localityId))
-      .where(and(eq(branches.cityId, cityId), eq(branches.status, 'active'), wordMatch(query, branches.name)))
+      .where(
+        and(
+          eq(branches.cityId, cityId),
+          eq(branches.status, 'active'),
+          eq(branches.listing, 'listed'),
+          wordMatch(query, branches.name),
+        ),
+      )
       .orderBy(desc(wordSimilarity(query, branches.name)), sql`${branches.foodScore} desc nulls last`)
       .limit(limits.branchLimit);
     const areas = await tx

@@ -37,7 +37,11 @@ export function DishRow({
   const href = `/r/${branchSlug}/dish/${dish.slug}`;
   const seen = rated ? lastSeen(dish) : null;
   const price = dish.pricePaise !== null ? formatRupees(dish.pricePaise) : null;
-  const name = (
+  // A pending card has no page of its own yet (docs/CONTRIBUTIONS.md §5.4).
+  const pending = dish.status === 'pending';
+  const name = pending ? (
+    <span>{dish.name}</span>
+  ) : (
     <Link href={href} className="after:absolute after:inset-0 hover:underline hover:underline-offset-4">
       {dish.name}
     </Link>
@@ -57,6 +61,11 @@ export function DishRow({
             lovedPct={rated ? dish.lovedPct : null}
             ratingCount={dish.ratingCount}
           />
+          {pending ? (
+            <Badge tone="lime" title={t('dish.newHint')}>
+              {t('dish.new')}
+            </Badge>
+          ) : null}
           {dish.isJain ? <Badge>{t('dish.jain')}</Badge> : null}
           {seen ? <span className="text-[11px] text-inkMuted">{seen}</span> : null}
         </div>

@@ -1,14 +1,16 @@
 import 'server-only';
 
-import { and, asc, desc, eq, gte, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ne, or, sql } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import {
   branchCuisines,
   branchDishes,
   branches,
+  canonicalDishAliases,
   canonicalDishes,
   dishCategories,
   localities,
+  profiles,
 } from '@/db/schema';
 
 const dishFields = {
@@ -27,6 +29,7 @@ const dishFields = {
   weightSum: branchDishes.weightSum,
   lastRatedAt: branchDishes.lastRatedAt,
   canonicalDishId: branchDishes.canonicalDishId,
+  status: branchDishes.status,
 };
 
 const placedDishFields = {
@@ -40,6 +43,13 @@ const placedDishFields = {
   localitySlug: localities.slug,
 };
 
+/** Ranked surfaces show only live cards at listed branches (docs/CONTRIBUTIONS.md §5.4). */
+const live = () =>
+  and(eq(branchDishes.isActive, true), eq(branchDishes.status, 'active'), eq(branches.listing, 'listed'));
+
+// A pending card is public on its branch menu only when a regular member added it (§5.4).
+const publicPending = sql<boolean>`${branchDishes.status} = 'pending' and exists (select 1 from ${profiles} where ${profiles.userId} = ${branchDishes.createdBy} and ${profiles.trustLevel} <> 't0')`;
+
 const rankedByScore = (minWeight: number) =>
   [
     desc(sql`${branchDishes.weightSum} >= ${minWeight}`),
@@ -51,7 +61,13 @@ export async function listDishesForBranch(branchId: string) {
   return getDb()
     .select(dishFields)
     .from(branchDishes)
-    .where(and(eq(branchDishes.branchId, branchId), eq(branchDishes.isActive, true)))
+    .where(
+      and(
+        eq(branchDishes.branchId, branchId),
+        eq(branchDishes.isActive, true),
+        or(eq(branchDishes.status, 'active'), publicPending),
+      ),
+    )
     .orderBy(asc(branchDishes.menuSection), asc(branchDishes.name));
 }
 
@@ -75,7 +91,7 @@ export async function findBranchDish(branchSlug: string, dishSlug: string) {
       and(
         eq(branches.slug, branchSlug),
         eq(branchDishes.slug, dishSlug),
-        eq(branchDishes.isActive, true),
+        live(),
         ne(branches.status, 'permanently_closed'),
       ),
     );
@@ -87,7 +103,7 @@ export async function listBranchDishParams() {
     .select({ branch: branches.slug, dish: branchDishes.slug })
     .from(branchDishes)
     .innerJoin(branches, eq(branches.id, branchDishes.branchId))
-    .where(and(eq(branchDishes.isActive, true), ne(branches.status, 'permanently_closed')))
+    .where(and(live(), ne(branches.status, 'permanently_closed')))
     .orderBy(asc(branches.slug), asc(branchDishes.slug));
 }
 
@@ -129,7 +145,7 @@ export async function listBranchDishesForCanonical(
     .where(
       and(
         eq(branchDishes.canonicalDishId, canonicalDishId),
-        eq(branchDishes.isActive, true),
+        live(),
         eq(branches.cityId, cityId),
         eq(branches.status, 'active'),
       ),
@@ -147,7 +163,7 @@ export async function listTopDishesInLocality(localityId: string, minWeight: num
       and(
         eq(branches.localityId, localityId),
         eq(branches.status, 'active'),
-        eq(branchDishes.isActive, true),
+        live(),
         gte(branchDishes.weightSum, minWeight),
       ),
     )
@@ -175,7 +191,7 @@ export async function listTopDishesForCuisine(
         eq(branches.cityId, cityId),
         eq(branchCuisines.cuisineId, cuisineId),
         eq(branches.status, 'active'),
-        eq(branchDishes.isActive, true),
+        live(),
         gte(branchDishes.weightSum, minWeight),
       ),
     )
@@ -202,9 +218,34 @@ export async function listBestBranchDishPerCanonical(cityId: string, minWeight: 
       and(
         eq(branches.cityId, cityId),
         eq(branches.status, 'active'),
-        eq(branchDishes.isActive, true),
+        live(),
         gte(branchDishes.weightSum, minWeight),
       ),
     )
     .orderBy(branchDishes.canonicalDishId, sql`${branchDishes.score} desc nulls last`);
+}
+
+/** Canonical dish names and aliases with their category, for fingerprint matching. */
+export async function listCanonicalNames() {
+  const db = getDb();
+  const [names, aliases] = await Promise.all([
+    db
+      .select({
+        canonicalDishId: canonicalDishes.id,
+        name: canonicalDishes.name,
+        category: dishCategories.name,
+      })
+      .from(canonicalDishes)
+      .innerJoin(dishCategories, eq(dishCategories.id, canonicalDishes.categoryId)),
+    db
+      .select({
+        canonicalDishId: canonicalDishAliases.canonicalDishId,
+        name: canonicalDishAliases.alias,
+        category: dishCategories.name,
+      })
+      .from(canonicalDishAliases)
+      .innerJoin(canonicalDishes, eq(canonicalDishes.id, canonicalDishAliases.canonicalDishId))
+      .innerJoin(dishCategories, eq(dishCategories.id, canonicalDishes.categoryId)),
+  ]);
+  return [...names, ...aliases];
 }

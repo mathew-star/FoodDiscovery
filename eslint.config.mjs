@@ -97,7 +97,7 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ['db/test-connection.ts', 'db/seed/**/*.ts'],
+    files: ['db/test-connection.ts', 'db/seed/**/*.ts', 'db/scripts/**/*.ts'],
     rules: { 'no-console': 'off' },
   },
   globalIgnores([

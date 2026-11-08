@@ -50,7 +50,7 @@ Legend — **A** server action (`features/x/server/actions.ts`), **R** route han
 | Open | `/r/[branch]`, `/r/[branch]/dish/[dish]` (Rate button; `?rate=1` or `?rate=<dish>` reopens after sign-in) | `RateButton`, `RateSheet` [ratings] | A `loadRateSheetAction` |
 | Submit | — | `RateSheet` | A `rateBranchAction` → `rateBranch` (history kept, D45), synchronous recompute (D46), `updateTag('branch:{id}')` |
 | Show | branch header, What to order here, dish page | `FoodScore`, `AspectSummary`, `ScoreBadge` | Q `getBranch`, `getBranchMenu` |
-| Add a missing dish | in the sheet (R2) | `RateSheet` | fingerprint + pending card (docs/CONTRIBUTIONS.md §5) |
+| Add a missing dish | in the sheet: type the name, existing matches first (Gate 1), "Add … and rate it" | `RateSheet` (diet, optional price, verdict) | A `rateBranchAction` with `newDishes` → fingerprint match or pending card + alias + `new_dish` task; activation D47 (docs/CONTRIBUTIONS.md §5) |
 
 ## W4 Snap-to-post (experience)
 

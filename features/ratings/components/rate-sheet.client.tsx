@@ -6,11 +6,12 @@ import { useMemo, useState, useTransition, type FormEvent } from 'react';
 import { DietMark } from '@/features/dishes/components/diet-mark';
 import { t, type MessageKey } from '@/i18n';
 import { cn } from '@/shared/lib/cn';
+import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { ChipButton } from '@/shared/ui/chip';
 import type { RateSheetData } from '../server/actions';
 import { rateBranchAction } from '../server/actions';
-import { maxDishesPerSubmission } from '../schemas/rate-input';
+import { maxDishesPerSubmission, maxNewDishesPerSubmission } from '../schemas/rate-input';
 import { sentimentLabelKey, sentiments, type Sentiment } from '../schemas/sentiment';
 import { verdictFill } from './verdict-pill';
 
@@ -34,6 +35,21 @@ const aspectLabel: Record<Aspect, MessageKey> = {
   poor: 'ratings.sheet.poor',
 };
 const chipLimit = 12;
+const dietOptions: readonly Diet[] = ['veg', 'egg', 'nonveg'];
+const dietLabel: Record<Diet, MessageKey> = { veg: 'diet.veg', egg: 'diet.egg', nonveg: 'diet.nonveg' };
+
+type Diet = 'veg' | 'egg' | 'nonveg';
+/** A dish the member ate that is not on this menu yet (docs/CONTRIBUTIONS.md §5.2). */
+type AddedDish = {
+  key: string;
+  name: string;
+  diet: Diet | null;
+  rupees: string;
+  sentiment: Sentiment | null;
+};
+
+const sameName = (a: string, b: string) =>
+  a.trim().toLowerCase().replace(/\s+/g, ' ') === b.trim().toLowerCase().replace(/\s+/g, ' ');
 
 type RateSheetProps = {
   branchId: string;
@@ -59,6 +75,7 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
   );
   const [showAspects, setShowAspects] = useState(data.mine.aspects !== null);
   const [query, setQuery] = useState('');
+  const [added, setAdded] = useState<AddedDish[]>([]);
   const [error, setError] = useState<{ message: string; onboarding?: boolean } | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -66,9 +83,11 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
   const byId = useMemo(() => new Map(data.dishes.map((dish) => [dish.id, dish])), [data.dishes]);
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
+    // Unprompted chips are the branch's top live dishes; pending ones appear only when searched for
+    // (Gate 1), so an unconfirmed name is never promoted to everyone (docs/CONTRIBUTIONS.md §5.4).
     const pool = needle
       ? data.dishes.filter((dish) => dish.name.toLowerCase().includes(needle))
-      : data.dishes;
+      : data.dishes.filter((dish) => dish.status === 'active');
     return pool.filter((dish) => !selected.includes(dish.id)).slice(0, chipLimit);
   }, [data.dishes, query, selected]);
 
@@ -86,12 +105,33 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
     setVerdicts((current) => new Map(current).set(id, sentiment));
   }
 
+  const typed = query.trim();
+  // Gate 1: matches already show as chips; "Add" appears only for a name this menu does not have.
+  const canAdd =
+    typed.length >= 2 &&
+    added.length < maxNewDishesPerSubmission &&
+    !data.dishes.some((dish) => sameName(dish.name, typed)) &&
+    !added.some((dish) => sameName(dish.name, typed));
+
+  function addDish() {
+    setAdded([...added, { key: typed.toLowerCase(), name: typed, diet: null, rupees: '', sentiment: null }]);
+    setQuery('');
+  }
+
+  const updateAdded = (key: string, change: Partial<AddedDish>) =>
+    setAdded(added.map((dish) => (dish.key === key ? { ...dish, ...change } : dish)));
+
   const ready = selected.filter((id) => verdicts.has(id));
+  const readyAdded = added.filter((dish) => dish.diet !== null && dish.sentiment !== null);
   const anyAspect = Object.values(aspects).some((answer) => answer !== null);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (ready.length === 0 && !anyAspect) {
+    if (readyAdded.length < added.length) {
+      setError({ message: t('ratings.sheet.finishNewDish') });
+      return;
+    }
+    if (ready.length === 0 && added.length === 0 && !anyAspect) {
       setError({ message: t('ratings.sheet.nothing') });
       return;
     }
@@ -100,6 +140,12 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
       const result = await rateBranchAction({
         branchId,
         dishes: ready.map((id) => ({ branchDishId: id, sentiment: verdicts.get(id) as Sentiment })),
+        newDishes: readyAdded.map((dish) => ({
+          name: dish.name,
+          diet: dish.diet,
+          sentiment: dish.sentiment,
+          pricePaise: /^\d{1,5}$/.test(dish.rupees.trim()) ? Number(dish.rupees.trim()) * 100 : null,
+        })),
         aspects: anyAspect ? aspects : null,
       });
       if (result.ok) {
@@ -108,6 +154,8 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
       }
       if (result.error.message === 'onboarding_required') {
         setError({ message: t('ratings.sheet.onboarding'), onboarding: true });
+      } else if (result.error.message === 'dish_name') {
+        setError({ message: t('ratings.sheet.badName') });
       } else if (result.error.code === 'rate_limited') {
         setError({ message: t('ratings.sheet.limited') });
       } else {
@@ -159,7 +207,7 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t('ratings.sheet.findDish')}
-            className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-inkMuted"
+            className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-inkMuted [&::-webkit-search-cancel-button]:appearance-none"
           />
         </label>
         <ul aria-label={t('ratings.sheet.dishChoices')} className="flex flex-wrap gap-2">
@@ -168,13 +216,97 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
               <ChipButton selected={false} onClick={() => toggleDish(dish.id)}>
                 <DietMark diet={dish.diet} />
                 <span data-dish-name>{dish.name}</span>
+                {dish.status === 'pending' ? (
+                  <span className="text-[10px] text-inkMuted">{t('dish.new')}</span>
+                ) : null}
               </ChipButton>
             </li>
           ))}
-          {matches.length === 0 ? (
+          {matches.length === 0 && !canAdd ? (
             <li className="text-xs text-inkMuted">{t('ratings.sheet.noMatch')}</li>
           ) : null}
         </ul>
+        {canAdd ? (
+          <Button variant="outline" size="sm" className="self-start" onClick={addDish}>
+            {t('ratings.sheet.addDish', { name: typed })}
+          </Button>
+        ) : null}
+
+        {added.length > 0 ? (
+          <ol
+            aria-label={t('ratings.sheet.newDishes')}
+            className="flex flex-col gap-4 border-t-2 border-dashed border-ink/25 pt-3"
+          >
+            {added.map((dish) => (
+              <li key={dish.key} data-diet={dish.diet ?? undefined} className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-2 text-sm">
+                    <span className="truncate">{dish.name}</span>
+                    <Badge tone="lime">{t('dish.new')}</Badge>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAdded(added.filter((item) => item.key !== dish.key))}
+                    className="shrink-0 text-xs text-inkMuted underline underline-offset-4 hover:text-terracottaDeep"
+                  >
+                    {t('ratings.sheet.remove')}
+                    <span className="sr-only">{dish.name}</span>
+                  </button>
+                </div>
+                <div
+                  role="group"
+                  aria-label={t('ratings.sheet.dietOf', { name: dish.name })}
+                  className="flex flex-wrap gap-2"
+                >
+                  {dietOptions.map((diet) => (
+                    <ChipButton
+                      key={diet}
+                      selected={dish.diet === diet}
+                      onClick={() => updateAdded(dish.key, { diet })}
+                    >
+                      <DietMark diet={diet} />
+                      {t(dietLabel[diet])}
+                    </ChipButton>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 text-xs text-inkMuted">
+                  {t('ratings.sheet.priceOptional')}
+                  <span className="flex items-center rounded-row border-2 border-ink bg-paper px-2 text-sm text-ink focus-within:ring-4 focus-within:ring-lime">
+                    <span aria-hidden="true">₹</span>
+                    <input
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={5}
+                      value={dish.rupees}
+                      onChange={(event) =>
+                        updateAdded(dish.key, { rupees: event.target.value.replace(/\D/g, '') })
+                      }
+                      className="h-9 w-20 bg-transparent px-1 outline-none"
+                    />
+                  </span>
+                </label>
+                <div role="group" aria-label={dish.name} className="grid grid-cols-4 gap-1.5">
+                  {sentiments.map((sentiment) => (
+                    <button
+                      key={sentiment}
+                      type="button"
+                      aria-pressed={dish.sentiment === sentiment}
+                      onClick={() => updateAdded(dish.key, { sentiment })}
+                      className={cn(
+                        'min-h-11 rounded-row border-2 border-ink px-1 text-xs transition-[background-color,translate] duration-(--dur-instant)',
+                        dish.sentiment === sentiment
+                          ? cn(verdictFill[sentiment], '-translate-x-px -translate-y-px shadow-brutal-sm')
+                          : 'bg-paper hover:bg-cream',
+                      )}
+                    >
+                      {t(sentimentLabelKey[sentiment])}
+                    </button>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : null}
 
         {selected.length > 0 ? (
           <ol className="flex flex-col gap-3 border-t-2 border-dashed border-ink/25 pt-3">
@@ -284,10 +416,10 @@ export function RateSheet({ branchId, branchName, data, initialDishId, onDone }:
       <Button type="submit" variant="primary" disabled={pending} className="w-full">
         {pending
           ? t('ratings.sheet.saving')
-          : ready.length === 1
+          : ready.length + readyAdded.length === 1
             ? t('ratings.sheet.saveOne')
-            : ready.length > 1
-              ? t('ratings.sheet.saveCount', { count: ready.length })
+            : ready.length + readyAdded.length > 1
+              ? t('ratings.sheet.saveCount', { count: ready.length + readyAdded.length })
               : t('ratings.sheet.save')}
       </Button>
       <p className="text-xs text-inkMuted">{t('ratings.sheet.note')}</p>

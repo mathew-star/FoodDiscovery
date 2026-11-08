@@ -20,7 +20,8 @@ test('a guest asked to rate signs up and lands back in the rate sheet', async ({
   await signUp(page, email);
   await page.goto(await latestLink(email, 'verify-email'));
   await completeOnboarding(page);
-  await expect(page.getByRole('dialog', { name: /Rate Qamar Irani Café/ })).toBeVisible();
+  // The sheet opens after the member flag and the sheet data both arrive.
+  await expect(page.getByRole('dialog', { name: /Rate Qamar Irani Café/ })).toBeVisible({ timeout: 15_000 });
   await expect(page).toHaveURL(new RegExp(`${branchPath}$`));
 });
 
@@ -82,4 +83,52 @@ test('the rate sheet passes axe', async ({ page }) => {
   expect(
     results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical').map((v) => v.id),
   ).toEqual([]);
+});
+
+test('add a missing dish while rating; existing names are offered first (Gate 1)', async ({ page }) => {
+  await newMember(page, 'adder');
+  // Every run adds its own dish, so other projects' runs on the same database never collide.
+  const dishName = `Marag ${Date.now().toString(36)}`;
+  await page.goto('/r/hitech-biryani-co-madhapur');
+  await page.getByRole('main').getByRole('button', { name: 'Rate' }).click();
+  const sheet = page.getByRole('dialog', { name: /Rate Hitech Biryani Co/ });
+  const search = sheet.getByRole('searchbox', { name: 'Find a dish' });
+
+  await search.fill('Chicken Dum Biryani');
+  await expect(sheet.getByRole('list', { name: 'Dishes at this place' }).getByRole('button')).toHaveText(
+    /Chicken Dum Biryani/,
+  );
+  await expect(sheet.getByRole('button', { name: /^Add “/ })).toHaveCount(0);
+
+  await search.fill(dishName);
+  await sheet.getByRole('button', { name: `Add “${dishName}” and rate it` }).click();
+  const added = sheet.getByRole('list', { name: 'Dishes you are adding' });
+  await expect(added.getByText(dishName, { exact: true }).first()).toBeVisible();
+  // Incomplete new dishes are not counted on the button and block saving with a reason.
+  await sheet.getByRole('button', { name: 'Save ratings' }).click();
+  await expect(sheet.getByRole('alert')).toContainText('Pick veg, egg or non-veg');
+
+  await added
+    .getByRole('group', { name: `Diet of ${dishName}` })
+    .getByRole('button', { name: /Non-veg/ })
+    .click();
+  await added.getByLabel('Price (optional)').fill('320');
+  await added
+    .getByRole('group', { name: dishName, exact: true })
+    .getByRole('button', { name: 'Loved' })
+    .click();
+  await sheet.getByRole('button', { name: 'Save 1 rating' }).click();
+  await expect(sheet.getByRole('status')).toContainText('Thanks');
+  await sheet.getByRole('button', { name: 'Done' }).click();
+
+  await page.getByRole('main').getByRole('button', { name: 'Rate' }).click();
+  const again = page.getByRole('dialog', { name: /Rate Hitech Biryani Co/ });
+  await again.getByRole('searchbox', { name: 'Find a dish' }).fill(dishName);
+  await expect(again.getByRole('list', { name: 'Dishes at this place' }).getByRole('button')).toHaveCount(0);
+  await expect(
+    // Saved names are title-cased for display.
+    again
+      .getByRole('group', { name: new RegExp(`^${dishName}$`, 'i') })
+      .getByRole('button', { name: 'Loved' }),
+  ).toHaveAttribute('aria-pressed', 'true');
 });

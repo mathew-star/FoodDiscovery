@@ -1,12 +1,8 @@
 import 'dotenv/config';
 
-import { neonConfig, Pool as NeonPool } from '@neondatabase/serverless';
 import { sql } from 'drizzle-orm';
-import { drizzle as drizzleNeon } from 'drizzle-orm/neon-serverless';
-import { drizzle as drizzleNodePg } from 'drizzle-orm/node-postgres';
-import type { PgAsyncDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
-import { Pool as PgPool } from 'pg';
 import * as schema from '@/db/schema';
+import { connect } from '@/db/scripts/connect';
 import {
   aggregateAspects,
   aggregateDishRatings,
@@ -18,6 +14,7 @@ import {
   type AspectRow,
   type TrustLevel,
 } from '@/features/ratings/lib/aggregate';
+import { fingerprintDish, protectedDishNames } from '@/features/dishes/lib/fingerprint';
 import { computeDishScore, computeFoodScore } from '@/features/ratings/lib/score';
 import { rankingConfigDefaults } from '@/features/ratings/schemas/ranking-config';
 import { sentiments, type Sentiment } from '@/features/ratings/schemas/sentiment';
@@ -25,8 +22,6 @@ import { branchSlug, slugify, uniqueSlug } from '@/shared/lib/slug';
 import { uuidv7 } from '@/shared/lib/uuid';
 import { brands, canonicalDishes, categories, city, cuisines, localities } from './catalogue';
 import { between, createRandom, integerBetween, type Random } from './random';
-
-type Database = PgAsyncDatabase<PgQueryResultHKT>;
 
 const DAY_MS = 86_400_000;
 const config = rankingConfigDefaults.dish_scoring;
@@ -61,18 +56,6 @@ function pickMembers(random: Random, members: SampleMember[], count: number): Sa
 function aspectAnswer(random: Random, quality: number): AspectAnswer {
   const roll = random() - (quality - 0.6);
   return roll < 0.45 ? 'good' : roll < 0.85 ? 'okay' : 'poor';
-}
-
-function connect(): { db: Database; close: () => Promise<void> } {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is required to seed');
-  if ((process.env.DATABASE_DRIVER ?? 'neon') === 'pg') {
-    const pool = new PgPool({ connectionString: url });
-    return { db: drizzleNodePg({ client: pool }), close: () => pool.end() };
-  }
-  neonConfig.webSocketConstructor = WebSocket;
-  const pool = new NeonPool({ connectionString: url });
-  return { db: drizzleNeon({ client: pool }), close: () => pool.end() };
 }
 
 function jitter(random: Random, center: { lat: number; lng: number }, meters: number) {
@@ -205,6 +188,10 @@ async function main(): Promise<void> {
         }),
       );
       await tx.insert(schema.canonicalDishAliases).values(aliasRows);
+      const protectedNames = protectedDishNames([
+        ...canonicalDishes.map((dish) => dish.name),
+        ...aliasRows.map((row) => row.alias),
+      ]);
 
       const members: SampleMember[] = Array.from({ length: SAMPLE_MEMBERS }, () => ({
         id: uuidv7(),
@@ -331,6 +318,7 @@ async function main(): Promise<void> {
               canonicalDishId: canonicalDishId ?? null,
               slug: dishSlug,
               name: item.name,
+              ...fingerprintDish(item.name, protectedNames),
               menuSection: item.section,
               pricePaise: item.rupees * 100,
               diet: item.diet,

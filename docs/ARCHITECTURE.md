@@ -59,6 +59,7 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D49 | No menu-photo reading (Flow E) while D4 holds; menus are entered by hand | Proposal's Vision AI menu reader | No LLM in the MVP |
 | D50 | §7.1 quotas live in `ranking_config.action_limits`; the limiter takes a `cost`, so a submission of N dish ratings uses N of the member's (by trust) and the IP's daily allowance | Spec §7.1 | One limiter call per policy, exact to the spec's per-rating counts |
 | D51 | "Been there" shows every branch the member has current ratings at, plus items they add by hand; rated places are not copied into `list_items` | D42 note | No second copy to keep in sync |
+| D52 | Dish contributions (fingerprint match, pending cards, aliases, activation, `new_dish` review tasks) live in the ratings feature: a new dish is always born inside a rating submission and must share its transaction. Duplicate inserts use `ON CONFLICT DO NOTHING` then re-read, so a race never aborts the transaction. The rate sheet shows only live dishes unprompted; pending ones appear when searched for. New-dish quota per trust level in `action_limits.newDishes` | Proposal's separate dishes service | Cross-feature service calls are not allowed (AGENTS); one transaction keeps rating and card consistent |
 
 ## 2. Repository layout
 
@@ -159,7 +160,7 @@ All tables: `id uuid` (v7), `created_at`, `updated_at`; soft delete via `deleted
 | geo | `cities`, `localities` (center `geography`, boundary polygon, is_launch) |
 | places | `brands`, `branches` (slug, brand, locality, `location geography(Point)`, status, price_band, veg_only, tags[] for occasion chips, food_score, aspect scores), `branch_hours`, `branch_cuisines`, `cuisines`, `slug_redirects` |
 | facts | `facts` (branch, field, value jsonb, source, verified_at, freshness_days), `fact_confirmations`, `fact_proposals` |
-| dishes | `dish_categories`, `canonical_dishes`, `canonical_dish_aliases`, `branch_dishes` (price_paise, diet, is_signature, score, loved_pct, rating_count, weight_sum, scored_at, last_seen_at), `leaderboard_snapshots` |
+| dishes | `dish_categories`, `canonical_dishes`, `canonical_dish_aliases`, `branch_dishes` (price_paise, diet, is_signature, status, source, created_by, normalized_name, fingerprint with partial unique per branch, score, loved_pct, rating_count, weight_sum, scored_at), `branch_dish_aliases`, `leaderboard_snapshots` |
 | users | Better Auth tables `users`, `sessions`, `accounts`, `verifications`; `profiles` (user_id pk, username lower-unique `^[a-z0-9_]{3,20}$`, display_name, bio ≤ 160, diet `veg|jain|egg|nonveg`, cuisines[] ≤ 5, home_locality, role, trust_level, adult_confirmed_at, onboarded_at), `username_redirects`, `brand_affiliations`, `user_blocks`, `devices` |
 | ratings | `dish_ratings` (user, branch_dish, sentiment, `is_current` with partial unique per user and dish, disclosure, suspect, trust_at_time, post_id), `branch_aspect_ratings` (value/service/ambience good/okay/poor, would_return, `is_current`), `brand_affiliations` (D43–D46; lifecycle in docs/CONTRIBUTIONS.md) |
 | content | `posts` (type experience/question/discussion, community, title, body, disclosure, embed_url, status, score, hot, on_site), `post_media`, `post_entities`, `comments` (parent, depth ≤ 6, path, accepted, status), `post_votes`, `comment_votes` |
@@ -170,6 +171,7 @@ All tables: `id uuid` (v7), `created_at`, `updated_at`; soft delete via `deleted
 | notifications | `notifications`, `push_subscriptions`, `notification_prefs`, `visit_nudges` |
 | moderation | `reports`, `moderation_cases`, `moderation_actions`, `strikes`, `appeals`, `audit_log` |
 | analytics | `analytics_events` (name, device_id, user_id, branch_id, branch_dish_id, props jsonb, occurred_at; no FKs, partitions deferred, D34) |
+| review | `review_tasks` (kind, entity, branch, priority, state open/resolved with one open task per kind and entity, resolution) |
 | config | `ranking_config` (key, value jsonb, updated_by) |
 
 Extensions: `postgis`, `pg_trgm`, `unaccent`. Required indexes: GiST on locations, trigram GIN on `f_unaccent(lower(name))` for dishes, canonical dishes, aliases, branches, localities and cuisines (D35), GIN on `branches.tags`, partial unique `(user_id, branch_dish_id) where active` on `dish_ratings`, unique votes per `(user, target)`.

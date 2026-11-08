@@ -3,6 +3,7 @@ import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 import { getRankingConfig } from '@/features/ratings/queries/ranking-config';
 import { daysBetween } from '@/shared/lib/time';
+import { fingerprintDish, protectedDishNames } from '../lib/fingerprint';
 import {
   findBranchDish,
   findCanonicalDish,
@@ -10,6 +11,7 @@ import {
   listBestBranchDishPerCanonical,
   listBranchDishParams,
   listCanonicalDishSlugs,
+  listCanonicalNames,
   listDishesForBranch,
   listTopDishesForCuisine,
   listTopDishesInLocality,
@@ -30,7 +32,10 @@ export function buildBranchMenu<T extends MenuRow>(
   config: { minWeightForWhatToOrder: number; whatToOrderLimit: number; whatToOrderMinQualified: number },
 ): BranchMenu<T> {
   const qualified = dishes
-    .filter((dish) => dish.score !== null && dish.weightSum >= config.minWeightForWhatToOrder)
+    .filter(
+      (dish) =>
+        dish.status === 'active' && dish.score !== null && dish.weightSum >= config.minWeightForWhatToOrder,
+    )
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || b.ratingCount - a.ratingCount)
     .slice(0, config.whatToOrderLimit);
   const whatToOrder = qualified.map((dish) => ({ dish, knownFor: false }));
@@ -38,7 +43,9 @@ export function buildBranchMenu<T extends MenuRow>(
     const chosen = new Set(qualified.map((dish) => dish.id));
     for (const dish of dishes) {
       if (whatToOrder.length >= config.whatToOrderLimit) break;
-      if (dish.isSignature && !chosen.has(dish.id)) whatToOrder.push({ dish, knownFor: true });
+      if (dish.isSignature && dish.status === 'active' && !chosen.has(dish.id)) {
+        whatToOrder.push({ dish, knownFor: true });
+      }
     }
   }
 
@@ -162,4 +169,24 @@ export async function getCityShelves(cityId: string) {
     .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
     .slice(0, 6);
   return { shelves: ordered, topOverall, minWeightForDisplay: config.minWeightForDisplay };
+}
+
+export type CanonicalMatch = { canonicalDishId: string; category: string };
+
+/**
+ * Names that must keep every word when fingerprinted (D48), and canonical dishes by fingerprint,
+ * for matching a member's new dish to the city-wide dish it is.
+ */
+export async function getCanonicalNameIndex() {
+  'use cache';
+  cacheLife('catalog');
+  cacheTag('canonical-dishes');
+  const rows = await listCanonicalNames();
+  const protectedNames = [...protectedDishNames(rows.map((row) => row.name))];
+  const byFingerprint: Record<string, CanonicalMatch> = {};
+  for (const row of rows) {
+    const { fingerprint } = fingerprintDish(row.name, new Set(protectedNames));
+    byFingerprint[fingerprint] ??= { canonicalDishId: row.canonicalDishId, category: row.category };
+  }
+  return { protectedNames, byFingerprint };
 }

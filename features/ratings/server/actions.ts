@@ -13,21 +13,29 @@ import { rateBranchInputSchema } from '../schemas/rate-input';
 import { findMemberTrust } from './repo';
 import { getRateSheet, rateBranch, type RateBranchOutcome } from './service';
 
-/** Spec §7.1 dish-rating quotas: per member by trust level, and per IP. */
-async function overQuota(userId: string, trust: 't0' | 't1' | 't2' | 'founding', cost: number) {
+type Trust = 't0' | 't1' | 't2' | 'founding';
+
+/** Spec §7.1 quotas per member by trust level and per IP; a submission costs one per item (D50). */
+async function overQuota(userId: string, trust: Trust, usage: { ratings: number; newDishes: number }) {
   const config = await getRankingConfig('action_limits');
-  const quota = config.dishRatings;
-  const windowMs = config.windowMs;
-  for (const [policy, identifier] of [
-    [{ name: `ratings:${trust}`, limit: quota[trust], windowMs }, userId],
-    [{ name: 'ratings:ip', limit: quota.ip, windowMs }, clientIpKey(await headers())],
-  ] as const) {
-    const decision = await limit(policy, identifier, { cost });
-    if (!decision.allowed)
-      return err({
-        code: 'rate_limited' as const,
-        retryAfterSeconds: Math.ceil(decision.retryAfterMs / 1000),
-      });
+  const ip = clientIpKey(await headers());
+  const checks = [
+    ['ratings', config.dishRatings, Math.max(1, usage.ratings)],
+    ...(usage.newDishes > 0 ? [['new-dishes', config.newDishes, usage.newDishes] as const] : []),
+  ] as const;
+  for (const [action, quota, cost] of checks) {
+    for (const [policy, identifier] of [
+      [{ name: `${action}:${trust}`, limit: quota[trust], windowMs: config.windowMs }, userId],
+      [{ name: `${action}:ip`, limit: quota.ip, windowMs: config.windowMs }, ip],
+    ] as const) {
+      const decision = await limit(policy, identifier, { cost });
+      if (!decision.allowed) {
+        return err({
+          code: 'rate_limited' as const,
+          retryAfterSeconds: Math.ceil(decision.retryAfterMs / 1000),
+        });
+      }
+    }
   }
   return null;
 }
@@ -42,7 +50,10 @@ export async function rateBranchAction(input: unknown): Promise<Result<RateBranc
   try {
     const trust = await findMemberTrust(getDb(), session.userId);
     if (!trust) return err({ code: 'forbidden', message: 'onboarding_required' });
-    const limited = await overQuota(session.userId, trust, Math.max(1, parsed.data.dishes.length));
+    const limited = await overQuota(session.userId, trust, {
+      ratings: parsed.data.dishes.length + parsed.data.newDishes.length,
+      newDishes: parsed.data.newDishes.length,
+    });
     if (limited) return limited;
 
     const result = await rateBranch(session.userId, parsed.data);

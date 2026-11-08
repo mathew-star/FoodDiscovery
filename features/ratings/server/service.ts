@@ -1,7 +1,11 @@
 import 'server-only';
 
 import { withTransaction, type Database, type Transaction } from '@/db/client';
+import { getCanonicalNameIndex } from '@/features/dishes/queries/dishes';
+import { checkDishName, displayDishName } from '@/features/dishes/lib/dish-name';
+import { fingerprintDish } from '@/features/dishes/lib/fingerprint';
 import { getRankingConfig } from '@/features/ratings/queries/ranking-config';
+import { slugify, uniqueSlug } from '@/shared/lib/slug';
 import { err, ok, type Result } from '@/shared/lib/result';
 import {
   aggregateAspects,
@@ -11,11 +15,22 @@ import {
   cityPrior,
   type AspectRow,
   type DishRatingRow,
+  type TrustLevel,
 } from '../lib/aggregate';
+import { activatesOnCreate, isCorroborated } from '../lib/activation';
 import { computeDishScore, computeFoodScore } from '../lib/score';
-import type { RateBranchInput } from '../schemas/rate-input';
+import type { NewDishInput, RateBranchInput } from '../schemas/rate-input';
+import type { Sentiment } from '../schemas/sentiment';
 import {
+  activateDish,
   canonicalTotals,
+  findDishByFingerprint,
+  insertCommunityDish,
+  insertDishAlias,
+  listBranchDishSlugs,
+  listCurrentRaters,
+  openReviewTask,
+  resolveReviewTask,
   cityAspectMeans,
   findCurrentAspects,
   findCurrentDishRatings,
@@ -151,6 +166,11 @@ export type RateBranchOutcome = {
  * then recomputes the touched dish cards and the branch in the same transaction.
  */
 export async function rateBranch(userId: string, input: RateBranchInput): Promise<Result<RateBranchOutcome>> {
+  const [activation, weightConfig, canonicalIndex] = await Promise.all([
+    getRankingConfig('dish_activation'),
+    getRankingConfig('rating_weights'),
+    getCanonicalNameIndex(),
+  ]);
   return withTransaction(async (tx) => {
     const trust = await findMemberTrust(tx, userId);
     if (!trust) return err({ code: 'forbidden', message: 'onboarding_required' });
@@ -164,14 +184,46 @@ export async function rateBranch(userId: string, input: RateBranchInput): Promis
     ) {
       return err({ code: 'not_found' });
     }
-    const rateable = new Set((await listRateableDishes(tx, branch.id)).map((dish) => dish.id));
+    const rateableDishes = await listRateableDishes(tx, branch.id);
+    const rateable = new Set(rateableDishes.map((dish) => dish.id));
     if (input.dishes.some((dish) => !rateable.has(dish.branchDishId))) return err({ code: 'invalid_input' });
+
+    // New names resolve to an existing card (Gate 2) or become a card of their own (§5.2).
+    const added: { branchDishId: string; sentiment: Sentiment }[] = [];
+    for (const newDish of input.newDishes) {
+      const resolved = await resolveOrCreateDish(
+        tx,
+        {
+          userId,
+          trust,
+          branchId: branch.id,
+          branchListed: branch.listing === 'listed',
+          dish: newDish,
+        },
+        canonicalIndex,
+      );
+      if (!resolved.ok) return resolved;
+      added.push({ branchDishId: resolved.data, sentiment: newDish.sentiment });
+    }
+    const wanted = new Map([...input.dishes, ...added].map((dish) => [dish.branchDishId, dish.sentiment]));
 
     const current = new Map(
       (await findCurrentDishRatings(tx, userId, branch.id)).map((row) => [row.branchDishId, row.sentiment]),
     );
-    const changed = input.dishes.filter((dish) => current.get(dish.branchDishId) !== dish.sentiment);
+    const changed = [...wanted]
+      .filter(([id, sentiment]) => current.get(id) !== sentiment)
+      .map(([branchDishId, sentiment]) => ({ branchDishId, sentiment }));
     await replaceDishRatings(tx, userId, trust, changed);
+
+    // D47: a pending card goes live once its raters corroborate it.
+    const statusById = new Map(rateableDishes.map((dish) => [dish.id, dish.status]));
+    for (const { branchDishId } of changed) {
+      if ((statusById.get(branchDishId) ?? 'pending') !== 'pending') continue;
+      if (isCorroborated(await listCurrentRaters(tx, branchDishId), activation, weightConfig)) {
+        await activateDish(tx, branchDishId);
+        await resolveReviewTask(tx, 'new_dish', branchDishId, 'corroborated');
+      }
+    }
 
     let aspectsSaved = false;
     if (input.aspects && !sameAspects(input.aspects, await findCurrentAspects(tx, userId, branch.id))) {
@@ -184,6 +236,70 @@ export async function rateBranch(userId: string, input: RateBranchInput): Promis
     if (dishIds.length > 0 || aspectsSaved) await recomputeBranch(tx, branch.id, { aspects: aspectsSaved });
     return ok({ branchSlug: branch.slug, savedDishes: changed.length, aspectsSaved, dishIds });
   });
+}
+
+const communitySection = 'Added by locals';
+
+/**
+ * Gate 2 and §5.2: the same fingerprint at this branch reuses that card and keeps the typed text as
+ * an alias; otherwise a pending card is created (active at once for a confident canonical match by a
+ * regular member, D47) with an Ops task.
+ */
+async function resolveOrCreateDish(
+  tx: Executor,
+  input: { userId: string; trust: TrustLevel; branchId: string; branchListed: boolean; dish: NewDishInput },
+  index: Awaited<ReturnType<typeof getCanonicalNameIndex>>,
+): Promise<Result<string>> {
+  if (checkDishName(input.dish.name)) return err({ code: 'invalid_input', message: 'dish_name' });
+  const { normalizedName, fingerprint } = fingerprintDish(input.dish.name, new Set(index.protectedNames));
+  const alias = (branchDishId: string) =>
+    insertDishAlias(tx, {
+      branchDishId,
+      rawText: input.dish.name.trim(),
+      normalizedText: normalizedName,
+      createdBy: input.userId,
+      submittedPricePaise: input.dish.pricePaise,
+    });
+
+  const existing = await findDishByFingerprint(tx, input.branchId, fingerprint);
+  if (existing) {
+    await alias(existing.id);
+    return ok(existing.id);
+  }
+
+  const canonical = index.byFingerprint[fingerprint] ?? null;
+  const active = activatesOnCreate({
+    trust: input.trust,
+    branchListed: input.branchListed,
+    canonicalMatch: canonical !== null,
+  });
+  const name = displayDishName(input.dish.name);
+  const id = await insertCommunityDish(tx, {
+    branchId: input.branchId,
+    canonicalDishId: canonical?.canonicalDishId ?? null,
+    slug: uniqueSlug(slugify(name), await listBranchDishSlugs(tx, input.branchId)),
+    name,
+    normalizedName,
+    fingerprint,
+    menuSection: canonical?.category ?? communitySection,
+    pricePaise: input.dish.pricePaise,
+    diet: input.dish.diet,
+    status: active ? 'active' : 'pending',
+    createdBy: input.userId,
+  });
+  const dishId = id ?? (await findDishByFingerprint(tx, input.branchId, fingerprint))?.id;
+  if (!dishId) return err({ code: 'conflict' });
+  await alias(dishId);
+  if (id && !active) {
+    await openReviewTask(tx, {
+      kind: 'new_dish',
+      entityId: dishId,
+      branchId: input.branchId,
+      priority: input.trust === 't0' ? 2 : 3,
+      openedBy: input.userId,
+    });
+  }
+  return ok(dishId);
 }
 
 /** What the rate sheet needs: the branch's dishes and the member's current answers. */

@@ -344,7 +344,9 @@
     "metaDescription": "{dish} at {branch}, {locality}: {price}. See how the community rates it and where else to get it.",
     "breakdownBody": "How people rated it.",
     "leaderboard": "City leaderboard",
-    "photoAlt": "{dish} at {branch}"
+    "photoAlt": "{dish} at {branch}",
+    "new": "New",
+    "newHint": "Added by locals. It counts in rankings once others confirm it."
   },
   "area": {
     "title": "Food in {area}",
@@ -907,7 +909,7 @@
       "whatDidYouEat": "What did you eat?",
       "findDish": "Find a dish",
       "dishChoices": "Dishes at this place",
-      "noMatch": "No dish here by that name yet.",
+      "noMatch": "No dish here by that name yet. Type the full name to add it.",
       "remove": "Remove",
       "howWasPlace": "How was the place? (optional)",
       "value": "Value",
@@ -931,7 +933,13 @@
       "thanksTitle": "Thanks. Your ratings are in.",
       "thanksBody": "They help the next person decide what to order at {place}.",
       "done": "Done",
-      "saveOne": "Save 1 rating"
+      "saveOne": "Save 1 rating",
+      "addDish": "Add “{name}” and rate it",
+      "newDishes": "Dishes you are adding",
+      "dietOf": "Diet of {name}",
+      "priceOptional": "Price (optional)",
+      "finishNewDish": "Pick veg, egg or non-veg and a verdict for each dish you added.",
+      "badName": "That doesn’t look like a dish name. Use the name on the menu."
     },
     "wouldReturnPct": "{pct}% would go back"
   }

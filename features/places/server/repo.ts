@@ -53,7 +53,9 @@ export async function findBranchBySlug(slug: string) {
     .innerJoin(brands, eq(brands.id, branches.brandId))
     .innerJoin(localities, eq(localities.id, branches.localityId))
     .innerJoin(cities, eq(cities.id, branches.cityId))
-    .where(and(eq(branches.slug, slug), ne(branches.status, 'permanently_closed')));
+    .where(
+      and(eq(branches.slug, slug), eq(branches.listing, 'listed'), ne(branches.status, 'permanently_closed')),
+    );
   if (!branch) return null;
 
   const [cuisineRows, hours, factRows] = await Promise.all([
@@ -90,7 +92,7 @@ export async function listPublishedBranchSlugs() {
   const rows = await getDb()
     .select({ slug: branches.slug })
     .from(branches)
-    .where(ne(branches.status, 'permanently_closed'))
+    .where(and(eq(branches.listing, 'listed'), ne(branches.status, 'permanently_closed')))
     .orderBy(asc(branches.slug));
   return rows.map((row) => row.slug);
 }
@@ -115,6 +117,7 @@ export async function findNearbyBranches(input: {
       and(
         ne(branches.id, input.branchId),
         eq(branches.status, 'active'),
+        eq(branches.listing, 'listed'),
         sql`ST_DWithin(${branches.location}, ${point}, ${input.radiusMeters})`,
         sql`exists (select 1 from ${branchCuisines} where ${branchCuisines.branchId} = ${branches.id} and ${inArray(branchCuisines.cuisineId, input.cuisineIds)})`,
       ),
@@ -131,7 +134,9 @@ export async function listBranchesInLocality(localityId: string, limit: number) 
     .select(branchCard)
     .from(branches)
     .innerJoin(localities, eq(localities.id, branches.localityId))
-    .where(and(eq(branches.localityId, localityId), eq(branches.status, 'active')))
+    .where(
+      and(eq(branches.localityId, localityId), eq(branches.status, 'active'), eq(branches.listing, 'listed')),
+    )
     .orderBy(sql`${branches.foodScore} desc nulls last`, asc(branches.name))
     .limit(limit);
 }
@@ -160,6 +165,7 @@ export async function listBranchesForCuisine(cityId: string, cuisineId: string, 
         eq(branches.cityId, cityId),
         eq(branchCuisines.cuisineId, cuisineId),
         eq(branches.status, 'active'),
+        eq(branches.listing, 'listed'),
       ),
     )
     .orderBy(sql`${branches.foodScore} desc nulls last`, asc(branches.name))

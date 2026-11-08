@@ -1,6 +1,6 @@
 # Contributions, ratings and owner claims
 
-How restaurants and dishes get added, how ratings attach and start counting, how duplicates are stopped, and how owners take over official information. This is the reviewed design for spec W3, W8, E3-4, E6-1…E6-4 and the owner-claim proposal; `docs/ARCHITECTURE.md` §Decisions (D43–D51) records where it departs from the spec or the proposal.
+How restaurants and dishes get added, how ratings attach and start counting, how duplicates are stopped, and how owners take over official information. This is the reviewed design for spec W3, W8, E3-4, E6-1…E6-4 and the owner-claim proposal; `docs/ARCHITECTURE.md` §Decisions (D43–D52) records where it departs from the spec or the proposal.
 
 ## 1. Principles
 
@@ -92,7 +92,7 @@ The proposal's "a second person rates it" alone would let two throwaway accounts
 Inline in the menu with a "New" badge, never in a separate section:
 
 - Added by T1+: everyone.
-- Added by T0: the adder. Everyone else sees it only in the rate sheet's typeahead, after it passes the text check, so a second person can confirm it without retyping.
+- Added by T0: everyone else sees it only in the rate sheet when they search for it, after it passed the text check, so a second person can confirm it without retyping. The adder sees it in their own rate sheet. Unprompted rate-sheet chips show only live dishes.
 - Never in What to order here, city rankings, search, leaderboards or sitemaps until `active`.
 
 ### 5.5 Duplicates and merges (Gate 3)

@@ -27,6 +27,7 @@ function dish(overrides: Partial<Dish> & Pick<Dish, 'id'>): Dish {
     weightSum: 0,
     lastRatedAt: null,
     canonicalDishId: null,
+    status: 'active',
     ...overrides,
   };
 }
@@ -62,6 +63,18 @@ describe('buildBranchMenu', () => {
       expect.objectContaining({ knownFor: false, dish: expect.objectContaining({ id: 'rated' }) }),
       expect.objectContaining({ knownFor: true, dish: expect.objectContaining({ id: 'sig' }) }),
     ]);
+  });
+
+  it('keeps pending dishes out of What to order here but on the menu', () => {
+    const { whatToOrder, sections } = buildBranchMenu(
+      [
+        dish({ id: 'pending', status: 'pending', score: 0.95, weightSum: 9, isSignature: true }),
+        dish({ id: 'live', score: 0.7, weightSum: 9 }),
+      ],
+      config,
+    );
+    expect(whatToOrder.map((entry) => entry.dish.id)).toEqual(['live']);
+    expect(sections.flatMap((section) => section.dishes.map((entry) => entry.id))).toContain('pending');
   });
 
   it('groups by menu section with unrated dishes last', () => {

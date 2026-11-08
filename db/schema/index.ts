@@ -8,3 +8,4 @@ export * from './places';
 export * from './profiles';
 export * from './lists';
 export * from './ratings';
+export * from './review';
