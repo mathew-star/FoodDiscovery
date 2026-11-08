@@ -2,7 +2,7 @@ import 'server-only';
 
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { getDb } from '@/db/client';
-import { cuisines, localities, profiles, users } from '@/db/schema';
+import { branchDishes, branches, cuisines, dishRatings, localities, profiles, users } from '@/db/schema';
 
 export async function findProfile(userId: string) {
   const [profile] = await getDb()
@@ -75,4 +75,35 @@ export async function upsertOnboardedProfile(input: ProfileWrite) {
 
 export async function deleteUser(userId: string) {
   await getDb().delete(users).where(eq(users.id, userId));
+}
+
+/**
+ * Inputs for the §2.2 trust rule, one row per onboarded member. Contributions are ratings that
+ * count (current, not suspect, on a live dish at a listed branch). Reports and fact confirmations
+ * arrive in P5–P6, so they read as zero until then.
+ */
+export async function listTrustFacts() {
+  return getDb()
+    .select({
+      userId: profiles.userId,
+      current: profiles.trustLevel,
+      accountDays: sql<number>`floor(extract(epoch from (now() - ${users.createdAt})) / 86400)`.mapWith(
+        Number,
+      ),
+      contributions: sql<number>`(
+        select count(*) from ${dishRatings}
+        join ${branchDishes} on ${branchDishes.id} = ${dishRatings.branchDishId}
+        join ${branches} on ${branches.id} = ${branchDishes.branchId}
+        where ${dishRatings.userId} = ${profiles.userId}
+          and ${dishRatings.isCurrent} and not ${dishRatings.suspect}
+          and ${branchDishes.status} = 'active' and ${branches.listing} = 'listed'
+      )`.mapWith(Number),
+    })
+    .from(profiles)
+    .innerJoin(users, eq(users.id, profiles.userId))
+    .where(sql`${profiles.onboardedAt} is not null`);
+}
+
+export async function updateTrustLevel(userId: string, trustLevel: 't0' | 't1' | 't2' | 'founding') {
+  await getDb().update(profiles).set({ trustLevel }).where(eq(profiles.userId, userId));
 }

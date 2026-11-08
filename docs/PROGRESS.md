@@ -101,7 +101,7 @@ Notes:
 - [ ] Settings: sessions, export, delete
 - [x] R1 ratings (docs/CONTRIBUTIONS.md): lifecycle columns (D43), `dish_ratings` with history, aspect ratings, brand affiliations; synchronous recompute (D46); rate sheet on branch and dish pages with sign-in resume (W3, E6-1, E6-2, E6-4); aspect summary on branch page; per-trust daily quotas (D50); sample ratings in seed (D44); migration `20261104175853_ratings_lifecycle`
 - [x] R2 missing dishes (docs/CONTRIBUTIONS.md §5): fingerprint with protected canonical names (D48), `branch_dish_aliases`, "Add and rate" in the rate sheet (Gate 1 + Gate 2), pending cards with "New" badge, activation by trust-weighted corroboration (D47) or confident canonical match, `review_tasks`, read-side filters (only live dishes at listed branches rank or search), new-dish quota (D52); migration `20261108170450_dish_contributions`, `bun run db:backfill` for existing rows
-- [ ] Inngest: nightly full score recompute and trust job (D46)
+- [x] Inngest: `/api/inngest`, nightly trust job (§2.2, D53) chained into the full score recompute (D46, D54); `bun run inngest:dev`
 - [ ] R3 add a place, R4 Ops queue and merges, R5 owner claims
 - [ ] Trust levels, §7.1 per-action limits
 - [ ] Exit criteria met

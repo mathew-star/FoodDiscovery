@@ -50,9 +50,11 @@ bun run db:check
 bun run db:test             # read-only connectivity check
 bun run db:seed             # sample catalogue into an empty database
 bun run db:reseed           # truncate catalogue tables and reseed (never on production)
+bun run db:backfill         # fill dish fingerprints on rows created before R2 (safe to re-run)
+bun run inngest:dev         # Inngest dev server for /api/inngest (set INNGEST_DEV=1)
 ```
 
-`next build`, e2e and integration tests need a migrated, seeded database. Locally use Postgres 16 + PostGIS with `DATABASE_DRIVER=pg`; e2e also needs `REDIS_URL` (a local `redis://localhost:6379` works, D33). In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. `inngest:dev` lands in P3.
+`next build`, e2e and integration tests need a migrated, seeded database. Locally use Postgres 16 + PostGIS with `DATABASE_DRIVER=pg`; e2e also needs `REDIS_URL` (a local `redis://localhost:6379` works, D33). In cloud sessions, run e2e with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium`. Jobs run locally with `INNGEST_DEV=1` and `bun run inngest:dev` (Inngest dev server on port 8288).
 
 ## Architecture rules
 

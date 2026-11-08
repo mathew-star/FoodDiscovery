@@ -1,9 +1,19 @@
 import 'server-only';
 
 import { isUniqueViolation } from '@/db/errors';
+import { getRankingConfig } from '@/features/ratings/queries/ranking-config';
+import { logger } from '@/infra/logger';
 import { err, ok, type Result } from '@/shared/lib/result';
+import { evaluateTrust } from '../lib/trust';
 import type { OnboardingInput } from '../schemas/onboarding';
-import { countKnownCuisines, findLocalityId, isUsernameTaken, upsertOnboardedProfile } from './repo';
+import {
+  countKnownCuisines,
+  findLocalityId,
+  isUsernameTaken,
+  listTrustFacts,
+  updateTrustLevel,
+  upsertOnboardedProfile,
+} from './repo';
 
 const usernameTaken = () =>
   err({ code: 'conflict' as const, fieldErrors: { username: ['profile.errors.usernameTaken'] } });
@@ -35,4 +45,22 @@ export async function completeOnboarding(
     throw error;
   }
   return ok({ username: input.username });
+}
+
+/** Spec §2.2, nightly: moves members between T0, T1 and T2. Returns how many changed. */
+export async function recomputeTrustLevels(): Promise<{ members: number; changed: number }> {
+  const rules = await getRankingConfig('trust_rules');
+  const members = await listTrustFacts();
+  let changed = 0;
+  for (const member of members) {
+    const next = evaluateTrust(
+      { ...member, upheldReports: 0, factConfirmations: 0, factAgreements: 0 },
+      rules,
+    );
+    if (next === member.current) continue;
+    await updateTrustLevel(member.userId, next);
+    changed += 1;
+  }
+  logger.info({ members: members.length, changed }, 'trust levels recomputed');
+  return { members: members.length, changed };
 }

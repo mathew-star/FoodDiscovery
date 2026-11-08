@@ -114,6 +114,18 @@ export const dishActivationConfigSchema = z.object({
   minTrustWeight: z.number().positive(),
 });
 
+/** Spec §2.2 trust levels. Founding is granted by admins and never computed. */
+export const trustRulesConfigSchema = z.object({
+  t1: z.object({ minAccountDays: z.int().nonnegative(), minContributions: z.int().nonnegative() }),
+  t2: z.object({
+    minAccountDays: z.int().nonnegative(),
+    minContributions: z.int().nonnegative(),
+    minFactConfirmations: z.int().nonnegative(),
+    minFactAgreement: z.number().min(0).max(1),
+  }),
+  upheldReportWindowDays: z.int().positive(),
+});
+
 export type DishScoringConfig = z.infer<typeof dishScoringConfigSchema>;
 export type FactFreshnessConfig = z.infer<typeof factFreshnessConfigSchema>;
 export type NearbyConfig = z.infer<typeof nearbyConfigSchema>;
@@ -123,6 +135,7 @@ export type SearchConfig = z.infer<typeof searchConfigSchema>;
 export type RatingWeightsConfig = z.infer<typeof ratingWeightsConfigSchema>;
 export type AspectScoringConfig = z.infer<typeof aspectScoringConfigSchema>;
 export type DishActivationConfig = z.infer<typeof dishActivationConfigSchema>;
+export type TrustRulesConfig = z.infer<typeof trustRulesConfigSchema>;
 export type ActionLimitsConfig = z.infer<typeof actionLimitsConfigSchema>;
 export type LimitedAction = Exclude<keyof ActionLimitsConfig, 'windowMs'>;
 
@@ -189,6 +202,11 @@ export const rankingConfigDefaults = {
     newDishes: { t0: 5, t1: 20, t2: 40, founding: 40, ip: 40 },
   } satisfies ActionLimitsConfig,
   dish_activation: { minDistinctRaters: 2, minTrustWeight: 1.5 } satisfies DishActivationConfig,
+  trust_rules: {
+    t1: { minAccountDays: 3, minContributions: 3 },
+    t2: { minAccountDays: 30, minContributions: 25, minFactConfirmations: 10, minFactAgreement: 0.8 },
+    upheldReportWindowDays: 30,
+  } satisfies TrustRulesConfig,
   search: {
     textWeight: 0.6,
     rankWeight: 0.4,
@@ -212,6 +230,7 @@ export const rankingConfigSchemas = {
   aspect_scoring: aspectScoringConfigSchema,
   action_limits: actionLimitsConfigSchema,
   dish_activation: dishActivationConfigSchema,
+  trust_rules: trustRulesConfigSchema,
 } as const;
 
 export type RankingConfigKey = keyof typeof rankingConfigSchemas;

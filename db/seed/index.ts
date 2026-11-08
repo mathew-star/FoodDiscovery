@@ -38,7 +38,8 @@ type SampleRating = { userId: string; sentiment: Sentiment; trust: TrustLevel; a
 
 function sampleTrust(random: Random): TrustLevel {
   const roll = random();
-  return roll < 0.25 ? 't0' : roll < 0.8 ? 't1' : roll < 0.95 ? 't2' : 'founding';
+  // No T2: it needs fact confirmations (§2.2), which ship in P5, so the nightly job would demote it.
+  return roll < 0.25 ? 't0' : roll < 0.95 ? 't1' : 'founding';
 }
 
 /** Mostly recent, some old: age in days skewed toward today. */

@@ -1,6 +1,7 @@
 import 'server-only';
 
-import { withTransaction, type Database, type Transaction } from '@/db/client';
+import { getDb, withTransaction, type Database, type Transaction } from '@/db/client';
+import { logger } from '@/infra/logger';
 import { getCanonicalNameIndex } from '@/features/dishes/queries/dishes';
 import { checkDishName, displayDishName } from '@/features/dishes/lib/dish-name';
 import { fingerprintDish } from '@/features/dishes/lib/fingerprint';
@@ -23,6 +24,7 @@ import type { NewDishInput, RateBranchInput } from '../schemas/rate-input';
 import type { Sentiment } from '../schemas/sentiment';
 import {
   activateDish,
+  listBranchesWithDishes,
   canonicalTotals,
   findDishByFingerprint,
   insertCommunityDish,
@@ -311,4 +313,21 @@ export async function getRateSheet(userId: string | null, branchId: string, db: 
     findCurrentAspects(db, userId, branchId),
   ]);
   return { dishes, mine: { dishes: mineDishes, aspects } };
+}
+
+/**
+ * D46 nightly repair: every score from scratch, so time decay, trust changes and anything a failed
+ * request missed are applied. One branch at a time keeps each write small.
+ */
+export async function recomputeAllScores(): Promise<{ branches: number; dishes: number }> {
+  const db = getDb();
+  const branches = await listBranchesWithDishes(db);
+  let dishes = 0;
+  for (const { branchId, dishIds } of branches) {
+    await recomputeDishes(db, dishIds);
+    await recomputeBranch(db, branchId, { aspects: true });
+    dishes += dishIds.length;
+  }
+  logger.info({ branches: branches.length, dishes }, 'scores recomputed');
+  return { branches: branches.length, dishes };
 }

@@ -60,6 +60,8 @@ Deviations from `docs/spec/MVP-SPEC.md` and choices the spec leaves open. Add a 
 | D50 | §7.1 quotas live in `ranking_config.action_limits`; the limiter takes a `cost`, so a submission of N dish ratings uses N of the member's (by trust) and the IP's daily allowance | Spec §7.1 | One limiter call per policy, exact to the spec's per-rating counts |
 | D51 | "Been there" shows every branch the member has current ratings at, plus items they add by hand; rated places are not copied into `list_items` | D42 note | No second copy to keep in sync |
 | D52 | Dish contributions (fingerprint match, pending cards, aliases, activation, `new_dish` review tasks) live in the ratings feature: a new dish is always born inside a rating submission and must share its transaction. Duplicate inserts use `ON CONFLICT DO NOTHING` then re-read, so a race never aborts the transaction. The rate sheet shows only live dishes unprompted; pending ones appear when searched for. New-dish quota per trust level in `action_limits.newDishes` | Proposal's separate dishes service | Cross-feature service calls are not allowed (AGENTS); one transaction keeps rating and card consistent |
+| D53 | Trust levels (spec §2.2) are recomputed nightly from counted contributions (current, non-suspect ratings on live dishes at listed branches) and account age; thresholds in `ranking_config.trust_rules`. T2 also needs ≥ 10 fact confirmations with ≥ 80% agreement, so nobody reaches T2 until facts ship in P5; the seed assigns no T2. Founding is never computed | Spec §2.2 "approved contributions" undefined | A clear, testable count; T2 is not granted without the evidence the spec asks for |
+| D54 | Jobs: `profile-recompute-trust` runs at 03:00 IST and then emits `ratings/recompute-all`, which rebuilds every score (concurrency 1, 2 retries) and revalidates `branch-dishes`, `branches`, `search` stale-while-revalidate. The Inngest serve handler lives in `features/jobs/server/handler.ts` because `app/` may not import `infra/` | Separate crons | Scores always use the night's new trust levels; no lint exception |
 
 ## 2. Repository layout
 
@@ -105,7 +107,7 @@ instrumentation.ts
 tests/e2e/      Playwright; unit tests sit beside code as *.test.ts
 ```
 
-**Domains:** `shell` (top bar, bottom nav, footer, sign-in prompt, service worker), `landing` (marketing page at `/`, D17/D28), `content` (static pages), `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`.
+**Domains:** `shell` (top bar, bottom nav, footer, sign-in prompt, service worker), `landing` (marketing page at `/`, D17/D28), `content` (static pages), `auth`, `profile`, `geo` (cities, localities), `places` (brands, branches, hours), `dishes` (canonical dishes, branch dishes, leaderboards), `search`, `discover`, `ratings`, `posts`, `comments`, `votes`, `communities`, `saves` (saves, lists), `battles`, `facts`, `media`, `notifications`, `moderation`, `analytics`, `admin`, `jobs` (Inngest serve handler only, D54).
 
 **Top-level routes** are listed in the `proxy.ts` matcher (D14). Adding a top-level route means adding it there and to `proxy.test.ts`.
 
@@ -181,9 +183,9 @@ Extensions: `postgis`, `pg_trgm`, `unaccent`. Required indexes: GiST on location
 | Function | Trigger | Spec |
 | --- | --- | --- |
 | `ratings/recompute-dish` | `rating/created` debounced 30 s per branch dish | §6.1, E6-4 |
-| `ratings/recompute-all` | cron nightly 03:00 IST | §6.1–6.2 |
+| `ratings-recompute-all` | event `ratings/recompute-all` (sent by the trust job) | §6.1–6.2, D46, D54 |
 | `posts/hot-decay` | cron every 15 min | §6.4 |
-| `profile/recompute-trust` | cron nightly + `moderation/action` | §2.2 |
+| `profile-recompute-trust` | cron 03:00 IST (later also `moderation/action`) | §2.2, D53 |
 | `dishes/leaderboards` | cron hourly; weekly snapshot Mon 00:00 | §6.8 |
 | `moderation/review-bomb-scan` | `rating/created` + nightly | §7.3 |
 | `media/screen-photo` | `media/uploaded` | §7.2 (D4) |
@@ -229,7 +231,8 @@ Names only; values live in local `.env` and Vercel project settings, never in ch
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in when enabled (D1); OAuth redirect URI `{BETTER_AUTH_URL}/api/auth/callback/google` |
 | `STARTUP_CHECKS` | `1` runs Neon/Redis/R2 checks at server start; unset on Vercel |
 | `VERCEL_PROJECT_PRODUCTION_URL` | Set by Vercel; used for `metadataBase`, sitemap and robots (falls back to `http://localhost:3000`) |
-| `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY` | Inngest (to add before Phase 3) |
+| `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY` | Inngest; without them `/api/inngest` answers 500 in production |
+| `INNGEST_DEV` | `1` locally with `bun run inngest:dev` |
 | `R2_PUBLIC_URL` | Public/CDN origin for photos (to add before Phase 4) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | Web push (to add before Phase 6) |
 | `LOG_LEVEL` | pino |

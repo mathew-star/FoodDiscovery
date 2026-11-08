@@ -448,3 +448,15 @@ export async function activateDish(db: Executor, branchDishId: string) {
     .set({ status: 'active' })
     .where(and(eq(branchDishes.id, branchDishId), eq(branchDishes.status, 'pending')));
 }
+
+/** Every branch with its dish card ids, for the nightly full recompute (D46). */
+export async function listBranchesWithDishes(db: Executor) {
+  const rows = await db
+    .select({ branchId: branchDishes.branchId, dishId: branchDishes.id })
+    .from(branchDishes)
+    .innerJoin(branches, eq(branches.id, branchDishes.branchId))
+    .where(inArray(branchDishes.status, ['pending', 'active']));
+  const byBranch = new Map<string, string[]>();
+  for (const row of rows) byBranch.set(row.branchId, [...(byBranch.get(row.branchId) ?? []), row.dishId]);
+  return [...byBranch].map(([branchId, dishIds]) => ({ branchId, dishIds }));
+}
